@@ -3,6 +3,7 @@
 Runs before wall detection: tread lines would otherwise read as closely spaced partitions.
 """
 
+import itertools
 import math
 import statistics
 
@@ -21,7 +22,7 @@ DOWN_WORDS = {"TR", "TURUN", "DN", "DOWN"}
 def _runs(lines: list[dict], s: float) -> list[list[dict]]:
     """Split lines (sorted by c) into runs with regular spacing in SPACING_MM."""
     runs, cur = [], [lines[0]]
-    for prev, ln in zip(lines, lines[1:], strict=False):
+    for prev, ln in itertools.pairwise(lines):
         gap = (ln["c"] - prev["c"]) * s
         if SPACING_MM[0] <= gap <= SPACING_MM[1]:
             cur.append(ln)
@@ -33,7 +34,7 @@ def _runs(lines: list[dict], s: float) -> list[list[dict]]:
 
 
 def _flight(run: list[dict], orient: str, s: float, spacing_px: float | None = None) -> dict | None:
-    gaps = [b["c"] - a["c"] for a, b in zip(run, run[1:], strict=False)]
+    gaps = [b["c"] - a["c"] for a, b in itertools.pairwise(run)]
     mean = statistics.fmean(gaps)
     if statistics.pstdev(gaps) / mean > MAX_CV:
         return None
