@@ -17,6 +17,7 @@ from pathlib import Path
 
 from core.blender_run import parse_progress
 from core.config import Settings
+from core.extraction.stages import stage_grid, stage_input, stage_preprocess
 from core.pipeline import publish, stage_build, stage_report, stage_verify
 from core.spec.store import SpecStore
 from server.errors import ApiError
@@ -29,7 +30,8 @@ log = logging.getLogger(__name__)
 STAGES = [(0, "input"), (1, "preprocess"), (2, "grid"), (3, "extract"), (4, "rooms"), (5, "validate"),
           (6, "review"), (7, "build"), (8, "verify"), (9, "report"), (10, "publish")]
 FIRST_BLENDER_STAGE = 7
-STOP_ON_ATTENTION = {2, 5}  # needs_attention here stops the run; at 6 and 8 it is only a warning
+STOP_ON_ATTENTION = {1, 2, 5}  # needs_attention here stops the run; at 6 and 8 it is only a warning
+FIRST_SPEC_STAGE = 5  # stages before it read the previous stages' folders of the same run
 BLENDER_TIMEOUT_S = 300
 
 
@@ -58,15 +60,23 @@ class StageContext:
     cancelled: threading.Event
     state: dict = field(default_factory=dict)  # shared between the stages of one run
     register_process: Callable[[subprocess.Popen], None] = lambda p: None
+    params_override: dict = field(default_factory=dict)  # POST /runs params_override (explicit params win)
 
 
 # --- default stage implementations ------------------------------------------------------------------------------
 
 def _input(ctx: StageContext) -> dict:
-    originals = list((ctx.project_dir / "input").glob("original.*"))
-    if not originals:
+    if not list((ctx.project_dir / "input").glob("original.*")):
         return {"status": "failed", "message": "original upload missing"}
-    return {"status": "succeeded", "metrics": {"type": originals[0].suffix[1:]}}
+    return stage_input(ctx.project_dir, ctx.work_dir, ctx.params_override)
+
+
+def _preprocess(ctx: StageContext) -> dict:
+    return stage_preprocess(ctx.project_dir, ctx.work_dir)
+
+
+def _grid(ctx: StageContext) -> dict:
+    return stage_grid(ctx.project_dir, ctx.work_dir, ctx.params_override, ctx.emit_progress)
 
 
 def _not_yet(milestone: str) -> Callable[[StageContext], dict]:
@@ -78,7 +88,8 @@ def _not_yet(milestone: str) -> Callable[[StageContext], dict]:
 def _validate(ctx: StageContext) -> dict:
     head = SpecStore(ctx.project_dir / "specs").head()
     if head is None:
-        return {"status": "needs_attention", "message": "no spec yet: import a spec (extraction arrives in M5)"}
+        return {"status": "needs_attention",
+                "message": "no spec yet: import a spec (automatic extraction of walls/rooms arrives in M5b/M5c)"}
     ctx.state["version"] = head
     return {"status": "skipped", "message": f"using imported spec v{head}"}
 
@@ -132,7 +143,7 @@ def _publish(ctx: StageContext) -> dict:
 
 
 DEFAULT_IMPLS: dict[int, Callable[[StageContext], dict]] = {
-    0: _input, 1: _not_yet("M5"), 2: _not_yet("M5"), 3: _not_yet("M5"), 4: _not_yet("M5"), 5: _validate,
+    0: _input, 1: _preprocess, 2: _grid, 3: _not_yet("M5b"), 4: _not_yet("M5c"), 5: _validate,
     6: _review, 7: _build, 8: _verify, 9: _report, 10: _publish,
 }
 
@@ -206,7 +217,16 @@ class Orchestrator:
         return self._state.get(rid, {}).get("_stage", -1)
 
     # starting and cancelling
-    def start_run(self, pid: str, kind: str, from_stage: int = 0, version: int | str = "HEAD") -> dict:
+    def _seed_source(self, pid: str, upto: int) -> Path | None:
+        """Stage folder of the latest run that has every stage folder 0..upto (for a from_stage rerun)."""
+        for r in self.list_runs(pid):
+            stages = self.storage.project_dir(pid) / "runs" / r["run_id"] / "stages"
+            if all((stages / f"{n:02d}_{STAGES[n][1]}").is_dir() for n in range(upto + 1)):
+                return stages
+        return None
+
+    def start_run(self, pid: str, kind: str, from_stage: int = 0, version: int | str = "HEAD",
+                  params_override: dict | None = None) -> dict:
         project_dir = self.storage.project_dir(pid)
         with self._lock:
             if pid in self._active:
@@ -215,6 +235,11 @@ class Orchestrator:
             head = SpecStore(project_dir / "specs").head()
             if kind == "regenerate" or from_stage > FIRST_BLENDER_STAGE:
                 from_stage = FIRST_BLENDER_STAGE  # stages 8-10 need stage 7's spec and Blender output from this run
+            seed = None
+            if 0 < from_stage <= FIRST_SPEC_STAGE:
+                seed = self._seed_source(pid, from_stage - 1)
+                if seed is None:
+                    from_stage = 0  # nothing to continue from: run the extraction from the start
             resolved = head if version == "HEAD" else int(version)
             if from_stage >= FIRST_BLENDER_STAGE and resolved is None:
                 raise ApiError(409, "no_spec", "import a spec before building outputs")
@@ -224,7 +249,13 @@ class Orchestrator:
                    "stages": [{"n": n, "name": name, "status": "skipped" if n < from_stage else "pending",
                                "started_at": None, "ended_at": None, "duration_ms": None, "progress": None,
                                "metrics": {}, "warnings": []} for n, name in STAGES],
-                   "code_version": self.code_version, "blender_version": None, "created_at": _now(), "error": None}
+                   "code_version": self.code_version, "blender_version": None, "created_at": _now(), "error": None,
+                   "params_override": params_override or {}}
+            if seed is not None:
+                target = project_dir / "runs" / rid / "stages"
+                for n in range(from_stage):
+                    name = f"{n:02d}_{STAGES[n][1]}"
+                    shutil.copytree(seed / name, target / name)
             self._save(run)
             self._active[pid] = rid
             self._cancel[rid] = threading.Event()
@@ -312,7 +343,8 @@ class Orchestrator:
             self._procs[rid] = proc
 
         return StageContext(pid, rid, n, run.get("version"), work, project_dir, self.storage, self.settings,
-                            emit_log, emit_progress, self._cancel[rid], self._state[rid], register)
+                            emit_log, emit_progress, self._cancel[rid], self._state[rid], register,
+                            params_override=run.get("params_override") or {})
 
     async def _run_stage(self, run: dict, n: int) -> bool:
         """Run one stage; return False when the run must stop."""

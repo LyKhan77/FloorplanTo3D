@@ -63,9 +63,9 @@ def create_project(storage: Storage, data: bytes, filename: str, name: str | Non
 
 
 def input_image(storage: Storage, pid: str) -> Path | None:
-    """The original raster plan (PDF needs rasterisation in M5, so it has no image yet)."""
+    """The plan as a raster: the original JPEG/PNG, or the page stage 1 rasterised from a PDF (input/raster.png)."""
     d = storage.project_dir(pid) / "input"
-    return next((p for p in (d / "original.jpg", d / "original.png") if p.exists()), None)
+    return next((p for p in (d / "original.jpg", d / "original.png", d / "raster.png") if p.exists()), None)
 
 
 def output_versions(storage: Storage, pid: str) -> list[int]:
