@@ -48,9 +48,9 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
           <span className="mono">{formatDuration(stage.duration_ms)}</span></span>
       </div>
 
-      {n <= 2 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
-      {n >= 3 && n <= 6 && (
-        <p className="helper">{messages.at(-1)?.msg ?? (n === 6 ? 'Review Strata tersedia di M6.' : 'Tersedia di M5b/M5c.')}</p>
+      {n <= 3 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
+      {n >= 4 && n <= 6 && (
+        <p className="helper">{messages.at(-1)?.msg ?? (n === 6 ? 'Review Strata tersedia di M6.' : 'Tersedia di M5c.')}</p>
       )}
 
       {n === 7 && (

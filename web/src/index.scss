@@ -762,3 +762,24 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.candidate-table {
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #393939;
+  }
+
+  tbody tr {
+    cursor: pointer;
+  }
+
+  tr.is-selected {
+    background: #393939;
+  }
+}

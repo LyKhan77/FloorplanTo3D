@@ -52,6 +52,7 @@ export function ExtractionStage({ projectId, run, n, message }: Props) {
           </figcaption>
         </figure>
       )}
+      {n === 3 && done && <CandidatesStage art={art} runId={run.run_id} projectId={projectId} />}
       {n === 2 && done && <GridStage projectId={projectId} run={run} art={art} metrics={m} warnings={stage.warnings}
         attention={stage.status === 'needs_attention'} />}
     </div>
@@ -91,6 +92,53 @@ function GridStage({ projectId, art, metrics: m, warnings, attention }: {
           helperText="mm per piksel gambar asli; tahap 2 dijalankan ulang" onChange={(e) => setValue(e.target.value)}
           invalid={touched && !valid} invalidText="Isi angka lebih dari 0" />
       </Modal>
+    </>
+  )
+}
+
+interface Candidate {
+  index: number
+  params: { strategy: string; sauvola_k: number; t_min: number; t_max: number; l_fix: number }
+  counts: { walls: number; doors: number; columns: number; stairs: number } | null
+  wall_len_m: number
+  low_conf: number
+  error: string | null
+}
+
+function CandidatesStage({ art, runId, projectId }: { art: (p: string) => string; runId: string; projectId: string }) {
+  const [selected, setSelected] = useState(0)
+  const list = useQuery({
+    queryKey: ['candidates', projectId, runId],
+    queryFn: () => api.get<Candidate[]>(art('03_extract/candidates.json')),
+  })
+  if (!list.data) return null
+  return (
+    <>
+      <table className="candidate-table">
+        <thead><tr><th>#</th><th>Strategi</th><th>k</th><th>t_min</th><th>L_fix</th><th>Dinding</th><th>Pintu</th><th>Kolom</th>
+          <th>Tangga</th><th>Panjang (m)</th><th>Keyakinan rendah</th></tr></thead>
+        <tbody>
+          {list.data.map((c) => (
+            <tr key={c.index} className={c.index === selected ? 'is-selected' : ''} onClick={() => setSelected(c.index)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(c.index) }} tabIndex={0}
+              aria-selected={c.index === selected}>
+              <td className="mono">{c.index}</td><td>{c.params.strategy}</td><td className="mono">{c.params.sauvola_k}</td>
+              <td className="mono">{c.params.t_min}</td><td className="mono">{c.params.l_fix}</td>
+              {c.error ? <td colSpan={6} className="helper">{c.error}</td> : (
+                <>
+                  <td className="mono">{c.counts?.walls}</td><td className="mono">{c.counts?.doors}</td>
+                  <td className="mono">{c.counts?.columns}</td><td className="mono">{c.counts?.stairs}</td>
+                  <td className="mono">{c.wall_len_m}</td><td className="mono">{c.low_conf}</td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <figure>
+        <img src={art(`03_extract/candidates/${selected}/overlay.png`)} alt={`Kandidat ${selected}: elemen terdeteksi`} className="artifact-img" />
+        <figcaption className="helper">Biru: dinding · Oranye: dinding keyakinan rendah / kolom · Hijau: pintu · Ungu: tangga · Abu-abu: hatch dan simbol</figcaption>
+      </figure>
     </>
   )
 }

@@ -56,6 +56,19 @@ describe('ExtractionStage', () => {
     expect(get).toHaveBeenCalledWith('/api/projects/p1/runs/r1/artifacts/00_input/input.json')
   })
 
+  it('stage 3 lists candidates and switches overlay', async () => {
+    get.mockResolvedValue([
+      { index: 0, params: { strategy: 'S2', sauvola_k: 0.2, t_min: 80, t_max: 450, l_fix: 0 }, counts: { walls: 161, doors: 38, columns: 30, stairs: 1 }, wall_len_m: 386.1, low_conf: 12, error: null },
+      { index: 1, params: { strategy: 'S1', sauvola_k: 0.2, t_min: 80, t_max: 450, l_fix: 0 }, counts: { walls: 45, doors: 19, columns: 20, stairs: 1 }, wall_len_m: 49.2, low_conf: 3, error: null },
+    ])
+    show(run([stage(0), stage(1), stage(2), stage(3, { metrics: { candidates: 2 } })]), 3)
+    expect(await screen.findByText('386.1')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/api/projects/p1/runs/r1/artifacts/03_extract/candidates.json')
+    expect(screen.getByAltText(/Kandidat/).getAttribute('src')).toMatch(/03_extract\/candidates\/0\/overlay\.png$/)
+    fireEvent.click(screen.getByText('S1'))
+    expect(screen.getByAltText(/Kandidat/).getAttribute('src')).toMatch(/03_extract\/candidates\/1\/overlay\.png$/)
+  })
+
   it('stage 1 shows the working page and preprocess facts', () => {
     show(run([stage(0), stage(1, { metrics: { deskew_deg: 0, upscale: 2, work_w: 3200, work_h: 1890 } })]), 1)
     expect(screen.getByRole('img').getAttribute('src')).toMatch(/01_preprocess\/page\.png$/)
