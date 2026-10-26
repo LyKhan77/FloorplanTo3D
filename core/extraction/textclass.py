@@ -5,16 +5,10 @@ import re
 import numpy as np
 
 from core.extraction.ocr import OcrItem, run_ocr
+from core.extraction.rooms.labels import lexicon
 
 TEXT_CLASSES = ("grid_label", "dimension", "room_label", "annotation", "proposed", "dismantle", "stair_dir", "other")
-# PRD/04 §4.3 keywords; the full lexicon with Levenshtein matching arrives with stage 4 (M5c)
-ROOM_WORDS = (
-    "DATA HALL", "SERVER", "WHITE SPACE", "UPS", "BATTERY", "BATTERAI", "BATERAI", "PANEL", "LVMDP", "SDP",
-    "ELECTRICAL", "LISTRIK", "MDF", "IDF", "MMR", "MEET ME", "AHU", "CRAC", "PAC", "CAPASITOR", "CAPACITOR",
-    "KAPASITOR", "MEETING", "RAPAT", "GUDANG", "STORAGE", "STORE", "PANTRY", "DAPUR", "TOILET", "WC", "KM",
-    "LAVATORY", "MUSHOLA", "MUSHOLLA", "PRAYER", "GALERY", "GALLERY", "LOBBY", "HALL", "KORIDOR", "CORRIDOR",
-    "SELASAR", "TANGGA", "STAIR", "LIFT", "ELEVATOR",
-)
+ROOM_WORDS = tuple(w for words in lexicon().values() for w in words)  # PRD/04 §4.3 (lexicon.yaml)
 _GRID = re.compile(r"^(?:[A-Z]{1,2}|\d{1,2})$")
 _PROPOSED = re.compile(r"\b(?:PROPOSED|NEW|RENCANA|USULAN)\b")
 _DISMANTLE = re.compile(r"\b(?:DISMANTLE|BONGKAR|DEMOLISH)")
