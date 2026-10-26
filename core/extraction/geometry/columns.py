@@ -20,7 +20,7 @@ FILL_MIN = 0.75
 def _crossings(axes: list[dict]) -> list[tuple[float, float, str, str]]:
     v = [a for a in axes if a["orientation"] == "vertical"]
     h = [a for a in axes if a["orientation"] == "horizontal"]
-    return [(x["px"], y["px"], x["label"], y["label"]) for x in v for y in h]
+    return [(x["px"], y["px"], x["id"], y["id"]) for x in v for y in h]  # grid_ref holds axis ids (PRD/03)
 
 
 def _nearest_crossing(cx: float, cy: float, crossings, s: float):

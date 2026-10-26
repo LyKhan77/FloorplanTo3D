@@ -6,7 +6,8 @@ from core.extraction.geometry.walls_s2 import _wall
 from tests.extraction.geometry.synth import canvas, line
 
 S = 13.0
-AXES = [{"label": "A", "orientation": "vertical", "px": 200.0}, {"label": "1", "orientation": "horizontal", "px": 150.0}]
+AXES = [{"id": "GA", "label": "A", "orientation": "vertical", "px": 200.0},
+        {"id": "G1", "label": "1", "orientation": "horizontal", "px": 150.0}]
 
 
 def boxed_h(img, cx, cy, half=20):
@@ -24,7 +25,7 @@ def test_h_column_at_grid_crossing():
     cols = find_columns(img, np.zeros_like(img), AXES, [], S)
     assert len(cols) == 1
     c = cols[0]
-    assert c["shape"] == "h_section" and c["grid_ref"] == ["A", "1"] and c["kind"] == "structural"
+    assert c["shape"] == "h_section" and c["grid_ref"] == ["GA", "G1"]  # axis ids (PRD/03), not labels and c["kind"] == "structural"
     assert c["size_mm"][0] == pytest.approx(520, abs=40) and c["confidence"] == pytest.approx(0.9)
 
 

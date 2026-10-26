@@ -43,7 +43,7 @@ def test_elements_to_spec_maps_ids_and_mm():
                   {"a": [5, 5], "b": [5, 5], "thickness": 100, "kind": "partition", "strategy": "S2", "confidence": 0.5,
                    "evidence": {}}],
         "columns": [{"center": [0, 0], "size": [520, 520], "shape": "h_section", "rotation": 0, "kind": "structural",
-                     "confidence": 0.9, "grid_ref": ["A", "3"]}],
+                     "confidence": 0.9, "grid_ref": ["GA", "G3"]}],
         "openings": [{"wall": 1, "category": "door", "offset": 500, "width": 900, "door_type": "single_swing",
                       "hinge": "start", "swing": "left", "confidence": 0.7, "evidence": {}}],
         "stairs": [{"flights": [{"start": [1000, 1000], "end": [1000, 3000], "width": 1200, "risers": 15}], "landings": [],
@@ -56,7 +56,7 @@ def test_elements_to_spec_maps_ids_and_mm():
     assert spec.walls[0].a == (0, 0) and spec.walls[0].b == (3000, 0)
     assert spec.walls[0].provenance.confidence == 0.8 and spec.walls[0].provenance.source == "cv"
     assert spec.rooms == [] and spec.meta.px_to_mm == GT.meta.px_to_mm
-    assert spec.columns[0].grid_ref == ("A", "3") and spec.stairs[0].id == "S1"
+    assert spec.columns[0].grid_ref == ("GA", "G3") and spec.stairs[0].id == "S1"
 
 
 def test_to_mm_rounds_with_work_affine():
