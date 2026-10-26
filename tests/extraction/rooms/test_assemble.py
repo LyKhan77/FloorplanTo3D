@@ -116,4 +116,9 @@ def test_stage_rooms_gatsu(tmp_path):
     assert c0["error"] is None and c0["rooms"] >= 20 and c0["labelled"] >= 6  # measured 23 / 7 (GT 48 / 17)
     spec = json.loads((stages / "04_rooms/candidates/0/spec.json").read_text())
     assert len(spec["meta"]["building_outline"]) >= 2
+    from shapely.geometry import Polygon
+
+    for k in (r["index"] for r in rows if not r["error"]):  # V011: rounding to mm must not break a room
+        s = json.loads((stages / f"04_rooms/candidates/{k}/spec.json").read_text())
+        assert all(Polygon(r["polygon"], r["holes"]).is_valid for r in s["rooms"]), k
     assert (stages / "04_rooms/candidates/0/rooms.png").exists()

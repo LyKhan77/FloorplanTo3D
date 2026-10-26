@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from shapely import set_precision
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
@@ -39,6 +40,12 @@ def _aspect(poly: SPolygon) -> float:
     return sides[-1] / sides[0] if sides[0] else float("inf")
 
 
+def _on_mm_grid(poly: SPolygon) -> list[SPolygon]:
+    """The spec stores integer mm. A ring that self-intersects once rounded is snapped to the 1 mm grid instead."""
+    rounded = SPolygon(_ring(poly.exterior.coords), [_ring(h.coords) for h in poly.interiors])
+    return [poly] if rounded.is_valid else _parts(set_precision(poly, 1.0))
+
+
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
@@ -49,7 +56,7 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
     interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
-    pieces = [p.simplify(0) for p in _parts(interior)]  # drop collinear vertices left by abutting footprints
+    pieces = [q for p in _parts(interior) for q in _on_mm_grid(p.simplify(0))]  # simplify: collinear vertices
     rooms = [p for p in pieces if p.area >= MIN_ROOM_AREA_MM2 and _aspect(p) <= MAX_ASPECT]
     return rooms, outlines
 

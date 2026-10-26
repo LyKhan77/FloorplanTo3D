@@ -8,6 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 from core.extraction.geometry.candidate import extract_candidate
 from core.extraction.geometry.overlay import render_elements_overlay
@@ -16,11 +17,18 @@ from core.extraction.grid import detect_grid
 from core.extraction.overlay import render_grid_overlay
 from core.extraction.params import input_doc, merge_params, parse_prompt
 from core.extraction.preprocess import load_raster, preprocess
-from core.extraction.rooms.assemble import assemble_spec
-from core.extraction.rooms.labels import labels_from_ocr
+from core.extraction.rooms.assemble import assemble_spec, leak_issues
+from core.extraction.rooms.labels import best_label, labels_from_ocr
 from core.extraction.rooms.overlay import px_from_mm, render_rooms_overlay
+from core.extraction.rooms.overlay_ids import render_ids_overlay
 from core.extraction.scale import compose_original, scale_from
+from core.extraction.select import choose, crop_labels, ocr_dimensions_from
 from core.extraction.textclass import classify_text, ocr_page
+from core.spec.carryover import carry_over
+from core.spec.models import Spec
+from core.spec.rooms import rebuild_rooms
+from core.spec.store import SpecStore, ValidationFailed
+from core.spec.validate import ValidationContext, validate
 
 Progress = Callable[[int, str], None] | None
 
@@ -232,3 +240,92 @@ def stage_rooms(project_dir: Path, work: Path, progress: Progress = None, overri
         return {"status": "failed", "message": "tidak ada kandidat yang bisa dirakit menjadi spec"}
     return {"status": "succeeded", "metrics": {"candidates": len(ok), "rooms": ok[0]["rooms"]},
             "warnings": [f"kandidat {r['index']}: {r['error']}" for r in rows if r["error"]]}
+
+
+SCORE_OK, SCORE_MIN = 0.8, 0.6
+
+
+def _wall_len(spec: Spec) -> float:
+    return sum(((w.b[0] - w.a[0]) ** 2 + (w.b[1] - w.a[1]) ** 2) ** 0.5 for w in spec.walls)
+
+
+def _issue_dicts(result) -> list[dict]:
+    return [{"code": i.code, "severity": i.severity, "element_ids": list(i.element_ids), "message": i.message}
+            for i in result.issues]
+
+
+def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progress = None,
+                   override: dict | None = None) -> dict:
+    """Stage 5 (PRD/04 Tahap 5): validate every stage-4 candidate, keep the best one without errors, label its
+    unnamed rooms from OCR crops, carry HEAD over, save the spec and draw the numbered overlay."""
+    work.mkdir(parents=True, exist_ok=True)
+    st = work.parent
+    rows3 = {c["index"]: c for c in json.loads((st / "03_extract" / "candidates.json").read_text())}
+    grid = json.loads((st / "02_grid" / "grid.json").read_text())
+    dims = ocr_dimensions_from(grid) or None
+    # one estimate of the drawn wall lines for the whole drawing (V018): the most any candidate found
+    line_mm = max((c.get("line_len_m") or 0 for c in rows3.values()), default=0) * 1000
+    scored, specs = [], {}
+    for row in json.loads((st / "04_rooms" / "candidates.json").read_text()):
+        if row["error"]:
+            continue
+        k = row["index"]
+        spec = Spec.model_validate_json((st / "04_rooms" / "candidates" / str(k) / "spec.json").read_text())
+        res = validate(spec, ValidationContext(ocr_dimensions=dims, thick_line_length_mm=line_mm or None))
+        specs[k] = spec
+        scored.append({"index": k, "score": round(res.score, 4), "passed": res.passed,
+                       "ratios": {c: round(v, 4) for c, v in res.ratios.items()},
+                       "errors": sorted({i.code for i in res.issues if i.severity == "error"}),
+                       "coverage": round(_wall_len(spec) / line_mm, 4) if line_mm else 0.0})
+    write_json(work / "scores.json", scored)
+    chosen = choose(scored)
+    if chosen is None:
+        codes = sorted({c for s in scored for c in s["errors"]})
+        return {"status": "needs_attention", "metrics": {"candidates": len(scored)},
+                "message": f"semua kandidat punya error validator ({', '.join(codes) or 'tidak ada kandidat'})"}
+    k = chosen["index"]
+    spec = specs[k]
+    ctx = ValidationContext(ocr_dimensions=dims, thick_line_length_mm=line_mm or None)
+    page = cv2.imread(str(st / "01_preprocess" / "page.png"), cv2.IMREAD_GRAYSCALE)
+    labels = labels_from_ocr(json.loads((st / "02_grid" / "ocr.json").read_text()), grid["px_to_mm"])
+    if progress:
+        progress(40, "OCR label ruang")
+    crops = crop_labels(page, spec, grid["px_to_mm"])
+    labels += crops
+    if crops:
+        spec = rebuild_rooms(spec, labels, pick=best_label)
+    store = SpecStore(project_dir / "specs")
+    head, report = store.head(), None
+    if head is not None:
+        spec, report = carry_over(spec, store.load(head), labels)
+        write_json(work / "carryover.json", report)
+    final = validate(spec, ctx)
+    try:
+        saved = store.save_new(spec, "pipeline", run_id, f"ekstraksi otomatis, kandidat {k}")
+    except ValidationFailed as e:
+        return {"status": "needs_attention", "metrics": {"candidates": len(scored), "candidate": k},
+                "message": "spec terpilih gagal validasi: " + ", ".join(sorted({i.code for i in e.issues}))}
+    stage3 = json.loads((st / "03_extract" / "candidates" / str(k) / "elements.json").read_text()).get("issues", [])
+    issues = _issue_dicts(final) + leak_issues(saved, labels) + stage3
+    write_json(work / "issues.json", issues)
+    write_json(work / "chosen.json", {"index": k, "params": rows3.get(k, {}).get("params"),
+                                      "score": round(final.score, 4), "version": saved.meta.version})
+    composite, layers = render_ids_overlay(page, saved, px_from_mm(grid["px_to_mm"]))
+    cv2.imwrite(str(work / "overlay_ids.png"), composite)
+    (work / "layers").mkdir(exist_ok=True)
+    for name, layer in layers.items():
+        cv2.imwrite(str(work / "layers" / f"{name}.png"), layer)
+    meta = json.loads((st / "01_preprocess" / "meta.json").read_text())
+    mask = cv2.imread(str(st / "03_extract" / "candidates" / str(k) / "wall_mask.png"), cv2.IMREAD_GRAYSCALE)
+    to_original = cv2.invertAffineTransform(np.array(meta["work_from_original"], np.float64).reshape(2, 3))
+    w0, h0 = meta["original_size"]
+    cv2.imwrite(str(work / "wall_mask.png"), cv2.warpAffine(mask, to_original, (w0, h0), flags=cv2.INTER_NEAREST))
+    warnings = [f"edit tidak bisa dipindahkan: {e['id']} {e['field']} = {e['value']}" for e in (report or {}).get("lost_edits", [])]
+    metrics = {"version": saved.meta.version, "candidate": k, "score": round(final.score, 3), "rooms": len(saved.rooms),
+               "issues": len(issues)}
+    if final.score < SCORE_MIN:
+        return {"status": "needs_attention", "metrics": metrics, "warnings": warnings,
+                "message": f"skor validator {final.score:.2f} < {SCORE_MIN}: periksa lalu pilih lanjutkan tetap"}
+    if final.score < SCORE_OK:
+        warnings.append(f"skor validator {final.score:.2f} < {SCORE_OK}: prioritaskan review")
+    return {"status": "succeeded", "metrics": metrics, "warnings": warnings}

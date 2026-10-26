@@ -43,14 +43,17 @@ def test_second_run_409(app_factory, project_with_gt):
         block.set()
 
 
-def test_full_run_without_spec_stops_needs_attention(app_factory, project_id):
-    with app_factory() as client:  # default stage impls; stage 5 has no spec to use
+def fast_blender(ctx):
+    return {"status": "succeeded"}
+
+
+def test_full_run_extracts_and_saves_a_spec(app_factory, project_id):
+    with app_factory(stage_impls={n: fast_blender for n in range(7, 11)}) as client:  # real stages 0-5
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
-        run = wait_status(client, project_id, rid, {"needs_attention"}, timeout=120)  # real stages 1-3
-        # stages 0-4 run the extraction (M5a-M5c); stage 5 still needs an imported spec until M5c Task 6
-        assert run["stages"][0]["status"] == "succeeded" and run["stages"][3]["status"] == "succeeded"
-        assert run["stages"][4]["status"] == "succeeded"
-        assert run["stages"][5]["status"] == "needs_attention" and run["stages"][7]["status"] == "pending"
+        run = wait_status(client, project_id, rid, {"succeeded", "needs_attention", "failed"}, timeout=180)
+        assert [s["status"] for s in run["stages"][:6]] == ["succeeded"] * 6, run["stages"][5]
+        assert run["spec_version_out"] == 1 and run["stages"][5]["metrics"]["rooms"] >= 20
+        assert client.get(f"/api/projects/{project_id}").json()["head"] == 1
 
 
 def test_cancel_running(app_factory, project_with_gt):
@@ -126,11 +129,11 @@ def test_stage_exception_fails_run_with_message(app_factory, project_with_gt):
 
 
 def test_create_project_with_start_queues_full_run(app_factory, plan_bytes):
-    with app_factory() as client:
+    with app_factory(stage_impls={n: fast_blender for n in range(7, 11)}) as client:
         r = client.post("/api/projects", files={"file": ("plan.jpeg", plan_bytes, "image/jpeg")}, data={"name": "x"})
         body = r.json()
         assert r.status_code == 201 and body["run_id"] and body["status"] == "queued"
-        run = wait_status(client, body["project_id"], body["run_id"], {"needs_attention"}, timeout=120)
+        run = wait_status(client, body["project_id"], body["run_id"], {"succeeded"}, timeout=180)
         assert run["kind"] == "full"
 
 
@@ -208,3 +211,22 @@ def test_worker_survives_a_failing_error_handler(app_factory, project_with_gt, p
         wait_status(client, other, rid, {"succeeded"})
         orch._run_part = real_part
         assert client.post(f"/api/projects/{project_with_gt}/regenerate", json={}).status_code == 202
+
+
+def test_continue_refused_without_spec(app_factory, project_id):
+    impls = fake_impls([])
+    impls[5] = lambda ctx: {"status": "needs_attention", "message": "semua kandidat punya error validator (V008)"}
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_attention"})
+        r = client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={"accept_low_score": True})
+        assert r.status_code == 409 and r.json()["error"]["code"] == "no_spec"
+
+
+def test_stage5_version_becomes_the_run_output(app_factory, project_id):
+    impls = fake_impls([])
+    impls[5] = lambda ctx: {"status": "needs_attention", "metrics": {"version": 1}, "message": "skor 0.5"}
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        run = wait_status(client, project_id, rid, {"needs_attention"})
+        assert run["spec_version_out"] == 1

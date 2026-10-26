@@ -67,6 +67,8 @@ def continue_run(pid: str, rid: str, body: ContinueBody, request: Request):
         raise ApiError(409, "not_continuable", "only runs stopped at stage 5 can continue")
     if not body.accept_low_score:
         raise ApiError(400, "bad_request", "set accept_low_score to continue")
+    if not run["stages"][5]["metrics"].get("version"):
+        raise ApiError(409, "no_spec", "stage 5 saved no spec: nothing to continue with")
     new = _orch(request).start_run(pid, "from_stage", 6)
     return {"run_id": new["run_id"], "status": new["status"]}
 

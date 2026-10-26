@@ -23,6 +23,7 @@ from core.extraction.stages import (
     stage_input,
     stage_preprocess,
     stage_rooms,
+    stage_validate,
 )
 from core.pipeline import publish, stage_build, stage_report, stage_verify
 from core.spec.store import SpecStore
@@ -101,6 +102,11 @@ def _not_yet(milestone: str) -> Callable[[StageContext], dict]:
 
 
 def _validate(ctx: StageContext) -> dict:
+    if (ctx.work_dir.parent / "04_rooms" / "candidates.json").exists():
+        result = stage_validate(ctx.project_dir, ctx.work_dir, ctx.run_id, ctx.emit_progress, ctx.params_override)
+        if result.get("metrics", {}).get("version"):
+            ctx.state["version"] = result["metrics"]["version"]
+        return result
     head = SpecStore(ctx.project_dir / "specs").head()
     if head is None:
         return {"status": "needs_attention",
@@ -380,6 +386,8 @@ class Orchestrator:
         finally:
             self._procs.pop(rid, None)
         status = result.get("status", "succeeded")
+        if n == FIRST_SPEC_STAGE and result.get("metrics", {}).get("version"):
+            run.update(spec_version_out=result["metrics"]["version"], version=result["metrics"]["version"])
         stage.update(status=status, ended_at=_now(), duration_ms=int((asyncio.get_running_loop().time() - t0) * 1000),
                      metrics=result.get("metrics", {}), warnings=result.get("warnings", []))
         if result.get("message"):
