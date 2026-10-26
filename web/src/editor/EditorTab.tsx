@@ -1,10 +1,11 @@
-import { Button, InlineNotification, Loading } from '@carbon/react'
+import { Button, InlineNotification, Loading, ToastNotification } from '@carbon/react'
 import { useEffect, useState } from 'react'
 import { useRegenerate } from '../api/hooks'
 import type { Run } from '../api/types'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
 import { LayersPanel } from './panels/LayersPanel'
+import { LibraryPanel } from './panels/LibraryPanel'
 import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
 import { useEditorStore } from './store'
@@ -47,7 +48,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   return (
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)} />
-      {left && <aside className="editor__library" aria-label="Library template" />}
+      {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
       <div className="editor__viewport">
         {data.stale && data.shellVersion !== null && (
           <InlineNotification kind="info" lowContrast hideCloseButton title=""
@@ -58,7 +59,8 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
             subtitle="Pratinjau: bukaan pintu belum akurat sampai regenerate" />
         )}
         {notice && (
-          <InlineNotification kind={notice.kind} lowContrast title="" subtitle={notice.text} onClose={() => setNotice(null)} />
+          <ToastNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast title={notice.text}
+            timeout={notice.kind === 'error' ? 0 : 5000} onClose={() => { setNotice(null); return false }} />
         )}
         {data.shellUrl === null ? (
           <div className="editor__empty">

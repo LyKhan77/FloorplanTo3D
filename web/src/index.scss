@@ -587,6 +587,41 @@ body {
   }
 }
 
+.editor__toast {
+  position: absolute;
+  z-index: 3;
+  right: 0.5rem;
+  bottom: 0.5rem;
+}
+
+.editor-library {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editor-library__card {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem;
+  background: #262626;
+  cursor: grab;
+
+  img {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    background: #393939;
+  }
+
+  span {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+  }
+}
+
 .editor-room-label,
 .editor-axis-label {
   color: #f4f4f4;

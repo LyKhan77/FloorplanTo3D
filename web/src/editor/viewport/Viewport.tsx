@@ -5,6 +5,7 @@ import { toThree } from '../lib/coords'
 import { useEditorStore } from '../store'
 import { specBounds, type Bounds } from './bounds'
 import type { Template } from '../../api/types'
+import { DropGhost } from './DropGhost'
 import { ObjectsLayer } from './ObjectsLayer'
 import { SceneHelpers } from './SceneHelpers'
 import { Shell } from './Shell'
@@ -64,6 +65,7 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
       <directionalLight position={[30, 60, 20]} intensity={1.4} />
       <Suspense fallback={null}><Shell url={shellUrl} /></Suspense>
       <ObjectsLayer templates={templates} />
+      <DropGhost templates={templates} />
       <SceneHelpers />
       <CameraRig bounds={bounds} />
       <FpsMeter />

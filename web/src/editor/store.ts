@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Template } from '../api/types'
 import type { Spec } from '../types/spec'
 import { pushOp } from './ops/compose'
 import { allIds } from './ops/ids'
@@ -43,6 +44,7 @@ interface EditorState {
   fps: number | null
   previewBanner: boolean
   missingTemplates: string[]
+  dragging: Template | null
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -65,6 +67,7 @@ interface EditorState {
   setFps(fps: number): void
   setPreviewBanner(on: boolean): void
   setMissingTemplates(objectIds: string[]): void
+  setDragging(t: Template | null): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -92,7 +95,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       set({ notice: { kind: 'error', text: `${f.op}: ${f.message}` } })
       return false
     }
-    set({ ...d, past: [...past, ops].slice(-UNDO_CAP), future: [] })
+    set({ ...d, past: [...past, ops].slice(-UNDO_CAP), future: [], notice: null })
     return true
   }
 
@@ -100,7 +103,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [],
+    previewBanner: false, missingTemplates: [], dragging: null,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null }),
     apply: (op) => get().applyMany([op]),
@@ -149,5 +152,6 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setFps: (fps) => set({ fps }),
     setPreviewBanner: (previewBanner) => set({ previewBanner }),
     setMissingTemplates: (missingTemplates) => set({ missingTemplates }),
+    setDragging: (dragging) => set({ dragging }),
   }
 })

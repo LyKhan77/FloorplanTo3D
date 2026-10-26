@@ -36,6 +36,8 @@ describe('useEditorStore', () => {
     expect(st().ops).toHaveLength(1)
     expect(st().apply({ op: 'set_door', id: 'D999', width: 1000 })).toBe(false)
     expect(st().ops).toHaveLength(1)
+    expect(st().apply(add(0))).toBe(true)
+    expect(st().notice).toBeNull()
   })
 
   it('applyMany is one undo step and all-or-nothing', () => {
