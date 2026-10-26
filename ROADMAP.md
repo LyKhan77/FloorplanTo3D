@@ -84,31 +84,38 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** kontrak data final dan data uji yang benar. Referensi: `03-layout-spec.md`.
 
 ### Tugas
-- [ ] `core/spec/models.py`: model Pydantic untuk meta (termasuk `condition`, `building_outline`), grid, walls, columns (termasuk `kind`), openings, rooms, stairs, objects, provenance.
-- [ ] `core/spec/derive.py`: field turunan (area, perimeter, luas kotor, bounding_walls, doors, room_id objek/tangga, tinggi tanjakan dan kedalaman injakan).
-- [ ] `core/spec/ops.py`: semua ops di §11 beserta validasi parameternya. Fungsi `apply(spec, ops) -> spec` bersifat murni.
-- [ ] `core/spec/validate.py`: aturan V001–V019 + skor. Tiap aturan punya unit test positif dan negatif.
-- [ ] `core/spec/store.py`: simpan/baca versi append-only + `HEAD`.
-- [ ] Ekspor JSON Schema ke `schema/`, generate `web/src/types/spec.ts`. Script `make schema` / `uv run python -m core.spec.export_schema`.
-- [ ] **Alat bantu GT:** `benchmarks/tools/gt_author.py`.
+- [x] `core/spec/models.py`: model Pydantic untuk meta (termasuk `condition`, `building_outline`), grid, walls, columns (termasuk `kind`), openings, rooms, stairs, objects, provenance.
+- [x] `core/spec/derive.py`: field turunan (area, perimeter, luas kotor, bounding_walls, doors, room_id objek/tangga, tinggi tanjakan dan kedalaman injakan).
+- [x] `core/spec/ops.py`: semua ops di §11 beserta validasi parameternya. Fungsi `apply(spec, ops) -> spec` bersifat murni.
+- [x] `core/spec/validate.py`: aturan V001–V019 + skor. Tiap aturan punya unit test positif dan negatif.
+- [x] `core/spec/store.py`: simpan/baca versi append-only + `HEAD`.
+- [x] Ekspor JSON Schema ke `schema/`, generate `web/src/types/spec.ts`. Script `make schema` / `uv run python -m core.spec.export_schema`.
+- [x] **Alat bantu GT:** `benchmarks/tools/gt_author.py`.
   - Input YAML ringkas berbasis grid, mis. `wall: A1 -> B1, t=200` atau `wall: [6000,6000] -> [16000,6000]`, ditambah pintu per dinding.
   - Output `gt_spec.json` dan overlay GT di atas `plan.jpeg` (memakai skala dari grid).
-- [ ] **GT Gatsu lengkap** (`benchmarks/gatsu/gt_spec.json`):
-  - [ ] Grid A–F, 1–3.
-  - [ ] Semua dinding exterior dan interior, termasuk Capasitor Room dan **pita luar** di luar grid.
-  - [ ] Semua kolom, termasuk **blok sirip** di pita luar (`kind: pilaster`).
-  - [ ] **Tangga** (flight, tanjakan, arah naik, bordes) dan lift.
-  - [ ] **Kondisi existing**: tanpa elemen PROPOSED; dinding yang akan dibongkar tetap ada.
-  - [ ] `building_outline` per massa bangunan dan luas kotor.
-  - [ ] Semua pintu (tipe, engsel, arah) dan jendela.
-  - [ ] Semua ruang beserta nama dan tipe.
-- [ ] Review GT oleh orang kedua menggunakan overlay (R-17).
+- [x] **GT Gatsu lengkap** (`benchmarks/gatsu/gt_spec.json`):
+  - [x] Grid A–F, 1–3.
+  - [x] Semua dinding exterior dan interior, termasuk Capasitor Room dan **pita luar** di luar grid.
+  - [x] Semua kolom, termasuk **blok sirip** di pita luar (`kind: pilaster`).
+  - [x] **Tangga** (flight, tanjakan, arah naik, bordes) dan lift.
+  - [x] **Kondisi existing**: tanpa elemen PROPOSED; dinding yang akan dibongkar tetap ada.
+  - [x] `building_outline` per massa bangunan dan luas kotor.
+  - [x] Semua pintu (tipe, engsel, arah) dan jendela.
+  - [x] Semua ruang beserta nama dan tipe.
+- [x] Review GT oleh orang kedua menggunakan overlay (R-17).
 
 ### Kriteria selesai
 - GT Gatsu lolos validator **tanpa error**, dengan skor ≥ 0.95.
 - Overlay GT tepat di atas denah. Pemeriksaan visual: deviasi garis ≤ 1–2 px.
 - Coverage test `core/spec` ≥ 85%.
 - `spec.ts` tergenerate dan terkompilasi di `web/`.
+
+**Status M1 (2026-10-26), branch `m1-spec-gt`:**
+- `uv run --env-file .env pytest` → 82 passed, 1 xfailed (OCR grid dari M0). Coverage `core/spec` 95%. Ruff, oxlint, dan `npm run build` bersih.
+- `core/spec`: model Pydantic, field turunan, pembentukan ruang dari dinding + pewarisan ID, 18 ops (`apply` murni dan atomik), validator V001–V019, `SpecStore` append-only, ekspor JSON Schema + `web/src/types/{spec,ops}.ts`.
+- GT Gatsu (`benchmarks/gatsu/`): 77 dinding, 51 kolom (18 H + 33 pilaster/pier), 19 bukaan, 2 tangga, 70 ruang; RMS kalibrasi 7.6 mm; skor validator 0.993; 2 massa bangunan; luas kotor 563.77 m².
+- Dua bug core ditemukan saat menulis GT dan sudah diperbaiki: pulau dinding (shaft lift) terhitung sebagai massa bangunan, dan pintu di dinding bersama terdaftar untuk semua ruang.
+- **Belum:** review GT oleh orang kedua (R-17). Pertanyaan terbuka ada di `benchmarks/gatsu/NOTES.md`: batas Battery/Ex Mushola, tinggi lantai, arah tangga timur, dan rail pita luar.
 
 **FR terkait:** dasar untuk semua FR. Langsung: V-rules, FR-EX-14.
 
