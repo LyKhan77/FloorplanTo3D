@@ -51,9 +51,10 @@ def test_direction_from_nk_text_and_landing_fallback():
     assert len(st) == 1 and len(st[0]["flights"]) == 2 and st[0]["landings"]
     a, b = st[0]["flights"]
     assert a["start"][1] > a["end"][1] and b["start"][1] < b["end"][1]
-    # no text: towards the landing, confidence 0.5
+    # no text and equal flights: the landing may be at either end -> towards a guessed landing, 0.4 and an issue
     st, issues = detect_stairs(extract_strokes(img, 0, S), [], img, S)
-    assert st[0]["direction_source"] == "landing" and st[0]["confidence"] == pytest.approx(0.5)
+    assert st[0]["direction_source"] == "landing" and st[0]["confidence"] == pytest.approx(0.4)
+    assert "STAIR_DIR" in [i["code"] for i in issues]
     # a lone flight without text: unknown, 0.3 and an issue
     img2 = canvas(600, 600)
     treads(img2, 200, 296, 150, 14, 22.4)
@@ -101,3 +102,26 @@ def test_gatsu_stair_s1():
     assert west["start"][1] < west["end"][1]  # leaves the north landing towards the south
     boxes = lift_boxes(strokes, g["s"])
     assert any(abs((b[0] + b[2]) / 4 - 300) <= 25 and abs((b[1] + b[3]) / 4 - 250) <= 25 for b in boxes), boxes
+
+
+def u_stair():
+    img = canvas(800, 700)
+    for x0 in (100, 260):  # two 1000 mm flights side by side, 12 treads at 280 mm: both ends line up
+        treads(img, x0, x0 + 80, 150, 12, 22.4)
+    return img
+
+
+def test_u_stair_landing_opposite_the_marked_start():
+    img = u_stair()
+    nk = text_item("NK", (130, 118, 150, 130), "stair_dir")  # up from the TOP of the west flight
+    st, _ = detect_stairs(extract_strokes(img, 0, S), [nk], img, S)
+    assert len(st) == 1 and len(st[0]["flights"]) == 2
+    first = st[0]["flights"][0]
+    assert first["start"][1] < 150 and first["start"][0] < 200  # starts at the top of the west flight
+    assert min(p[1] for p in st[0]["landings"][0]) > 150 + 11 * 22.4  # landing below the last tread
+
+
+def test_u_stair_without_text_is_ambiguous():
+    img = u_stair()
+    st, issues = detect_stairs(extract_strokes(img, 0, S), [], img, S)
+    assert st[0]["confidence"] < 0.5 and any(i["code"] == "STAIR_DIR" for i in issues)

@@ -97,11 +97,13 @@ def _ends(f: dict) -> tuple[tuple[float, float], tuple[float, float]]:
     return (first, last) if f["tread_axis"] == "h" else ((first[1], first[0]), (last[1], last[0]))
 
 
-def _landing(a: dict, b: dict, s: float) -> tuple[list, int, int] | None:
-    """A landing joins two parallel flights whose ends sit side by side. Returns (polygon, end of a, end of b)."""
+def _landings(a: dict, b: dict, s: float) -> list[tuple[list, int, int]]:
+    """Landings joining two parallel flights whose ends sit side by side: [(polygon, end of a, end of b)]. Flights
+    of equal length line up at both ends, giving two candidates."""
     if a["tread_axis"] != b["tread_axis"]:
-        return None
+        return []
     w = max(a["width_mm"], b["width_mm"]) / s
+    out = []
     for ia, ea in enumerate(_ends(a)):
         for ib, eb in enumerate(_ends(b)):
             along = abs(ea[1] - eb[1]) if a["tread_axis"] == "h" else abs(ea[0] - eb[0])
@@ -111,12 +113,12 @@ def _landing(a: dict, b: dict, s: float) -> tuple[list, int, int] | None:
                 lo = min(a["rect"][0], b["rect"][0])
                 hi = max(a["rect"][2], b["rect"][2])
                 edge = ea[1] if a["tread_axis"] == "h" else ea[0]
-                out = -w if ia == 0 else w  # the landing lies beyond the shared end
-                c0, c1 = sorted((edge, edge + out))
+                out_ = -w if ia == 0 else w  # the landing lies beyond the shared end
+                c0, c1 = sorted((edge, edge + out_))
                 poly = [[lo, c0], [hi, c0], [hi, c1], [lo, c1]] if a["tread_axis"] == "h" else \
                     [[c0, lo], [c1, lo], [c1, hi], [c0, hi]]
-                return poly, ia, ib
-    return None
+                out.append((poly, ia, ib))
+    return out
 
 
 def _text_end(f: dict, texts: list[dict], s: float) -> tuple[int, str] | None:
@@ -137,17 +139,25 @@ def _text_end(f: dict, texts: list[dict], s: float) -> tuple[int, str] | None:
 def detect_stairs(strokes: list[dict], stair_texts: list[dict], clean: np.ndarray, s: float) -> tuple[list[dict], list[dict]]:
     """Stairs in working pixels: [{flights: [{start, end, width_px, risers}], landings, confidence, direction_source}]."""
     flights = find_flights(strokes, s)
-    links = {}
-    for i, a in enumerate(flights):
-        for j in range(i + 1, len(flights)):
-            if (lk := _landing(a, flights[j], s)) and i not in links and j not in links:
-                links[i] = (j, lk[0], lk[1], lk[2])
-                links[j] = (i, lk[0], lk[2], lk[1])
     start: dict[int, tuple[int, str, float]] = {}  # flight -> (start end index, source, confidence)
     for i, f in enumerate(flights):
         if te := _text_end(f, stair_texts, s):
             end, word = te
             start[i] = (end if word in UP_WORDS else 1 - end, "text", 0.9)
+    links, ambiguous = {}, set()
+    for i, a in enumerate(flights):
+        for j in range(i + 1, len(flights)):
+            if i in links or j in links or not (cands := _landings(a, flights[j], s)):
+                continue
+            # the landing is where a text-marked flight climbs to, i.e. opposite its start
+            pick = next((c for c in cands if i in start and c[1] != start[i][0]), None) or \
+                next((c for c in cands if j in start and c[2] != start[j][0]), None)
+            if pick is None:
+                pick = cands[0]
+                if len(cands) > 1:
+                    ambiguous.update((i, j))
+            links[i] = (j, pick[0], pick[1], pick[2])
+            links[j] = (i, pick[0], pick[2], pick[1])
     for i in list(start):  # the other flight of a landing leaves the landing the first one climbs to
         if i in links:
             j, _, land_i, land_j = links[i]
@@ -158,8 +168,13 @@ def detect_stairs(strokes: list[dict], stair_texts: list[dict], clean: np.ndarra
     for i in range(len(flights)):
         if i in start:
             continue
-        if i in links:
+        if i in links and i not in ambiguous:
             start[i] = (1 - links[i][2], "landing", 0.5)  # towards the landing
+        elif i in links:  # equal flights: the landing may be at either end
+            start[i] = (1 - links[i][2], "landing", 0.4)
+            e = _ends(flights[i])[0]
+            issues.append({"code": "STAIR_DIR", "severity": "warning", "message": "arah naik tangga tidak jelas",
+                           "at": [round(e[0], 1), round(e[1], 1)]})
         else:
             start[i] = (0, "unknown", 0.3)
             e = _ends(flights[i])[0]
