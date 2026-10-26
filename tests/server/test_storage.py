@@ -35,7 +35,6 @@ def test_write_json_atomic_roundtrip(tmp_path):
     assert not list((tmp_path / "x").glob("*.tmp"))
 
 
-@pytest.mark.xfail(strict=True, reason="project routes arrive in Task 3")
 def test_unknown_project_is_standard_404(client):
     r = client.get("/api/projects/nope")
     assert r.status_code == 404 and r.json()["error"]["code"] == "project_not_found"
