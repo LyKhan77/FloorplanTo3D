@@ -1,7 +1,7 @@
 import { Button, InlineNotification, ProgressBar, Tile } from '@carbon/react'
 import { Download, Launch } from '@carbon/icons-react'
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../api/client'
+import { api, outputsBase } from '../api/client'
 import { useOutputs } from '../api/hooks'
 import type { ApiEvent, Run } from '../api/types'
 import { formatBytes, formatDuration } from '../lib/format'
@@ -28,7 +28,7 @@ interface Verify {
 
 export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
   const stage = run.stages[n]
-  const out = `/api/projects/${projectId}/outputs/v${run.version}`
+  const out = outputsBase(projectId, run.version)
   const { data: outputs } = useOutputs(projectId)
   const published = outputs?.find((o) => o.version === run.version)
   const verify = useQuery({

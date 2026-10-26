@@ -1,6 +1,7 @@
 import { Button, ClickableTile, Dropdown, Link, Tile } from '@carbon/react'
 import { Download } from '@carbon/icons-react'
 import { useState } from 'react'
+import { outputsBase } from '../api/client'
 import { useOutputs } from '../api/hooks'
 import { formatBytes } from '../lib/format'
 
@@ -9,7 +10,7 @@ export function OutputsTab({ projectId }: { projectId: string }) {
   const [picked, setPicked] = useState<number | null>(null)
   if (!outputs.length) return <p className="helper tab-pad">Belum ada output. Tekan Regenerate setelah spec tersedia.</p>
   const current = outputs.find((o) => o.version === picked) ?? outputs[0]
-  const base = `/api/projects/${projectId}/outputs/${current.version}`
+  const base = outputsBase(projectId, current.version)
   return (
     <div className="tab-pad">
       <div className="outputs-head">

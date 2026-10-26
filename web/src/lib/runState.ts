@@ -32,8 +32,9 @@ export function applyEvent(run: Run, e: ApiEvent): Run {
   switch (e.type) {
     case 'run.started':
       return { ...run, status: 'running' }
-    case 'run.finished':
-      return { ...run, status: (e.data.status as Run['status']) ?? run.status, error: (e.data.error as string) ?? null }
+    case 'run.finished':  // a stage left running (restart, shutdown) never gets its stage.finished
+      return { ...run, status: (e.data.status as Run['status']) ?? run.status, error: (e.data.error as string) ?? null,
+        stages: stages.map((s) => (s.status === 'running' ? { ...s, status: 'failed' } : s)) }
     case 'stage.started':
       patchStage({ status: 'running', started_at: e.ts })
       return { ...run, status: 'running', stages }
@@ -46,4 +47,11 @@ export function applyEvent(run: Run, e: ApiEvent): Run {
     default:
       return run
   }
+}
+
+/** The stored run plus live events. A finished snapshot is final: the event log can miss events (shutdown), so
+ * replaying it could reopen the run. */
+export function withEvents(run: Run, events: ApiEvent[]): Run {
+  if (run.status !== 'queued' && run.status !== 'running') return run
+  return events.reduce(applyEvent, run)
 }

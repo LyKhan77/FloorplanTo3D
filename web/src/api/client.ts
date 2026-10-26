@@ -31,3 +31,6 @@ export const api = {
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   upload: <T>(path: string, form: FormData) => request<T>(path, { method: 'POST', body: form }),
 }
+
+/** Base URL of one published output version; the route takes the bare number (`/outputs/3/...`). */
+export const outputsBase = (projectId: string, version: number | null) => `/api/projects/${projectId}/outputs/${version}`

@@ -99,3 +99,26 @@ def test_exit_signal_closes_bus_then_calls_previous_handler(storage_with_project
         assert bus.closed and calls == [signal.SIGTERM]
     finally:
         signal.signal(signal.SIGTERM, original)
+
+
+def test_live_events_reach_subscribers_in_seq_order(storage_with_project):
+    """If seq 6 is pushed before seq 5, the client's seq dedup drops 5 and Last-Event-ID never resends it."""
+    import time
+
+    st, pid = storage_with_project
+    bus = EventBus(st)
+    q = bus.subscribe(pid)
+    real_push = bus._push
+
+    def slow_first_push(p, item):
+        if item and item["seq"] == 1:
+            time.sleep(0.2)  # thread A is pre-empted between writing seq 1 and pushing it
+        real_push(p, item)
+
+    bus._push = slow_first_push
+    a = threading.Thread(target=bus.emit, args=(pid, "r1", 7, "stage.log"))
+    a.start()
+    time.sleep(0.05)
+    bus.emit(pid, None, None, "spec.created")  # thread B: a route emitting meanwhile
+    a.join()
+    assert [q.get_nowait()["seq"], q.get_nowait()["seq"]] == [1, 2]

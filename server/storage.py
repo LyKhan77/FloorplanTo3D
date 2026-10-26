@@ -4,6 +4,7 @@ import json
 import os
 import re
 import secrets
+import tempfile
 import unicodedata
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -71,6 +72,11 @@ class Storage:
     def write_json_atomic(path: Path, data: dict) -> None:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_name(f".{path.name}.tmp")
-        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-        os.replace(tmp, path)
+        fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")  # one per writer
+        try:
+            with os.fdopen(fd, "w") as f:
+                f.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+            os.replace(tmp, path)
+        except BaseException:
+            Path(tmp).unlink(missing_ok=True)
+            raise

@@ -1,6 +1,7 @@
 """FastAPI application (PRD/02 §2, PRD/09). Run: uv run --env-file .env uvicorn server.app:app --port 8000"""
 
 import asyncio
+import fcntl
 import signal
 import threading
 from contextlib import asynccontextmanager
@@ -16,6 +17,19 @@ from server.events import EventBus
 from server.orchestrator import Orchestrator
 from server.routes import events, outputs, projects, runs, specs, system, templates
 from server.storage import Storage
+
+
+def lock_data_dir(root: Path):
+    """One server process per DATA_DIR (PRD/02 §5): two orchestrators would run the same queue twice and write
+    events.jsonl side by side. Taken before recovery, which uvicorn runs before it binds the port."""
+    root.mkdir(parents=True, exist_ok=True)
+    f = open(root / ".server.lock", "w")  # noqa: SIM115 - held open for the life of the app
+    try:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        f.close()
+        raise RuntimeError(f"another server is already serving {root}") from None
+    return f
 
 
 def close_bus_on_exit_signal(bus: EventBus) -> None:
@@ -40,12 +54,14 @@ def create_app(settings: Settings | None = None, stage_impls: dict | None = None
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        lock = lock_data_dir(app.state.storage.root)
         app.state.bus.bind_loop(asyncio.get_running_loop())
         await app.state.orchestrator.start()
         close_bus_on_exit_signal(app.state.bus)
         yield
         await app.state.orchestrator.stop()
         app.state.bus.close()
+        lock.close()
 
     app = FastAPI(title="Floorplan3D", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
     app.state.settings = settings

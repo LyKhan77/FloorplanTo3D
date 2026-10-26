@@ -71,6 +71,9 @@ def test_recovery_marks_running_interrupted_and_requeues(app_factory, project_wi
     with app_factory(stage_impls=fake_impls(calls)) as client:
         a = client.get(f"/api/projects/{project_with_gt}/runs/20261026T000000-aa").json()
         assert (a["status"], a["error"], a["stages"][7]["status"]) == ("failed", "interrupted", "failed")
+        events = [e for e in client.app.state.bus.history(project_with_gt) if e["run_id"] == "20261026T000000-aa"]
+        assert [(e["type"], e["stage"], e["data"]["status"]) for e in events] == [
+            ("stage.finished", 7, "failed"), ("run.finished", None, "failed")]  # the log closes the stage too
         wait_status(client, project_with_gt, "20261026T000001-bb", {"succeeded"})
         assert calls == [7, 8, 9, 10]
         assert not (data_dir / "projects" / project_with_gt / "outputs" / "v1.tmp").exists()
@@ -148,3 +151,58 @@ def test_shutdown_kills_blender_and_stops_the_run(app_factory, project_with_gt):
         wait_stage_running(client, project_with_gt, rid, 7)
     assert procs and procs[0].wait(timeout=5) is not None
     assert not [n for n in calls if n > 7]
+
+
+def test_from_stage_after_build_restarts_at_build(app_factory, project_with_gt):
+    """Stages 8-10 read the spec and Blender output that stage 7 of the same run produces."""
+    calls = []
+    with app_factory(stage_impls=fake_impls(calls)) as client:
+        r = client.post(f"/api/projects/{project_with_gt}/runs", json={"kind": "from_stage", "from_stage": 9})
+        wait_status(client, project_with_gt, r.json()["run_id"], {"succeeded"})
+    assert calls == [7, 8, 9, 10]
+
+
+def test_second_server_on_same_data_dir_refuses_to_start(app_factory, project_with_gt):
+    """uvicorn runs lifespan (and recovery) before binding the port, so a second process would mark the first
+    one's live run interrupted before failing with 'address in use'."""
+    import pytest
+
+    block = threading.Event()
+    with app_factory(stage_impls=fake_impls([], block)) as client:
+        rid = client.post(f"/api/projects/{project_with_gt}/regenerate", json={}).json()["run_id"]
+        wait_stage_running(client, project_with_gt, rid, 7)
+        with pytest.raises(RuntimeError, match="already serving"), app_factory():
+            pass
+        assert client.get(f"/api/projects/{project_with_gt}/runs/{rid}").json()["status"] == "running"
+        block.set()
+
+
+def test_worker_survives_a_failing_error_handler(app_factory, project_with_gt, plan_bytes):
+    """A run whose run.json cannot be read (torn write, deleted project) must not stop the queue for everyone."""
+    from tests.server.conftest import create_project, import_gt
+
+    calls = []
+    with app_factory(stage_impls=fake_impls(calls)) as client:
+        orch = client.app.state.orchestrator
+        real_part, real_load = orch._run_part, orch.load_run
+        broken = set()
+
+        async def run_part(queue, pid, rid):
+            if pid == project_with_gt:
+                broken.add(rid)
+                raise RuntimeError("boom")
+            return await real_part(queue, pid, rid)
+
+        def load_run(pid, rid):
+            if rid in broken:
+                raise ValueError("torn run.json")
+            return real_load(pid, rid)
+
+        orch._run_part, orch.load_run = run_part, load_run
+        client.post(f"/api/projects/{project_with_gt}/regenerate", json={})
+        other = create_project(client, plan_bytes)
+        import_gt(client, other)
+        rid = client.post(f"/api/projects/{other}/regenerate", json={}).json()["run_id"]
+        wait_status(client, other, rid, {"succeeded"})
+        orch._run_part = real_part
+        assert client.post(f"/api/projects/{project_with_gt}/regenerate", json={}).status_code == 202

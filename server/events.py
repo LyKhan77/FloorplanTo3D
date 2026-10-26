@@ -50,7 +50,7 @@ class EventBus:
                      "run_id": run_id, "stage": stage, "type": type, "level": level, "msg": msg, "data": data or {}}
             with open(self._path(pid), "a") as f:
                 f.write(json.dumps(event, ensure_ascii=False) + "\n")
-        self._push(pid, event)
+            self._push(pid, event)  # inside the lock: subscribers get events in seq order
         return event
 
     def _push(self, pid: str, item: dict | None) -> None:

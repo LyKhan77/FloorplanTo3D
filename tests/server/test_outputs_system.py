@@ -10,7 +10,8 @@ def test_output_file_etag_and_304(client_with_outputs):
     client, pid = client_with_outputs
     r = client.get(f"/api/projects/{pid}/outputs/1/shell.glb")
     assert r.status_code == 200 and r.headers["etag"].strip('"') == hashlib.sha256(r.content).hexdigest()
-    assert "immutable" in r.headers["cache-control"]
+    # a full or from-stage run republishes v<HEAD>, so browsers must revalidate (cheap 304) instead of trusting a cache
+    assert r.headers["cache-control"] == "no-cache"
     again = client.get(f"/api/projects/{pid}/outputs/1/shell.glb", headers={"If-None-Match": r.headers["etag"]})
     assert again.status_code == 304
     listing = client.get(f"/api/projects/{pid}/outputs").json()
@@ -61,3 +62,18 @@ def test_config_has_no_secrets(client):
 def test_profiles(client):
     assert client.get("/api/profiles").json() == []
     assert client.post("/api/profiles", json={"name": "x", "from_run": "a/b"}).status_code == 501
+
+
+def test_bundle_streams_large_outputs_in_chunks(client_with_outputs, data_dir):
+    """Iterating a binary spool yields one chunk per b'\\n' (~80k threadpool hops for 20 MB): seconds per download."""
+    import os
+    import time
+
+    client, pid = client_with_outputs
+    blob = os.urandom(20 << 20)
+    (data_dir / "projects" / pid / "outputs" / "v1" / "layout.blend").write_bytes(blob)
+    t0 = time.monotonic()
+    r = client.get(f"/api/projects/{pid}/outputs/1/bundle.zip")
+    elapsed = time.monotonic() - t0
+    assert zipfile.ZipFile(io.BytesIO(r.content)).read("layout.blend") == blob
+    assert elapsed < 2.0, f"bundle took {elapsed:.1f}s"

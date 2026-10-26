@@ -15,7 +15,7 @@ import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
 import { StatusTag } from '../components/StatusTag'
 import { VersionsTab } from '../components/VersionsTab'
-import { applyEvent, stageLabel } from '../lib/runState'
+import { stageLabel, withEvents } from '../lib/runState'
 
 const TABS = ['pipeline', 'logs', 'review', 'editor', 'outputs', 'versions']
 const TAB_LABELS = ['Pipeline', 'Logs', 'Review', 'Editor', 'Outputs', 'Versions']
@@ -41,9 +41,8 @@ export function ProjectDetailPage() {
     setEvents((prev) => (prev.length && prev[prev.length - 1].seq >= e.seq ? prev : [...prev, e]))
     if (e.type === 'stage.started' && e.stage !== null) setSelected(e.stage)
   })
-  // the stored run plus live events (replaying already-applied events is idempotent)
   const latest = project?.latest_run ?? null
-  const run = useMemo(() => (latest ? events.reduce(applyEvent, latest) : null), [latest, events])
+  const run = useMemo(() => (latest ? withEvents(latest, events) : null), [latest, events])
 
   if (isLoading || !project) return <Loading withOverlay={false} description="Memuat project" />
   const active = run && (run.status === 'queued' || run.status === 'running')

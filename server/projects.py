@@ -5,6 +5,8 @@ import json
 import os
 import re
 import shutil
+import threading
+from collections import defaultdict
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -108,8 +110,13 @@ def summary(storage: Storage, pid: str) -> dict:
             "validator_score": score, "iou": iou, "head_version": head, "updated_at": project["updated_at"]}
 
 
+_touch_locks: defaultdict[str, threading.Lock] = defaultdict(threading.Lock)
+
+
 def touch(storage: Storage, pid: str, **changes) -> dict:
+    """Read-modify-write of project.json, serialised per project (routes and run threads both call it)."""
     path = storage.project_dir(pid) / "project.json"
-    project = storage.read_json(path) | changes | {"updated_at": now()}
-    storage.write_json_atomic(path, project)
+    with _touch_locks[pid]:
+        project = storage.read_json(path) | changes | {"updated_at": now()}
+        storage.write_json_atomic(path, project)
     return project

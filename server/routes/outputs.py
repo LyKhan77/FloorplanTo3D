@@ -1,4 +1,4 @@
-"""/api/projects/{id}/outputs (PRD/09 §2.5): immutable per-version files with ETag, plus a zip bundle."""
+"""/api/projects/{id}/outputs (PRD/09 §2.5): per-version files with ETag, plus a zip bundle."""
 
 import hashlib
 import tempfile
@@ -14,7 +14,7 @@ from server.errors import ApiError
 from server.projects import output_versions
 
 router = APIRouter(prefix="/api/projects/{pid}/outputs")
-IMMUTABLE = "private, max-age=31536000, immutable"
+REVALIDATE = "no-cache"  # vN is rewritten when a full or from-stage run republishes the same spec version
 
 
 @lru_cache(maxsize=1024)
@@ -54,7 +54,8 @@ def bundle(pid: str, v: int, request: Request):
             if p.is_file() and not p.is_symlink():
                 z.write(p, p.relative_to(d).as_posix())
     spool.seek(0)
-    return StreamingResponse(spool, media_type="application/zip", background=BackgroundTask(spool.close),
+    chunks = iter(lambda: spool.read(1 << 20), b"")  # 1 MB reads; iterating the file itself splits on b"\n"
+    return StreamingResponse(chunks, media_type="application/zip", background=BackgroundTask(spool.close),
                              headers={"Content-Disposition": f'attachment; filename="{pid}-v{v}.zip"'})
 
 
@@ -67,5 +68,5 @@ def output_file(pid: str, v: int, path: str, request: Request):
     st = f.stat()
     etag = f'"{_sha256(str(f), st.st_mtime, st.st_size)}"'
     if request.headers.get("if-none-match") == etag:
-        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": IMMUTABLE})
-    return FileResponse(f, headers={"ETag": etag, "Cache-Control": IMMUTABLE})
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": REVALIDATE})
+    return FileResponse(f, headers={"ETag": etag, "Cache-Control": REVALIDATE})

@@ -5,6 +5,7 @@ in worker threads and talk back only through the event bus and their return valu
 """
 
 import asyncio
+import logging
 import shutil
 import subprocess
 import threading
@@ -22,6 +23,8 @@ from server.errors import ApiError
 from server.events import EventBus
 from server.projects import input_image, touch
 from server.storage import Storage
+
+log = logging.getLogger(__name__)
 
 STAGES = [(0, "input"), (1, "preprocess"), (2, "grid"), (3, "extract"), (4, "rooms"), (5, "validate"),
           (6, "review"), (7, "build"), (8, "verify"), (9, "report"), (10, "publish")]
@@ -210,8 +213,8 @@ class Orchestrator:
                 raise ApiError(409, "run_in_progress", f"project {pid} already has an active run",
                                {"run_id": self._active[pid]})
             head = SpecStore(project_dir / "specs").head()
-            if kind == "regenerate":
-                from_stage = FIRST_BLENDER_STAGE
+            if kind == "regenerate" or from_stage > FIRST_BLENDER_STAGE:
+                from_stage = FIRST_BLENDER_STAGE  # stages 8-10 need stage 7's spec and Blender output from this run
             resolved = head if version == "HEAD" else int(version)
             if from_stage >= FIRST_BLENDER_STAGE and resolved is None:
                 raise ApiError(409, "no_spec", "import a spec before building outputs")
@@ -253,8 +256,14 @@ class Orchestrator:
             try:
                 await self._run_part(queue, pid, rid)
             except Exception:  # noqa: BLE001 - a bug must not kill the worker loop
-                run = self.load_run(pid, rid)
-                self._finish(run, "failed", traceback.format_exc(limit=3))
+                error = traceback.format_exc(limit=3)
+                try:
+                    self._finish(self.load_run(pid, rid), "failed", error)
+                except Exception:  # nor may a broken run.json (or a full disk) while recording it
+                    log.exception("run %s/%s failed and could not be recorded:\n%s", pid, rid, error)
+                    with self._lock:
+                        if self._active.get(pid) == rid:
+                            del self._active[pid]
 
     async def _run_part(self, queue: str, pid: str, rid: str) -> None:
         run = self.load_run(pid, rid)
@@ -363,11 +372,14 @@ class Orchestrator:
             for run_file in (project / "runs").glob("*/run.json"):
                 run = self.storage.read_json(run_file)
                 if run["status"] == "running":
-                    for s in run["stages"]:
-                        if s["status"] == "running":
-                            s.update(status="failed", ended_at=_now())
+                    closed = [s for s in run["stages"] if s["status"] == "running"]
+                    for s in closed:
+                        s.update(status="failed", ended_at=_now())
                     run.update(status="failed", error="interrupted")
                     self._save(run)
+                    for s in closed:
+                        self.bus.emit(run["project_id"], run["run_id"], s["n"], "stage.finished",
+                                      data={"status": "failed", "duration_ms": None, "metrics": {}})
                     self.bus.emit(run["project_id"], run["run_id"], None, "run.finished",
                                   data={"status": "failed", "error": "interrupted"})
                 elif run["status"] == "queued":

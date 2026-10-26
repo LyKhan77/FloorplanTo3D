@@ -57,13 +57,19 @@ def import_gt(client, pid: str) -> None:
 
 
 @pytest.fixture
-def project_id(client, plan_bytes):
-    return create_project(client, plan_bytes)
+def setup_client(data_dir):
+    """Fixture data only: no `with`, so no lifespan, no orchestrator and no DATA_DIR lock next to the app under test."""
+    return TestClient(create_app(settings_for(data_dir)))
 
 
 @pytest.fixture
-def project_with_gt(client, project_id):
-    import_gt(client, project_id)
+def project_id(setup_client, plan_bytes):
+    return create_project(setup_client, plan_bytes)
+
+
+@pytest.fixture
+def project_with_gt(setup_client, project_id):
+    import_gt(setup_client, project_id)
     return project_id
 
 
