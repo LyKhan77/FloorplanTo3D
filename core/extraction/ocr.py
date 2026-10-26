@@ -13,7 +13,7 @@ BBox = tuple[float, float, float, float]  # x0, y0, x1, y1
 class OcrItem:
     text: str
     bbox: BBox  # pixels of the input image
-    angle: int  # 0 or 90
+    angle: int  # text orientation in the input image: 0 (horizontal) or 90 (vertical)
     conf: float
 
 
@@ -36,14 +36,27 @@ def _engine():
     return RapidOCR()
 
 
-def _ocr_pass(img: np.ndarray, upscale: float, rotated_w: int | None, angle: int) -> list[OcrItem]:
+def _iou(a: BBox, b: BBox) -> float:
+    ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+    iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / union if union else 0.0
+
+
+def _angle(box: BBox, text: str) -> int:
+    # Orientation from the box shape; single characters are ambiguous ("1" is tall), so treat as 0.
+    return 90 if len(text.strip()) >= 2 and (box[3] - box[1]) > (box[2] - box[0]) else 0
+
+
+def _ocr_pass(img: np.ndarray, upscale: float, rotated_w: int | None) -> list[OcrItem]:
     result, _ = _engine()(img)
     items = []
     for points, text, score in result or []:
         xs = [p[0] for p in points]
         ys = [p[1] for p in points]
         box = restore_bbox((min(xs), min(ys), max(xs), max(ys)), upscale, rotated_w)
-        items.append(OcrItem(text=text, bbox=box, angle=angle, conf=float(score)))
+        items.append(OcrItem(text=text, bbox=box, angle=_angle(box, text), conf=float(score)))
     return items
 
 
@@ -52,5 +65,11 @@ def run_ocr(image: np.ndarray, upscale: float = 2.0) -> list[OcrItem]:
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
     big = cv2.resize(image, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_CUBIC)
     rot = cv2.rotate(big, cv2.ROTATE_90_CLOCKWISE)
-    # ponytail: no dedup between passes; text classification in M5 filters noise
-    return _ocr_pass(big, upscale, None, 0) + _ocr_pass(rot, upscale, rot.shape[1], 90)
+    # RapidOCR's angle classifier reads rotated text in both passes, so the passes overlap. On a
+    # conflict, trust the pass that matches the text orientation: the 0° pass reads vertical
+    # "6000" as "0009"; the rotated pass misreads single grid characters ("3" as "C").
+    flat = _ocr_pass(big, upscale, None)
+    rotated = _ocr_pass(rot, upscale, rot.shape[1])
+    keep_flat = [f for f in flat if not any(r.angle == 90 and _iou(r.bbox, f.bbox) > 0.5 for r in rotated)]
+    keep_rot = [r for r in rotated if r.angle == 90 or all(_iou(r.bbox, f.bbox) <= 0.5 for f in flat)]
+    return keep_flat + keep_rot

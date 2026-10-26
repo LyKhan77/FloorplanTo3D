@@ -70,9 +70,9 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Laporan spike Strata ada. Bila Strata belum bisa dinyalakan, spike dipindah ke awal M6 dan dicatat.
 
 **Status M0 (2026-10-26), branch `m0-foundation`:**
-- `uv run --env-file .env pytest` → 10 passed. Ruff dan `npm run lint` (oxlint) bersih.
+- `uv run --env-file .env pytest` → 13 passed, 1 xfailed (OCR hitungan grid). Ruff dan `npm run lint` (oxlint) bersih. Tanpa `--env-file` hanya test WeasyPrint yang gagal, dengan petunjuk.
 - Blender: `.glb` dengan extras `spec_id`/`spec_type`, sumbu dan ukuran 1:1 terverifikasi. `BLENDER_BIN` wajib path asli `/Applications/Blender.app/Contents/MacOS/Blender`; symlink Homebrew crash.
-- OCR Gatsu: 17/18 label grid + angka dimensi (hilang: label grid "1"), 9/9 label ruang, upscale 2× tanpa tuning.
+- OCR Gatsu: **16/18 (89%)** label grid + angka dimensi setelah dedup antar-pass (hilang: bulatan grid "C" dan "1"; upscale 3× tidak membantu), 9/9 label ruang, dimensi vertikal terbaca. Kriteria ≥ 90% **belum terpenuhi kurang 1 item**: dibawa ke M5 (OCR per crop bulatan grid, `benchmarks/reports/m0-smoke.md`).
 - Web: halaman g100 + kubus R3F (React 18, Carbon, font Plex dibundel). Lint memakai oxlint bawaan Vite, bukan ESLint.
 - Spike Strata **ditunda ke M6**: Strata tidak aktif (`benchmarks/reports/spike-strata.md`).
 - Belum: pemindahan kredensial `server-info.txt` (tindakan pengguna, R-15).
