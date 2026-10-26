@@ -17,6 +17,7 @@ from pathlib import Path
 
 from core.blender_run import parse_progress
 from core.config import Settings
+from core.extraction.profiles import ProfileNotFound, load_profile
 from core.extraction.stages import (
     stage_extract,
     stage_grid,
@@ -68,6 +69,7 @@ class StageContext:
     state: dict = field(default_factory=dict)  # shared between the stages of one run
     register_process: Callable[[subprocess.Popen], None] = lambda p: None
     params_override: dict = field(default_factory=dict)  # POST /runs params_override (explicit params win)
+    profile: dict | None = None  # style profile chosen for the run (its params seed the sweep)
 
 
 # --- default stage implementations ------------------------------------------------------------------------------
@@ -88,7 +90,7 @@ def _grid(ctx: StageContext) -> dict:
 
 def _extract(ctx: StageContext) -> dict:
     return stage_extract(ctx.project_dir, ctx.work_dir, ctx.settings.sweep_max_candidates, ctx.emit_progress,
-                         ctx.params_override)
+                         ctx.params_override, (ctx.profile or {}).get("params"))
 
 
 def _rooms(ctx: StageContext) -> dict:
@@ -248,8 +250,13 @@ class Orchestrator:
         return None
 
     def start_run(self, pid: str, kind: str, from_stage: int = 0, version: int | str = "HEAD",
-                  params_override: dict | None = None) -> dict:
+                  params_override: dict | None = None, profile_id: str | None = None) -> dict:
         project_dir = self.storage.project_dir(pid)
+        if profile_id:
+            try:
+                load_profile(self.storage, profile_id)
+            except ProfileNotFound as e:
+                raise ApiError(404, "not_found", str(e)) from None
         with self._lock:
             if pid in self._active:
                 raise ApiError(409, "run_in_progress", f"project {pid} already has an active run",
@@ -272,7 +279,7 @@ class Orchestrator:
                                "started_at": None, "ended_at": None, "duration_ms": None, "progress": None,
                                "metrics": {}, "warnings": []} for n, name in STAGES],
                    "code_version": self.code_version, "blender_version": None, "created_at": _now(), "error": None,
-                   "params_override": params_override or {}}
+                   "params_override": params_override or {}, "profile_id": profile_id}
             if seed is not None:
                 target = project_dir / "runs" / rid / "stages"
                 for n in range(from_stage):
@@ -366,7 +373,8 @@ class Orchestrator:
 
         return StageContext(pid, rid, n, run.get("version"), work, project_dir, self.storage, self.settings,
                             emit_log, emit_progress, self._cancel[rid], self._state[rid], register,
-                            params_override=run.get("params_override") or {})
+                            params_override=run.get("params_override") or {},
+                            profile=load_profile(self.storage, run["profile_id"]) if run.get("profile_id") else None)
 
     async def _run_stage(self, run: dict, n: int) -> bool:
         """Run one stage; return False when the run must stop."""

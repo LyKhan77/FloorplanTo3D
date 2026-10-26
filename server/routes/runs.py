@@ -38,7 +38,7 @@ def start(pid: str, body: RunBody, request: Request):
     if not 0 <= body.from_stage <= 10:
         raise ApiError(400, "bad_request", "from_stage must be 0-10")
     run = _orch(request).start_run(pid, body.kind, body.from_stage if body.kind == "from_stage" else 0,
-                                   params_override=body.params_override)
+                                   params_override=body.params_override, profile_id=body.profile_id)
     return {"run_id": run["run_id"], "status": run["status"]}
 
 

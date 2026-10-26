@@ -1,4 +1,4 @@
-"""/api/templates (PRD/09 §2.7) and /api/profiles (§2.8; saving arrives with style profiles in M5)."""
+"""/api/templates (PRD/09 §2.7) and /api/profiles (§2.8)."""
 
 import json
 import logging
@@ -6,7 +6,9 @@ from functools import lru_cache
 
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
+from core.extraction.profiles import ProfileConflict, ProfileNotFound, save_profile
 from core.templates.registry import load_template
 from core.templates.validate import validate_template
 from server.errors import ApiError
@@ -79,6 +81,16 @@ def list_profiles(request: Request):
     return [json.loads(p.read_text()) for p in sorted(d.glob("*.json"))] if d.exists() else []
 
 
-@router.post("/profiles")
-def save_profile():
-    raise ApiError(501, "not_implemented", "style profiles arrive in M5")
+class ProfileBody(BaseModel):
+    name: str
+    from_run: str
+
+
+@router.post("/profiles", status_code=201)
+def create_profile(body: ProfileBody, request: Request):
+    try:
+        return save_profile(request.app.state.storage, body.name, body.from_run)
+    except ProfileNotFound as e:
+        raise ApiError(404, "not_found", str(e)) from None
+    except ProfileConflict as e:
+        raise ApiError(409, "conflict", str(e)) from None

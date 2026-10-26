@@ -8,6 +8,7 @@ from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from core.extraction.profiles import ProfileNotFound, load_profile
 from core.spec.store import SpecStore
 from server.errors import ApiError
 from server.projects import create_project, latest_run, output_versions, summary, touch
@@ -28,13 +29,19 @@ async def _read_limited(upload: UploadFile, max_bytes: int) -> bytes:
 @router.post("", status_code=201)
 async def create(request: Request, file: Annotated[UploadFile, File()], name: Annotated[str | None, Form()] = None,
                  prompt: Annotated[str, Form()] = "", params: Annotated[str | None, Form()] = None,
-                 page: Annotated[int | None, Form()] = None, start: Annotated[bool, Form()] = True):
+                 page: Annotated[int | None, Form()] = None, start: Annotated[bool, Form()] = True,
+                 profile_id: Annotated[str | None, Form()] = None):
     try:
         parsed = json.loads(params) if params else {}
     except json.JSONDecodeError:
         parsed = None
     if not isinstance(parsed, dict):
         raise ApiError(400, "bad_request", "params must be a JSON object")
+    if profile_id:
+        try:
+            load_profile(request.app.state.storage, profile_id)
+        except ProfileNotFound as e:
+            raise ApiError(404, "not_found", str(e)) from None
     settings = request.app.state.settings
     data = await _read_limited(file, settings.max_upload_mb * CHUNK)
     project = create_project(request.app.state.storage, data, file.filename or "upload", name, prompt, parsed, page,
@@ -42,7 +49,7 @@ async def create(request: Request, file: Annotated[UploadFile, File()], name: An
     run_id = None
     orchestrator = getattr(request.app.state, "orchestrator", None)
     if start and orchestrator is not None:
-        run_id = orchestrator.start_run(project["project_id"], "full")["run_id"]
+        run_id = orchestrator.start_run(project["project_id"], "full", profile_id=profile_id)["run_id"]
     return {"project_id": project["project_id"], "run_id": run_id, "status": "queued" if run_id else "new"}
 
 

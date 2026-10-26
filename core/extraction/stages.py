@@ -158,7 +158,7 @@ def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
 
 
 def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progress: Progress = None,
-                  override: dict | None = None) -> dict:
+                  override: dict | None = None, profile: dict | None = None) -> dict:
     """Stage 3 (PRD/04 §3): K candidates -> candidates/<k>/{elements.json,overlay.png}, candidates.json, masks/."""
     import functools
     import time
@@ -177,7 +177,7 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
         "defaults": {k: params_final[k] for k in ("wall_thickness",) if k in params_final},
         "work": str(work),
     }
-    params = sweep_params(max_candidates)
+    params = sweep_params(max_candidates, profile)  # a style profile and its neighbours first
     if progress:
         progress(5, f"{len(params)} kandidat")
     results = run_sweep(functools.partial(_candidate_job, inputs), params)

@@ -61,7 +61,7 @@ def test_config_has_no_secrets(client):
 
 def test_profiles(client):
     assert client.get("/api/profiles").json() == []
-    assert client.post("/api/profiles", json={"name": "x", "from_run": "a/b"}).status_code == 501
+    assert client.post("/api/profiles", json={"name": "x", "from_run": "a/b"}).status_code == 404  # unknown run (saving profiles: M5c)
 
 
 def test_bundle_streams_large_outputs_in_chunks(client_with_outputs, data_dir):
