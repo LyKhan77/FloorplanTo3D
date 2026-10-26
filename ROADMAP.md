@@ -392,7 +392,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - kolom bulat belum dideteksi;
   - dinding miring belum dipasangkan;
   - sumbu grid dan garis dimensi belum dihapus dari citra (PRD/04 §3.1.2). Gatsu aman karena grid-nya berwarna. Pada plot hitam-putih, sumbu di antara dua garis dinding bisa membuat dinding bergeser dan tebalnya salah. Dikerjakan di M5c.
-- **Suite:** pytest 302 passed, 2 xfailed; Vitest 145 passed; ruff, oxlint, dan build bersih.
+- **Suite:** pytest 302 passed, 2 xfailed; Vitest 146 passed; ruff, oxlint, dan build bersih.
 
 ---
 
