@@ -41,6 +41,7 @@ interface EditorState {
   cursor: [number, number] | null
   hoverRoom: string | null
   fps: number | null
+  previewBanner: boolean
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -61,6 +62,7 @@ interface EditorState {
   setSaveIssues(issues: Issue[]): void
   setCursor(cursor: [number, number] | null, hoverRoom: string | null): void
   setFps(fps: number): void
+  setPreviewBanner(on: boolean): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -96,6 +98,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
+    previewBanner: false,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null }),
     apply: (op) => get().applyMany([op]),
@@ -142,5 +145,6 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setSaveIssues: (saveIssues) => set({ saveIssues }),
     setCursor: (cursor, hoverRoom) => set({ cursor, hoverRoom }),
     setFps: (fps) => set({ fps }),
+    setPreviewBanner: (previewBanner) => set({ previewBanner }),
   }
 })

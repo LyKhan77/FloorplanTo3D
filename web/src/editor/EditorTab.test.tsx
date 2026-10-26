@@ -14,6 +14,9 @@ vi.mock('../api/client', () => ({
   outputsBase: (id: string, v: number) => `/api/projects/${id}/outputs/${v}`,
 }))
 
+// WebGL does not exist in jsdom; the viewport is verified in the browser (Task 15).
+vi.mock('./viewport/Viewport', () => ({ Viewport: () => null }))
+
 const spec = (version: number): Spec => ({ ...gt, meta: { ...gt.meta, version } })
 const out = (version: number, files = ['shell.glb']): OutputVersion => ({ version, files: files.map((name) => ({ name, bytes: 1 })), renders: [] })
 

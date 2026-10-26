@@ -6,6 +6,7 @@ import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
 import { useEditorData } from './useEditorData'
 import { useEditorStore } from './store'
+import { Viewport } from './viewport/Viewport'
 
 if (import.meta.env.DEV) (window as unknown as { __editor: typeof useEditorStore }).__editor = useEditorStore
 
@@ -16,6 +17,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const [right, setRight] = useState(true)
   const notice = useEditorStore((s) => s.notice)
   const setNotice = useEditorStore((s) => s.setNotice)
+  const previewBanner = useEditorStore((s) => s.previewBanner)
   void run // consumed by Save/Regenerate (Task 13)
 
   // Load HEAD once per project; a refetch never discards local ops (a newer HEAD is handled by Save's rebase).
@@ -49,6 +51,10 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           <InlineNotification kind="info" lowContrast hideCloseButton title=""
             subtitle={`Shell dari v${data.shellVersion}; regenerate untuk memperbarui`} />
         )}
+        {previewBanner && (
+          <InlineNotification kind="warning" lowContrast hideCloseButton title=""
+            subtitle="Pratinjau: bukaan pintu belum akurat sampai regenerate" />
+        )}
         {notice && (
           <InlineNotification kind={notice.kind} lowContrast title="" subtitle={notice.text} onClose={() => setNotice(null)} />
         )}
@@ -57,7 +63,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
             <p>Belum ada shell. Regenerate dulu.</p>
             <Button size="sm" disabled={regenerate.isPending} onClick={() => regenerate.mutate('HEAD')}>Regenerate</Button>
           </div>
-        ) : <div className="editor__canvas" />}
+        ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} /></div>}
       </div>
       {right && <aside className="editor__props" aria-label="Properti" />}
       <StatusBar />
