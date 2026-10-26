@@ -5,7 +5,7 @@ import numpy as np
 
 from core.extraction.geometry.columns import drop_at_columns, find_columns, find_pilasters
 from core.extraction.geometry.confidence import wall_confidence
-from core.extraction.geometry.doors import find_doors
+from core.extraction.geometry.doors import find_doors, fit_to_walls
 from core.extraction.geometry.elements import to_mm
 from core.extraction.geometry.masks import build_masks
 from core.extraction.geometry.postprocess import postprocess
@@ -45,8 +45,10 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
     walls, gaps, post_issues = postprocess(raw, axes_px, m["pointers"], proposed, s)
     columns = find_columns(clean, m["symbol"], grid_doc.get("axes", []), walls, s) + \
         find_pilasters(clean, walls, grid_doc.get("axes", []), s)
-    doors = find_doors(clean, strokes, walls, gaps, s)
+    thin = np.where(clean > 0, m["thin"], 0).astype(np.uint8)
+    doors = find_doors(thin, extract_strokes(thin, l_fix, s), walls, gaps, s)
     walls, doors = drop_at_columns(walls, doors, columns, s)
+    doors, walls = fit_to_walls(doors, walls, s)
 
     def mm_pt(p) -> list[int]:
         return list(to_mm(A, p[0], p[1]))

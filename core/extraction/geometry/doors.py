@@ -10,10 +10,14 @@ import cv2
 import numpy as np
 from skimage.morphology import skeletonize
 
+from core.extraction.geometry.postprocess import _rebuild
+
 COVER_DEG = (60, 100)
 RADIUS_MM = (500, 1300)
 MAX_RESIDUAL = 0.08
 MIN_ARC_PX = 15
+JAMB_MARGIN_MM = 60  # V008 wants >= 50 mm of wall either side of an opening
+EXTENDED_CONF = 0.55  # a door that needed its wall extended goes to review
 
 
 def curve_skeleton(clean: np.ndarray, strokes: list[dict]) -> np.ndarray:
@@ -156,7 +160,12 @@ def doors_from_arcs(arcs: list[dict], walls: list[dict], clean: np.ndarray, s: f
                 continue
             along, across = _along_across(w, (hx, hy))
             if abs(across - w["c"]) <= w["thickness_mm"] / s + 100 / s and w["a"] - r <= along <= w["b"] + r:
-                d = abs(across - w["c"])
+                # the host carries the hinge and the closed leaf end on its line and the leaf over its extent; a
+                # perpendicular wall ending at the hinge has the leaf off its line or beyond its end
+                closed = min(arc["ends"], key=lambda e: abs(_along_across(w, e)[1] - w["c"]))
+                lo, hi = sorted((along, _along_across(w, closed)[0]))
+                d = abs(across - w["c"]) + abs(_along_across(w, closed)[1] - w["c"]) + max(0, w["a"] - lo) \
+                    + max(0, hi - w["b"])
                 if best is None or d < best[0]:
                     best = (d, wi)
         if best is None:
@@ -220,3 +229,34 @@ def find_doors(clean: np.ndarray, strokes: list[dict], walls: list[dict], gap_op
                        for a in arcs)]
     keep = ("wall", "category", "offset", "width", "door_type", "hinge", "swing", "confidence", "evidence")
     return sorted(({k: d[k] for k in keep} for d in arcs + gaps), key=lambda d: (d["wall"], d["offset"]))
+
+
+def fit_to_walls(doors: list[dict], walls: list[dict], s: float) -> tuple[list[dict], list[dict]]:
+    """Keep every opening inside its wall (V008) and openings on one wall apart (V009).
+
+    Of two overlapping openings the more confident stays. A door overhanging its wall end (the far jamb's wall was
+    not detected) extends the wall over it; such a door is sent to review.
+    """
+    margin = JAMB_MARGIN_MM / s
+    spans = []
+    for d in sorted(doors, key=lambda d: (-d["confidence"], d["wall"], d["offset"])):
+        w = walls[d["wall"]]
+        lo, hi = w["a"] + d["offset"] / s, w["a"] + (d["offset"] + d["width"]) / s
+        if not any(k["wall"] == d["wall"] and min(hi, khi) > max(lo, klo) for k, klo, khi in spans):
+            spans.append((d, lo, hi))
+    out_walls = list(walls)
+    for wi in {d["wall"] for d, _, _ in spans}:
+        w = walls[wi]
+        on = [(lo, hi) for d, lo, hi in spans if d["wall"] == wi]
+        a, b = min([w["a"]] + [lo - margin for lo, _ in on]), max([w["b"]] + [hi + margin for _, hi in on])
+        if (a, b) != (w["a"], w["b"]):
+            ev = w["evidence"] | {"extended_for_door_mm": round((w["a"] - a + b - w["b"]) * s)}
+            out_walls[wi] = _rebuild(w, a=a, b=b, evidence=ev)
+    out = []
+    for d, lo, hi in spans:
+        w, nw = walls[d["wall"]], out_walls[d["wall"]]
+        n = {**d, "offset": round((lo - nw["a"]) * s)}
+        if lo - margin < w["a"] or hi + margin > w["b"]:
+            n |= {"confidence": min(d["confidence"], EXTENDED_CONF), "evidence": d["evidence"] | {"wall_extended": True}}
+        out.append(n)
+    return sorted(out, key=lambda d: (d["wall"], d["offset"])), out_walls
