@@ -224,7 +224,7 @@ Pencocokan memakai jarak Levenshtein ≤ 1 untuk kata ≥ 5 huruf, agar toleran 
    - **4a. Project baru**: simpan sebagai `spec.v1.json`.
    - **4b. Re-ekstraksi (project sudah punya HEAD)**: lakukan **carry-over** terhadap HEAD sebelum disimpan sebagai versi berikutnya:
      - **Pencocokan dinding**: jarak garis tengah ≤ 200 mm, beda sudut ≤ 3°, dan overlap ≥ 50%. Dinding yang cocok **mewarisi ID lama** dan `height` editan.
-     - **Pencocokan ruang**: IoU poligon ≥ 0.5. Ruang yang cocok mewarisi ID, `name`, dan `type` bila sumber terakhirnya `editor`/`manual`/`llm`.
+     - **Pencocokan ruang**: IoU poligon ≥ 0.5, atau ≥ 90% luas ruang lama tercakup ruang baru (kasus gabung). Bila beberapa cocok, pilih IoU tertinggi lalu ID terkecil; tiap ruang lama dipakai paling banyak sekali. Aturan yang sama dipakai saat ops dinding membentuk ulang ruang (`core/spec/rooms.py`). Ruang yang cocok mewarisi ID, `name`, dan `type` bila sumber terakhirnya `editor`/`manual`/`llm`.
      - **Pencocokan pintu/kolom**: jarak pusat ≤ 300 mm, lalu ID diwarisi.
      - **Objek** disalin apa adanya (posisinya dalam mm tidak bergantung pada dinding). `room_id` dihitung ulang.
      - **Default** (`meta.defaults`) dari HEAD dipertahankan.
