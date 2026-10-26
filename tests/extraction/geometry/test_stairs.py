@@ -125,3 +125,17 @@ def test_u_stair_without_text_is_ambiguous():
     img = u_stair()
     st, issues = detect_stairs(extract_strokes(img, 0, S), [], img, S)
     assert st[0]["confidence"] < 0.5 and any(i["code"] == "STAIR_DIR" for i in issues)
+
+
+def test_lift_boxes_fast_on_cross_hatch():
+    import time
+
+    rng = np.random.default_rng(0)
+    strokes = []
+    for _ in range(300):
+        x, y, d = (float(v) for v in rng.uniform(0, 2000, 3))
+        sign = 1 if rng.random() < 0.5 else -1
+        strokes.append({"orient": "o", "p0": [x, y], "p1": [x + 100 + d / 10, y + sign * (100 + d / 10)]})
+    t = time.perf_counter()
+    lift_boxes(strokes, S)
+    assert time.perf_counter() - t < 0.5

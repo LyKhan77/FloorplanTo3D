@@ -132,6 +132,7 @@ def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     write_json(out / "elements.json", {k: v for k, v in el.items() if not k.startswith("_")})
     cv2.imwrite(str(out / "overlay.png"), render_elements_overlay(inputs["page"], el, inputs["grid"]["mm_per_px_work"]))
+    cv2.imwrite(str(out / "wall_mask.png"), el["_masks"]["wall"])
     if index == 0:
         (Path(inputs["work"]) / "masks").mkdir(exist_ok=True)
         for name, mask in el["_masks"].items():
@@ -139,6 +140,7 @@ def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
     s = inputs["grid"]["mm_per_px_work"]
     wall_len = sum(((w["p1"][0] - w["p0"][0]) ** 2 + (w["p1"][1] - w["p0"][1]) ** 2) ** 0.5 for w in el["_px"]["walls"]) * s
     return {"index": index, "params": params, "error": None, "wall_len_m": round(wall_len / 1000, 2),
+            "line_len_m": el["line_len_m"],
             "counts": {"walls": len(el["walls"]), "doors": len(el["openings"]), "columns": len(el["columns"]),
                        "stairs": len(el["stairs"])},
             "low_conf": sum(w["confidence"] < 0.6 for w in el["walls"])}
@@ -169,7 +171,7 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
         progress(5, f"{len(params)} kandidat")
     results = run_sweep(functools.partial(_candidate_job, inputs), params)
     summary = [r if r.get("index") is not None else {"index": i, "params": p, "error": r.get("error"),
-                                                      "counts": None, "wall_len_m": 0, "low_conf": 0}
+                                                      "counts": None, "wall_len_m": 0, "line_len_m": 0, "low_conf": 0}
                for i, (r, p) in enumerate(zip(results, params, strict=True))]
     write_json(work / "candidates.json", summary)
     best = max((r["wall_len_m"] for r in summary if not r["error"]), default=0)

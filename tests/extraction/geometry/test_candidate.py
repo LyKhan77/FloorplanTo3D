@@ -79,3 +79,49 @@ def test_cable_trench_has_no_confident_wall():
     inside = [w for w in el["walls"] if w["confidence"] >= 0.6 and all(
         x0 <= p[0] <= x1 and y_bot <= p[1] <= y_top for p in (w["a"], w["b"]))]
     assert inside == [], inside
+
+
+def synth_candidate(img, strategy="S2"):
+    from core.extraction.geometry.candidate import extract_candidate
+
+    h, w = img.shape
+    grid = {"mm_per_px_work": S, "px_to_mm": [S, 0, 0, 0, -S, h * S], "axes": []}
+    meta = {"upscale": 1, "drawing_bbox": [0, 0, w, h]}
+    params = {"strategy": strategy, "sauvola_k": 0.2, "t_min": 80, "t_max": 450, "l_fix": 0}
+    return extract_candidate(255 - img, img, np.zeros_like(img), [], grid, meta, params, {})
+
+
+def test_lift_box_in_elements():
+    from tests.extraction.geometry.synth import canvas, line, room
+
+    img = canvas(600, 500)
+    room(img, 150, 50, 450, 350)
+    x0, y0, side = 220, 120, 160  # 2000 mm lift box with its two diagonals
+    for p, q in (((x0, y0), (x0 + side, y0)), ((x0, y0 + side), (x0 + side, y0 + side)),
+                 ((x0, y0), (x0, y0 + side)), ((x0 + side, y0), (x0 + side, y0 + side)),
+                 ((x0, y0), (x0 + side, y0 + side)), ((x0 + side, y0), (x0, y0 + side))):
+        line(img, p, q, 2)
+    el = synth_candidate(img)
+    assert len(el["lifts"]) == 1
+    bx0, by0, bx1, by1 = el["lifts"][0]
+    assert bx1 > bx0 and by1 > by0
+    assert abs((bx1 - bx0) - 2000) <= 50 and abs((by1 - by0) - 2000) <= 50
+
+
+def test_wall_mask_fills_between_pair_lines():
+    from tests.extraction.geometry.synth import canvas, double_wall
+
+    img = canvas()
+    double_wall(img, (100, 200), (500, 200), gap_px=20)  # lines at y 190 / 210
+    m = synth_candidate(img)["_masks"]["wall"]
+    band = m[193:208, 120:480]
+    assert (band > 0).mean() >= 0.95
+    assert not m[180:185, 120:480].any() and not m[215:220, 120:480].any()
+
+
+def test_line_len_reported():
+    from tests.extraction.geometry.synth import canvas, room
+
+    img = canvas(700, 500)
+    room(img, 100, 100, 420, 420)  # 4 x 4000 mm double-line walls
+    assert abs(synth_candidate(img)["line_len_m"] - 16) <= 0.5

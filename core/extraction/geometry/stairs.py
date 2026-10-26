@@ -214,20 +214,36 @@ def _line_dist(p, a: dict) -> float:
 def lift_boxes(strokes: list[dict], s: float) -> list[list[float]]:
     """Box crossed by two diagonals (the lift symbol), 1000-3000 mm per side: [x0, y0, x1, y1].
 
-    A diagonal broken at the crossing comes as several collinear pieces; all pieces on either diagonal count.
+    A diagonal broken at the crossing comes as several collinear pieces: pieces are first joined into lines
+    (O(d²)), then pairs of perpendicular lines are tested by their joint bounding box.
     """
     ang = lambda x: math.degrees(math.atan2(x["p1"][1] - x["p0"][1], x["p1"][0] - x["p0"][0])) % 180
     diag = [x for x in strokes if x["orient"] == "o" and 25 <= min(ang(x), 180 - ang(x)) <= 65]
-    boxes: list[list[float]] = []
+    parent = list(range(len(diag)))
+
+    def root(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
     for i, a in enumerate(diag):
-        for b in diag[i + 1:]:
-            if abs(abs(ang(a) - ang(b)) - 90) > 20:
+        for j in range(i + 1, len(diag)):
+            if max(_line_dist(diag[j]["p0"], a), _line_dist(diag[j]["p1"], a)) <= 3:
+                parent[root(j)] = root(i)
+    lines: dict[int, list[dict]] = {}
+    for i, x in enumerate(diag):
+        lines.setdefault(root(i), []).append(x)
+    info = []
+    for members in lines.values():
+        pts = np.array([p for x in members for p in (x["p0"], x["p1"])], float)
+        info.append((ang(members[0]), pts.min(axis=0), pts.max(axis=0)))
+    boxes: list[list[float]] = []
+    for i, (a1, lo1, hi1) in enumerate(info):
+        for a2, lo2, hi2 in info[i + 1:]:
+            if abs(abs(a1 - a2) - 90) > 20:
                 continue
-            group = [x for x in diag if max(_line_dist(x["p0"], a), _line_dist(x["p1"], a)) <= 3
-                     or max(_line_dist(x["p0"], b), _line_dist(x["p1"], b)) <= 3]
-            pts = np.array([p for x in group for p in (x["p0"], x["p1"])], float)
-            x0, y0 = pts.min(axis=0)
-            x1, y1 = pts.max(axis=0)
+            (x0, y0), (x1, y1) = np.minimum(lo1, lo2), np.maximum(hi1, hi2)
             w_mm, h_mm = (x1 - x0) * s, (y1 - y0) * s
             if not (1000 <= w_mm <= 3000 and 1000 <= h_mm <= 3000 and 0.7 <= w_mm / h_mm <= 1.4):
                 continue
@@ -235,7 +251,6 @@ def lift_boxes(strokes: list[dict], s: float) -> list[list[float]]:
             if not any(abs(box[0] - o[0]) < 5 and abs(box[1] - o[1]) < 5 for o in boxes):
                 boxes.append(box)
     return sorted(boxes)
-
 
 def in_tread_stack(w: dict, strokes: list[dict], s: float, min_lines: int = 4) -> bool:
     """Does the wall stand inside >= min_lines equally spaced (SPACING_MM) parallel strokes of its own length?
