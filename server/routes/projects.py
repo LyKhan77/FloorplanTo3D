@@ -2,6 +2,7 @@
 
 import json
 import shutil
+from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse
@@ -25,9 +26,9 @@ async def _read_limited(upload: UploadFile, max_bytes: int) -> bytes:
 
 
 @router.post("", status_code=201)
-async def create(request: Request, file: UploadFile = File(...), name: str | None = Form(None),
-                 prompt: str = Form(""), params: str | None = Form(None), page: int | None = Form(None),
-                 start: bool = Form(True)):
+async def create(request: Request, file: Annotated[UploadFile, File()], name: Annotated[str | None, Form()] = None,
+                 prompt: Annotated[str, Form()] = "", params: Annotated[str | None, Form()] = None,
+                 page: Annotated[int | None, Form()] = None, start: Annotated[bool, Form()] = True):
     try:
         parsed = json.loads(params) if params else {}
     except json.JSONDecodeError:
