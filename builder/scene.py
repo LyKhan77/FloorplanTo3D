@@ -4,6 +4,7 @@ import math
 
 import bmesh
 import bpy
+from mathutils import Matrix
 
 MM = 0.001
 SHELL_CHILDREN = ("Walls", "Columns", "Doors", "Windows", "Stairs", "Floors")
@@ -136,10 +137,43 @@ def apply_cutters(cutters: list[dict], objects: dict) -> None:
             bpy.data.meshes.remove(me)
 
 
+def _import_template(path: str, key: str, cols: Collections) -> list[bpy.types.Object]:
+    """Import an asset.glb once into a hidden _templates/<key> collection."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    imported = [o for o in bpy.data.objects if o not in before]
+    lib = cols.get("_templates")
+    sub = bpy.data.collections.new(key)
+    lib.children.link(sub)
+    for o in imported:
+        for c in list(o.users_collection):
+            c.objects.unlink(o)
+        sub.objects.link(o)
+    return imported
+
+
 def make_instances(instances: list[dict], cols: Collections) -> None:
-    """Template instances; filled in by Task 6."""
-    if instances:
-        raise NotImplementedError("template instances are not supported yet")
+    """Each instance = Empty obj_<id> (pivot, rotation, per-axis scale) + linked duplicates of the template objects."""
+    cache: dict[str, list[bpy.types.Object]] = {}
+    target = cols.get("Objects")
+    for inst in instances:
+        key = inst["template_key"]
+        if key not in cache:
+            cache[key] = _import_template(inst["asset"], key, cols)
+        root = make_empty({"name": inst["name"], "collection": "Objects", "location": inst["location"],
+                           "rot_z": inst["rot_z"], "props": inst["props"]}, cols)
+        root.scale = inst["scale"]
+        dup_of: dict[bpy.types.Object, bpy.types.Object] = {}
+        for src in cache[key]:
+            dup = src.copy()  # shares mesh data: a linked duplicate
+            target.objects.link(dup)
+            dup_of[src] = dup
+        for src, dup in dup_of.items():
+            dup.parent = dup_of.get(src.parent, root)
+            inherited = src.parent in dup_of
+            dup.matrix_parent_inverse = src.matrix_parent_inverse.copy() if inherited else Matrix.Identity(4)
+    if "_templates" in bpy.context.view_layer.layer_collection.children:
+        bpy.context.view_layer.layer_collection.children["_templates"].exclude = True
 
 
 def make_annotations(labels: list[dict], grid_lines: list[dict], cols: Collections) -> None:
