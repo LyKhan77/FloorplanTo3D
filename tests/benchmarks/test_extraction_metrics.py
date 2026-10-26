@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 
 from benchmarks.extraction_metrics import (
-    door_metrics, evaluate, grid_metrics, scale_metrics, stair_metrics_cmp, wall_metrics,
+    door_metrics,
+    evaluate,
+    grid_metrics,
+    scale_metrics,
+    stair_metrics_cmp,
+    wall_metrics,
 )
 from core.spec.models import Spec
 

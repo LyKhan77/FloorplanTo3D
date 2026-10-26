@@ -108,7 +108,7 @@ def _door_geom(o: Opening, walls: dict[str, Wall]) -> dict | None:
     (ax, ay), (bx, by) = w.a, w.b
     length = math.hypot(bx - ax, by - ay) or 1.0
     ux, uy = (bx - ax) / length, (by - ay) / length
-    at = lambda d: np.array([ax + ux * d, ay + uy * d])  # noqa: E731
+    at = lambda d: np.array([ax + ux * d, ay + uy * d])
     hinge = {"start": at(o.offset), "end": at(o.offset + o.width)}.get(o.hinge or "")
     normal = np.array([-uy, ux]) * (1 if o.swing == "left" else -1) if o.swing else None
     return {"center": at(o.offset + o.width / 2), "width": o.width, "hinge": hinge, "both": o.hinge == "both",
@@ -189,7 +189,7 @@ def stair_metrics_cmp(pred: Spec, gt: Spec) -> dict:
     if not gf:
         return {"stair_risers_ok": None, "stair_dir_ok": None, "stair_pos_ok": None}
     pf = [f for s in pred.stairs for f in s.flights]
-    mid = lambda f: (np.array(f.start, float) + np.array(f.end, float)) / 2  # noqa: E731
+    mid = lambda f: (np.array(f.start, float) + np.array(f.end, float)) / 2
     risers = dirs = pos = 0
     for g in gf:
         if not pf:
