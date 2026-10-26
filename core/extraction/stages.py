@@ -66,6 +66,7 @@ def stage_preprocess(project_dir: Path, work: Path) -> dict:
     r = preprocess(raster)
     cv2.imwrite(str(work / "page.png"), r.page)
     cv2.imwrite(str(work / "bin.png"), r.binary)
+    cv2.imwrite(str(work / "colour.png"), r.colour)
     write_json(work / "meta.json", r.meta)
     return {"status": r.status, "message": r.message, "warnings": r.warnings,
             "metrics": {"deskew_deg": r.meta["deskew_deg"], "upscale": r.meta["upscale"],

@@ -24,6 +24,7 @@ class PreprocessResult:
     page: np.ndarray  # working grayscale
     binary: np.ndarray  # ink = 255, background = 0
     meta: dict
+    colour: np.ndarray | None = None  # 255 where the pixel is annotation colour (working frame)
     status: str = "succeeded"
     message: str = ""
     warnings: list[str] = field(default_factory=list)
@@ -134,4 +135,5 @@ def preprocess(raster_bgr: np.ndarray) -> PreprocessResult:
     meta = {"deskew_deg": round(angle, 4), "upscale": up, "work_size": [gray.shape[1], gray.shape[0]],
             "original_size": [ow, oh], "drawing_bbox": list(drawing_bbox(binary, colour > 0)),
             "work_from_original": [round(float(v), 6) for v in work_from_original]}
-    return PreprocessResult(page=gray, binary=binary, meta=meta, status=status, message=message)
+    return PreprocessResult(page=gray, binary=binary, meta=meta, status=status, message=message,
+                            colour=np.where(colour > 0, 255, 0).astype(np.uint8))
