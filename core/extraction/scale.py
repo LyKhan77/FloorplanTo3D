@@ -5,6 +5,7 @@ first read as the span between the two neighbouring axes that bracket it; equati
 median scale by > 1% are re-matched to any bracketing axis pair (totals such as 28000 = A..F) or dropped.
 """
 
+import itertools
 import re
 import statistics
 
@@ -41,7 +42,7 @@ def dimension_equations(grid: dict, dims: list[OcrItem]) -> list[dict]:
         orientation = "x" if item.angle == 0 else "y"
         axes = _axes(grid, orientation)
         c = _center(item, orientation)
-        pair = next(((a, b) for a, b in zip(axes, axes[1:], strict=False) if a["px"] <= c <= b["px"]), None)
+        pair = next(((a, b) for a, b in itertools.pairwise(axes) if a["px"] <= c <= b["px"]), None)
         if value and pair:
             eqs.append(_eq(value, *pair, orientation, item) | {"_item": item})
     return eqs
