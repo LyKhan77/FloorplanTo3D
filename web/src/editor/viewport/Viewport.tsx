@@ -9,6 +9,7 @@ import type { Template } from '../../api/types'
 import { DropGhost } from './DropGhost'
 import { justDragged } from './gizmoState'
 import { Marquee } from './Marquee'
+import { MeasureLayer } from './MeasureLayer'
 import { TransformGizmo } from './TransformGizmo'
 import { ObjectsLayer } from './ObjectsLayer'
 import { SceneHelpers } from './SceneHelpers'
@@ -68,6 +69,7 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
   const base = useEditorStore((s) => s.base)
   const outline = base?.meta.building_outline
   const bounds = useMemo(() => (base ? specBounds(base) : null), [outline]) // eslint-disable-line react-hooks/exhaustive-deps
+  const tool = useEditorStore((s) => s.tool)
   const wrap = useRef<HTMLDivElement>(null)
   const camera = useRef<Camera | null>(null)
   const setCamera = useCallback((c: Camera) => { camera.current = c }, [])
@@ -83,6 +85,7 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
       <ObjectsLayer templates={templates} />
       <DropGhost templates={templates} />
       <TransformGizmo templates={templates} />
+      <MeasureLayer key={tool} />
       <CameraBridge onCamera={setCamera} />
       <SceneHelpers />
       <CameraRig bounds={bounds} />

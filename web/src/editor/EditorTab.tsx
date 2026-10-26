@@ -6,6 +6,7 @@ import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
 import { LayersPanel } from './panels/LayersPanel'
 import { LibraryPanel } from './panels/LibraryPanel'
+import { MeasurePanel } from './panels/MeasurePanel'
 import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
 import { useEditorStore } from './store'
@@ -21,6 +22,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const notice = useEditorStore((s) => s.notice)
   const setNotice = useEditorStore((s) => s.setNotice)
   const previewBanner = useEditorStore((s) => s.previewBanner)
+  const tool = useEditorStore((s) => s.tool)
   void run // consumed by Save/Regenerate (Task 13)
 
   // Load HEAD once per project; a refetch never discards local ops (a newer HEAD is handled by Save's rebase).
@@ -69,7 +71,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
-      {right && <aside className="editor__props" aria-label="Properti"><PropertiesPanel templates={data.templates} /><LayersPanel /></aside>}
+      {right && <aside className="editor__props" aria-label="Properti">{tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}<LayersPanel /></aside>}
       <StatusBar />
     </div>
   )

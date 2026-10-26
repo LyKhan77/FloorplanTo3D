@@ -641,6 +641,22 @@ body {
   gap: 0.25rem;
 }
 
+.editor-measures li {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.editor-measure-label {
+  padding: 0.125rem 0.375rem;
+  color: #161616;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  background: #f1c21b;
+  pointer-events: none;
+}
+
 .editor-room-label,
 .editor-axis-label {
   color: #f4f4f4;
