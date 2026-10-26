@@ -1,7 +1,7 @@
 {
- "door_dir_ok": 0.3333333333333333,
- "door_recall": 0.5263157894736842,
- "door_width_ok": 0.47368421052631576,
+ "door_dir_ok": 0.16666666666666666,
+ "door_recall": 0.42105263157894735,
+ "door_width_ok": 0.3157894736842105,
  "passed": {
   "door_dir_ok": false,
   "door_recall": false,
@@ -20,9 +20,9 @@
  "stair_dir_ok": 1.0,
  "stair_pos_ok": 0.0,
  "stair_risers_ok": 0.3333333333333333,
- "wall_iou": 0.4639479321746472,
- "wall_pos_median_mm": 17.0,
- "wall_pos_p95_mm": 96.43055549409834,
- "wall_precision": 0.8160725242388548,
- "wall_recall": 0.6878688283757061
+ "wall_iou": 0.4969971128095584,
+ "wall_pos_median_mm": 18.0,
+ "wall_pos_p95_mm": 102.0,
+ "wall_precision": 0.8255597955442598,
+ "wall_recall": 0.7336319767464929
 }

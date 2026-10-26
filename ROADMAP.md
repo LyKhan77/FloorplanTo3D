@@ -356,38 +356,43 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - pasca-proses (gabung, snap grid, sambungan L/T, kind);
   - kolom dan pilaster, pintu dari busur dan celah;
   - keyakinan per elemen;
-  - sweep 12 kandidat paralel dalam **5.9 s**.
+  - sweep 12 kandidat paralel dalam **5.8 s**.
 - Tahap 1–3 dari upload sampai tabel kandidat butuh 10.3 s (anggaran NFR-PF-01 tahap 1–5 ≤ 2 menit).
-- **Akurasi Gatsu, kandidat terbaik** (S2, k 0.2, t_min 80; laporan `benchmarks/reports/m5b-elements.md`):
+- **Akurasi Gatsu, kandidat 0** (S2, k 0.2, t_min 80; juga yang terbaik; laporan `benchmarks/reports/m5b-elements.md`). Angka sesudah fix review akhir:
 
   | Metrik | Hasil | Target NFR |
   |---|---|---|
-  | Recall dinding | 0.688 | ≥ 0.95 |
-  | Presisi dinding | 0.816 | ≥ 0.95 |
-  | Posisi dinding, median / p95 | 17 / 96 mm ✓ | ≤ 50 / 150 mm |
-  | Recall pintu | 0.53 | ≥ 0.90 |
-  | Lebar pintu benar | 0.47 | ≥ 0.90 |
-  | Arah pintu benar | 0.33 | ≥ 0.80 |
+  | Recall dinding | 0.734 | ≥ 0.95 |
+  | Presisi dinding | 0.826 | ≥ 0.95 |
+  | Posisi dinding, median / p95 | 18 / 102 mm ✓ | ≤ 50 / 150 mm |
+  | Recall pintu | 0.42 | ≥ 0.90 |
+  | Lebar pintu benar | 0.32 | ≥ 0.90 |
+  | Arah pintu benar | 0.17 | ≥ 0.80 |
   | Tanjakan tangga | 1 dari 3 flight benar | semua ±1 |
   | Arah naik tangga | 100% ✓ | 100% |
   | Posisi flight | 0 dari 3 ≤ 100 mm | ≤ 100 mm |
-  | IoU tapak dinding | 0.46 | ≥ 0.85 |
-  | Kolom struktural | 16/18, tanpa positif palsu | — |
+  | IoU tapak dinding | 0.50 | ≥ 0.85 |
+  | Kolom struktural | 18/18; kolom di luar grid masuk review (0.5) | — |
+  | Pilaster | 21/33; 9 palsu dengan keyakinan ≥ 0.6 | — |
 
-  Test regresi `tests/extraction/test_gatsu_regression.py` menjaga nilai di atas sebagai ambang minimum. Target NFR penuh dilaporkan sebagai `xfail`.
+  - Recall pintu turun dari 0.53 karena angka lama ikut menghitung pintu yang terletak di luar dindingnya (V008). Recall pintu yang valid tetap ±0.42. Semua 12 kandidat kini lolos `validate()` tanpa error (V002, V008, V009).
+  - Test regresi `tests/extraction/test_gatsu_regression.py` memeriksa kandidat 0 dan kandidat terbaik terhadap ambang minimum. Test ini juga menjalankan `validate()` pada setiap kandidat dan membatasi positif palsu kolom. Target NFR penuh dilaporkan sebagai `xfail`.
 - **Galat yang dibawa ke M5c/M7** (penyebab terukur):
   - dinding yang digambar sebagai **garis tunggal** (ruang tangga, shaft lift) tidak dideteksi S2. Menjadikannya partisi menaikkan recall ke 0.75 tetapi menurunkan presisi ke 0.67, jadi tidak dipakai;
   - pintu bilik toilet bergeser ±650 mm dan beberapa sisi ayun terbalik;
   - anak tangga terpotong garis jalan dan sumbu grid (flight timur 13 dari 15); tangga S2 belum terdeteksi karena anak tangganya terbelah railing;
-  - masih ada pilaster palsu;
+  - masih ada 9 pilaster palsu dengan keyakinan ≥ 0.6;
+  - arah pintu baru 0.17: sisi ayun dan engsel perlu dicek ulang di M7;
+  - anak tangga S2 yang terlewat masih membentuk dinding ±300 mm, tetapi keyakinannya kini < 0.6 sehingga masuk review;
   - jalur kabel tanpa arsiran di bawah Battery Room terbaca sebagai pasangan garis (±400 mm), keyakinannya diturunkan sehingga masuk antrean review.
 - **Penyimpangan:**
   - deteksi garis memakai skeleton + Hough, bukan LSD (LSD memberi dua tepi untuk setiap garis 4 px);
   - jendela (P1) belum dibuat;
   - hanya tangga lurus;
   - kolom bulat belum dideteksi;
-  - dinding miring belum dipasangkan.
-- **Suite:** pytest 291 passed, 2 xfailed; Vitest 145 passed; ruff, oxlint, dan build bersih.
+  - dinding miring belum dipasangkan;
+  - sumbu grid dan garis dimensi belum dihapus dari citra (PRD/04 §3.1.2). Gatsu aman karena grid-nya berwarna. Pada plot hitam-putih, sumbu di antara dua garis dinding bisa membuat dinding bergeser dan tebalnya salah. Dikerjakan di M5c.
+- **Suite:** pytest 302 passed, 2 xfailed; Vitest 145 passed; ruff, oxlint, dan build bersih.
 
 ---
 
