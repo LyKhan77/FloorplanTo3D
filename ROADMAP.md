@@ -296,15 +296,15 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - [x] Tahap 0: validasi input, parse prompt aturan (regex).
 - [x] Tahap 1: rasterisasi PDF, CLAHE, deskew, area gambar, binarisasi.
 - [x] Tahap 2: OCR global + klasifikasi teks, deteksi bulatan dan garis grid, skala least squares + RANSAC + cek total, fallback.
-- [ ] Tahap 3:
-  - [ ] Masking anotasi (teks, dimensi, sumbu, hatch, leader, **simbol MEP terisi**).
-  - [ ] Kondisi existing: kelas teks `proposed`/`dismantle`, titik tunjuk leader, pengecualian elemen PROPOSED.
-  - [ ] **Tangga** (`04-extraction.md` §3.4b): flight, tanjakan, arah naik, bordes, `stair_mask`.
-  - [ ] Dinding S1 dan S2.
-  - [ ] Pasca-proses (snap, gabung kolinear, sambungan L/T).
-  - [ ] Kolom, pintu (busur + celah), jendela (P1).
-  - [ ] Skor keyakinan.
-- [ ] Parameter sweep paralel + batas kandidat.
+- [x] Tahap 3:
+  - [x] Masking anotasi (teks, dimensi, sumbu, hatch, leader, **simbol MEP terisi**).
+  - [x] Kondisi existing: kelas teks `proposed`/`dismantle`, titik tunjuk leader, pengecualian elemen PROPOSED.
+  - [x] **Tangga** (`04-extraction.md` §3.4b): flight, tanjakan, arah naik, bordes, `stair_mask`.
+  - [x] Dinding S1 dan S2.
+  - [x] Pasca-proses (snap, gabung kolinear, sambungan L/T).
+  - [x] Kolom, pintu (busur + celah), jendela (P1).
+  - [x] Skor keyakinan.
+- [x] Parameter sweep paralel + batas kandidat.
 - [ ] Tahap 4: tapak dinding, area interior, polygonize, kontur terpisah (Capasitor Room), `building_outline` + luas kotor, label OCR + leksikon + Levenshtein, ruang tangga/lift.
 - [ ] Tahap 5: validasi semua kandidat, pemilihan, ID stabil deterministik, `overlay_ids.png`, ambang status.
 - [ ] Carry-over saat re-ekstraksi (`04-extraction.md` §5.4b): pencocokan dinding/ruang/pintu/kolom, pewarisan ID dan edit, salin objek, `carryover.json`, peringatan di dashboard.
@@ -346,6 +346,48 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - pemilihan halaman PDF di form (P1) belum dibuat; field `page` sudah dihormati bila dikirim lewat API;
   - ambang keliling bulatan 90% (spec: 60%), karena lingkaran palsu di Gatsu mencapai 81%.
 - **Suite:** pytest 236 passed, 1 xfailed (runtime naik ke ~2 menit karena dua test server kini menjalankan tahap 1–2 asli); Vitest 144 passed; ruff, oxlint, dan build bersih.
+
+**Status M5b (2026-10-26), branch `m5-cv`.** Plan: `docs/superpowers/plans/2026-10-26-m5b-geometry-extraction.md`.
+- **Tahap 3 berjalan otomatis** di pipeline. Isinya:
+  - masking teks, warna, leader, simbol terisi, dan hatch;
+  - kondisi existing PROPOSED/dismantle;
+  - tangga (flight, tanjakan, arah dari "NK" + propagasi lewat bordes, simbol lift);
+  - dinding S2 (pairing interval) dan S1;
+  - pasca-proses (gabung, snap grid, sambungan L/T, kind);
+  - kolom dan pilaster, pintu dari busur dan celah;
+  - keyakinan per elemen;
+  - sweep 12 kandidat paralel dalam **5.9 s**.
+- Tahap 1–3 dari upload sampai tabel kandidat butuh 10.3 s (anggaran NFR-PF-01 tahap 1–5 ≤ 2 menit).
+- **Akurasi Gatsu, kandidat terbaik** (S2, k 0.2, t_min 80; laporan `benchmarks/reports/m5b-elements.md`):
+
+  | Metrik | Hasil | Target NFR |
+  |---|---|---|
+  | Recall dinding | 0.688 | ≥ 0.95 |
+  | Presisi dinding | 0.816 | ≥ 0.95 |
+  | Posisi dinding, median / p95 | 17 / 96 mm ✓ | ≤ 50 / 150 mm |
+  | Recall pintu | 0.53 | ≥ 0.90 |
+  | Lebar pintu benar | 0.47 | ≥ 0.90 |
+  | Arah pintu benar | 0.33 | ≥ 0.80 |
+  | Tanjakan tangga | 1 dari 3 flight benar | semua ±1 |
+  | Arah naik tangga | 100% ✓ | 100% |
+  | Posisi flight | 0 dari 3 ≤ 100 mm | ≤ 100 mm |
+  | IoU tapak dinding | 0.46 | ≥ 0.85 |
+  | Kolom struktural | 16/18, tanpa positif palsu | — |
+
+  Test regresi `tests/extraction/test_gatsu_regression.py` menjaga nilai di atas sebagai ambang minimum. Target NFR penuh dilaporkan sebagai `xfail`.
+- **Galat yang dibawa ke M5c/M7** (penyebab terukur):
+  - dinding yang digambar sebagai **garis tunggal** (ruang tangga, shaft lift) tidak dideteksi S2. Menjadikannya partisi menaikkan recall ke 0.75 tetapi menurunkan presisi ke 0.67, jadi tidak dipakai;
+  - pintu bilik toilet bergeser ±650 mm dan beberapa sisi ayun terbalik;
+  - anak tangga terpotong garis jalan dan sumbu grid (flight timur 13 dari 15); tangga S2 belum terdeteksi karena anak tangganya terbelah railing;
+  - masih ada pilaster palsu;
+  - jalur kabel tanpa arsiran di bawah Battery Room terbaca sebagai pasangan garis (±400 mm), keyakinannya diturunkan sehingga masuk antrean review.
+- **Penyimpangan:**
+  - deteksi garis memakai skeleton + Hough, bukan LSD (LSD memberi dua tepi untuk setiap garis 4 px);
+  - jendela (P1) belum dibuat;
+  - hanya tangga lurus;
+  - kolom bulat belum dideteksi;
+  - dinding miring belum dipasangkan.
+- **Suite:** pytest 291 passed, 2 xfailed; Vitest 145 passed; ruff, oxlint, dan build bersih.
 
 ---
 
