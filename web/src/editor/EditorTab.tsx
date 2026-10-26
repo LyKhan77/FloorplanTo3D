@@ -69,7 +69,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
         onSave={onSave} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
-      <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />
+      {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
       {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
       <div className="editor__viewport">
         <div className="editor__banners">

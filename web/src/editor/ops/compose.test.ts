@@ -58,6 +58,13 @@ describe('pushOp', () => {
     expect(ops).toEqual([{ op: 'set_wall_height', id: 'W1', height: 4500 }])
     ops = push(gt, ops, { op: 'set_wall_height', id: 'W2', height: 4500 })
     expect(ops).toHaveLength(2)
+    // a re-fired dropdown change must not pile up ops
+    const room = gt.rooms![0].id
+    let r = push(gt, [], { op: 'set_room_type', id: room, type: 'office' })
+    r = push(gt, r, { op: 'set_room_type', id: room, type: 'data_hall' })
+    r = push(gt, r, { op: 'rename_room', id: room, name: 'A' })
+    r = push(gt, r, { op: 'rename_room', id: room, name: 'B' })
+    expect(r).toEqual([{ op: 'set_room_type', id: room, type: 'data_hall' }, { op: 'rename_room', id: room, name: 'B' }])
   })
 
   it('no op in the list ever targets a predicted id', () => {

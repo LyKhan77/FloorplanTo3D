@@ -88,9 +88,9 @@ function RoomProps({ room }: { room: Room }) {
       <h4 className="editor-panel__title">Ruang {room.id}</h4>
       <TextInput id="room-name" labelText="Nama" size="sm" value={name} onChange={(e) => setName(e.target.value)} onBlur={rename}
         onKeyDown={(e) => { if (e.key === 'Enter') rename() }} />
-      <Dropdown id="room-type" titleText="Tipe" label="Pilih tipe" size="sm" items={[...ROOM_TYPES]}
-        selectedItem={room.type ?? null}
-        onChange={({ selectedItem }) => { if (selectedItem) apply({ op: 'set_room_type', id: room.id, type: selectedItem }) }} />
+      <Dropdown key={room.type ?? ''} id="room-type" titleText="Tipe" label="Pilih tipe" size="sm" items={[...ROOM_TYPES]}
+        initialSelectedItem={room.type ?? null}
+        onChange={({ selectedItem }) => { if (selectedItem && selectedItem !== room.type) apply({ op: 'set_room_type', id: room.id, type: selectedItem }) }} />
       <Info rows={[['Luas', room.area_m2 == null ? '—' : formatM2(room.area_m2)],
         ['Keliling', room.perimeter_m == null ? '—' : formatM(room.perimeter_m * 1000)],
         ['Pintu', (room.doors ?? []).join(', ') || '—']]} />

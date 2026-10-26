@@ -126,7 +126,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
         }
         next = r.ops
       }
-      return commit(next)
+      return next === get().ops || commit(next)
     },
     undo: () => {
       const { base, ops, past, future, selection } = get()

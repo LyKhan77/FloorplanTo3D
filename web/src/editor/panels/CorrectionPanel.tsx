@@ -36,7 +36,7 @@ function WallForm({ w }: { w: Wall }) {
         <MmInput id="cw-by" label="b.y (mm)" value={w.b[1]} min={-FAR} max={FAR} onCommit={(v) => end('b', 1, v)} />
       </div>
       <MmInput id="cw-t" label="Tebal (mm)" value={w.thickness} min={10} max={2000} onCommit={(v) => apply({ op: 'move_wall', id: w.id, thickness: v })} />
-      <Dropdown id="cw-kind" titleText="Kind" label="Kind" size="sm" items={[...KINDS]} selectedItem={w.kind}
+      <Dropdown key={w.kind} id="cw-kind" titleText="Kind" label="Kind" size="sm" items={[...KINDS]} initialSelectedItem={w.kind}
         onChange={({ selectedItem }) => { if (selectedItem && selectedItem !== w.kind) apply({ op: 'move_wall', id: w.id, kind: selectedItem }) }} />
       <MmInput id="cw-split" label="Pisah di offset (mm dari a)" value={null} min={1} max={Math.max(1, len - 1)}
         onCommit={(v) => apply({ op: 'split_wall', id: w.id, at_offset: v })} />
@@ -64,17 +64,17 @@ function DoorForm({ d }: { d: Opening }) {
   const set = (fields: Record<string, unknown>) => apply({ op: 'set_door', id: d.id, ...fields } as EditorOp)
   return (
     <>
-      <Dropdown id="cd-type" titleText="Tipe" label="Tipe" size="sm" items={[...DOOR_TYPES]} selectedItem={d.door_type ?? null}
-        onChange={({ selectedItem }) => { if (selectedItem) set({ door_type: selectedItem }) }} />
+      <Dropdown key={d.door_type ?? ''} id="cd-type" titleText="Tipe" label="Tipe" size="sm" items={[...DOOR_TYPES]} initialSelectedItem={d.door_type ?? null}
+        onChange={({ selectedItem }) => { if (selectedItem && selectedItem !== d.door_type) set({ door_type: selectedItem }) }} />
       <div className="editor-grid2">
         <MmInput id="cd-w" label="Lebar (mm)" value={d.width} min={100} max={10000} onCommit={(v) => set({ width: v })} />
         <MmInput id="cd-h" label="Tinggi (mm)" value={d.height} min={100} max={12000} onCommit={(v) => set({ height: v })} />
         <MmInput id="cd-off" label="Offset (mm)" value={d.offset} min={0} max={FAR} onCommit={(v) => set({ offset: v })} />
       </div>
-      <Dropdown id="cd-hinge" titleText="Engsel" label="Engsel" size="sm" items={[...HINGES]} selectedItem={d.hinge ?? null}
-        onChange={({ selectedItem }) => { if (selectedItem) set({ hinge: selectedItem }) }} />
-      <Dropdown id="cd-swing" titleText="Arah buka" label="Arah buka" size="sm" items={[...SWINGS]} selectedItem={d.swing ?? null}
-        onChange={({ selectedItem }) => { if (selectedItem) set({ swing: selectedItem }) }} />
+      <Dropdown key={d.hinge ?? ''} id="cd-hinge" titleText="Engsel" label="Engsel" size="sm" items={[...HINGES]} initialSelectedItem={d.hinge ?? null}
+        onChange={({ selectedItem }) => { if (selectedItem && selectedItem !== d.hinge) set({ hinge: selectedItem }) }} />
+      <Dropdown key={d.swing ?? ''} id="cd-swing" titleText="Arah buka" label="Arah buka" size="sm" items={[...SWINGS]} initialSelectedItem={d.swing ?? null}
+        onChange={({ selectedItem }) => { if (selectedItem && selectedItem !== d.swing) set({ swing: selectedItem }) }} />
       <DeleteWithReason id="cd-del" label="Hapus pintu" onDelete={(reason) => apply({ op: 'delete_opening', id: d.id, reason })} />
     </>
   )

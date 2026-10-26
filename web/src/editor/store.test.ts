@@ -47,6 +47,14 @@ describe('useEditorStore', () => {
     expect(st().ops).toHaveLength(2)
   })
 
+  it('re-applying an identical op changes nothing (no history step, no new view)', () => {
+    st().apply({ op: 'set_room_type', id: 'R1', type: 'office' })
+    const view = st().view
+    expect(st().apply({ op: 'set_room_type', id: 'R1', type: 'office' })).toBe(true)
+    expect(st().past).toHaveLength(1)
+    expect(st().view).toBe(view)
+  })
+
   it('drops selected ids that no longer exist', () => {
     st().applyMany([add(0), add(100)])
     st().select(['O2'])

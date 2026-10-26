@@ -54,6 +54,13 @@ describe('EditorTab', () => {
     expect(screen.queryByText(/Shell dari/)).toBeNull()
   })
 
+  it('mounts the rebase dialog only during a conflict', async () => {
+    // a closed Carbon Modal keeps its ButtonSet measuring on every editor render (update-depth loop in the browser)
+    setup(4, [out(4)])
+    await screen.findByText('v4')
+    expect(document.querySelector('.cds--modal')).toBeNull()
+  })
+
   it('warns before unload with unsaved ops', async () => {
     setup(4, [out(4)])
     await screen.findByText('v4')

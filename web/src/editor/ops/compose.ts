@@ -14,7 +14,7 @@ export function targetIds(op: EditorOp): string[] {
   return []
 }
 
-const COALESCE = new Set(['update_object', 'move_wall', 'set_door', 'set_stair', 'set_wall_height'])
+const COALESCE = new Set(['update_object', 'move_wall', 'set_door', 'set_stair', 'set_wall_height', 'set_room_type', 'rename_room'])
 const FOLD: Record<string, { creator: string; fields?: string[] }> = {
   update_object: { creator: 'add_object', fields: ['position', 'rotation', 'dims', 'label'] },
   delete_object: { creator: 'add_object' },
@@ -30,7 +30,9 @@ export function pushOp(base: Spec, ops: EditorOp[], op: EditorOp): { ops: Editor
   if (predicted.length === 0) {
     const last = ops.at(-1)
     if (last && last.op === op.op && COALESCE.has(op.op) && 'id' in last && 'id' in op && last.id === op.id) {
-      return { ops: [...ops.slice(0, -1), { ...last, ...op } as EditorOp] }
+      const merged = { ...last, ...op } as EditorOp
+      // identical re-fire (e.g. a widget echoing its value): keep the same list so nothing re-renders
+      return { ops: JSON.stringify(merged) === JSON.stringify(last) ? ops : [...ops.slice(0, -1), merged] }
     }
     return { ops: [...ops, op] }
   }

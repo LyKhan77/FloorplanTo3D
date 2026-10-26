@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../../types/spec'
@@ -69,6 +70,15 @@ describe('PropertiesPanel', () => {
       { op: 'rename_room', id: meeting.id, name: 'RAPAT' },
       { op: 'set_room_type', id: meeting.id, type: 'office' },
     ])
+  })
+
+  it('room type dropdown emits one op under StrictMode (Downshift re-fires onChange on prop updates)', () => {
+    act(() => st().select([meeting.id]))
+    render(<StrictMode><PropertiesPanel /></StrictMode>)
+    fireEvent.click(screen.getByRole('combobox', { name: /Tipe/ }))
+    fireEvent.click(screen.getByRole('option', { name: 'data_hall' }))
+    expect(st().ops).toEqual([{ op: 'set_room_type', id: meeting.id, type: 'data_hall' }])
+    expect(st().past).toHaveLength(1)
   })
 
   it('shows read-only door info', () => {
