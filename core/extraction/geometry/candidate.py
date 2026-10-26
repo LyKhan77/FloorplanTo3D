@@ -22,10 +22,14 @@ def _axes_px(grid_doc: dict) -> dict:
     return {o: [a["px"] for a in grid_doc.get("axes", []) if a["orientation"] == o] for o in ("vertical", "horizontal")}
 
 
-def _wall_mask(raw: list[dict], shape: tuple[int, int], bbox, s: float) -> np.ndarray:
+def wall_mask(raw: list[dict], columns: list[dict], shape: tuple[int, int], bbox, s: float) -> np.ndarray:
     """Plan wall mask for stage-8 IoU (PRD/06 §6.2): each raw wall filled between its two lines (S2) or over its
-    stroke width (S1), clipped to the drawing area."""
+    stroke width (S1), plus the column boxes (the render draws walls and columns), clipped to the drawing area."""
     mask = np.zeros(shape, np.uint8)
+    for c in columns:
+        (cx, cy), (w_mm, h_mm) = c["center_px"], c["size_mm"]
+        hw, hh = w_mm / s / 2, h_mm / s / 2
+        mask[max(0, round(cy - hh)):round(cy + hh) + 1, max(0, round(cx - hw)):round(cx + hw) + 1] = 255
     for w in raw:
         if w["orient"] == "o":
             continue
@@ -99,5 +103,5 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
     return {"params": params, "walls": el_walls, "columns": el_cols, "openings": doors, "stairs": el_stairs,
             "lifts": el_lifts, "line_len_m": round(line_len / 1000, 2), "issues": el_issues,
             "_masks": {"stair": stair_mask(find_flights(strokes0, s), clean.shape, s), "hatch": m["hatch"],
-                       "symbol": m["symbol"], "wall": _wall_mask(raw, clean.shape, meta["drawing_bbox"], s)},
+                       "symbol": m["symbol"], "wall": wall_mask(raw, columns, clean.shape, meta["drawing_bbox"], s)},
             "_px": {"walls": walls, "columns": columns, "stairs": stairs}}

@@ -125,3 +125,12 @@ def test_line_len_reported():
     img = canvas(700, 500)
     room(img, 100, 100, 420, 420)  # 4 x 4000 mm double-line walls
     assert abs(synth_candidate(img)["line_len_m"] - 16) <= 0.5
+
+
+def test_wall_mask_includes_columns():
+    """Stage 8 renders walls and columns black, so the plan mask carries the candidate's columns too."""
+    from core.extraction.geometry.candidate import wall_mask
+
+    col = {"center_px": [100.0, 100.0], "size_mm": [500, 500]}
+    m = wall_mask([], [col], (300, 300), [0, 0, 300, 300], S)
+    assert m[100, 100] and m[81, 81] and not m[70, 100]  # 500 mm = 40 px box
