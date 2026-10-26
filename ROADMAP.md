@@ -197,7 +197,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Lighthouse a11y ≥ 90 di halaman daftar dan detail.
 
 **Status M3 (2026-10-26), branch `m3-server`:**
-- `uv run --env-file .env pytest` → 195 passed, 2 xfailed (sama dengan M2). Web: Vitest 20 passed; oxlint dan build bersih.
+- `uv run --env-file .env pytest` → 202 passed, 2 xfailed (xfail sama dengan M2). Web: Vitest 24 passed; oxlint dan build bersih. Review akhir (opus) menemukan 1 Critical + 8 Important; semua diperbaiki di `c51b41a` dengan test yang gagal dulu.
 - Alur browser (Playwright, Vite dev + Uvicorn): buat project "MSC Gatsu L1" → impor GT → v1 muncul di Versions → Regenerate. Tahap 7–10 bergerak live; run selesai `needs_attention` karena IoU 0.453 (diketahui sejak M2). Unduh `shell.glb` → 200 (338 KB). Dokumen tampil di iframe. Indikator Strata merah (server Strata mati), Blender hijau.
 - Latensi log (waktu event sampai baris muncul di DOM, 37 event): median **9 ms**, maks **70 ms** (target ≤ 1 s).
 - Restart di tengah tahap 7: run ditandai `failed` + `interrupted`, run antrean dari project lain berjalan, dan Regenerate baru menghasilkan v3. Uji ini menemukan dua bug yang sudah diperbaiki. Pertama, proses lama tetap hidup selama dashboard memegang stream SSE, karena graceful shutdown Uvicorn menunggu semua respons selesai. Akibatnya run yang sudah ditandai interrupted masih mempublikasikan output dan dua proses menulis `events.jsonl`. Kedua, browser berhenti reconnect setelah proxy membalas 502. Setelah perbaikan, proses lama keluar dalam 0.3 s tanpa sisa proses Blender, dan dashboard tersambung ulang dari `seq` terakhir.
