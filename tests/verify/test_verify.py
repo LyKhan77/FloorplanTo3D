@@ -94,3 +94,16 @@ def test_verify_uses_mask_of_spec_run(tmp_path):
     mask.parent.mkdir(parents=True)
     mask.write_bytes(b"png")
     assert plan_mask_for(tmp_path, spec) == mask
+
+
+def test_mask_follows_parent_versions_after_editor_commits(tmp_path):
+    from core.pipeline import plan_mask_for
+    from core.spec.store import SpecStore
+
+    store = SpecStore(tmp_path / "specs")
+    store.save_new(spec_with_rooms(), "pipeline", "r1")
+    v2, _ = store.commit_ops(1, [{"op": "set_wall_height", "id": "W2", "height": 4500}], "editor")
+    mask = tmp_path / "runs" / "r1" / "stages" / "05_validate" / "wall_mask.png"
+    mask.parent.mkdir(parents=True)
+    mask.write_bytes(b"png")
+    assert v2.meta.run_id is None and plan_mask_for(tmp_path, v2) == mask

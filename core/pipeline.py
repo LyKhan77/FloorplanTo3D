@@ -53,11 +53,20 @@ def stage_build(spec: Spec, work: Path, image: Path | None, templates: Path | No
 
 
 def plan_mask_for(project_dir: Path, spec: Spec) -> Path | None:
-    """Wall mask saved by the stage 5 that produced this spec (its run id), if that run left one."""
-    if not spec.meta.run_id:
-        return None
-    path = project_dir / "runs" / spec.meta.run_id / "stages" / "05_validate" / "wall_mask.png"
-    return path if path.exists() else None
+    """Wall mask of the extraction run behind this spec: its own run, or (after editor commits, which carry no
+    run id) the nearest ancestor version that came from a run and left a mask."""
+    from core.spec.store import SpecStore
+
+    store, seen = SpecStore(project_dir / "specs"), set()
+    while spec is not None and spec.meta.version not in seen:
+        seen.add(spec.meta.version)
+        if spec.meta.run_id:
+            path = project_dir / "runs" / spec.meta.run_id / "stages" / "05_validate" / "wall_mask.png"
+            if path.exists():
+                return path
+        parent = spec.meta.parent_version
+        spec = store.load(parent) if parent and (project_dir / "specs" / f"spec.v{parent}.json").exists() else None
+    return None
 
 
 def stage_verify(spec: Spec, work: Path, doc: dict, image: Path | None, warnings: list[str],
