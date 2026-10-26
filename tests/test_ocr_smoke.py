@@ -1,4 +1,3 @@
-import math
 import re
 from collections import Counter
 from functools import cache
@@ -32,17 +31,16 @@ def iou(a, b) -> float:
     return inter / union if union else 0.0
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="M0: 16/18 after dedup; single-char grid bubbles 'C' and '1' unread at upscale 2-3. "
-    "M5 grid detection OCRs each bubble crop (PRD 04 §2.2). See benchmarks/reports/m0-smoke.md",
-)
 def test_gatsu_grid_and_dimensions_readable():
+    """Grid labels come from stage 2 bubble detection (per-crop OCR for single characters, PRD 04 §2.2);
+    dimension numbers from the global pass. M0 read 16/18 with the global pass alone."""
+    from tests.extraction.test_grid import gatsu_grid
+
+    g = gatsu_grid()
     found = Counter(norm(i.text) for i in gatsu_items())
-    hits = sum(min(found[k], n) for k, n in (GRID + DIMS).items())
-    missing = {k: n - found[k] for k, n in (GRID + DIMS).items() if found[k] < n}
-    print(f"grid+dim hits {hits}/18; missing: {missing}")
-    assert hits >= math.ceil(0.9 * 18)
+    labels = Counter(a["label"] for a in g["vertical"] + g["horizontal"])
+    hits = sum(min(labels[k], n) for k, n in GRID.items()) + sum(min(found[k], n) for k, n in DIMS.items())
+    assert hits == 18, (labels, found)
 
 
 def test_gatsu_room_labels_readable():
