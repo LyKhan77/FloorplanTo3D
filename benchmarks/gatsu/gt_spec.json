@@ -1,0 +1,8050 @@
+{
+  "schema_version": "1.0",
+  "meta": {
+    "project_id": "msc-gatsu-l1",
+    "version": 1,
+    "parent_version": null,
+    "created_at": "2026-10-26T10:05:29.521496+07:00",
+    "source": "manual",
+    "run_id": null,
+    "floor_name": "Lantai 1",
+    "site_type": "data_center",
+    "condition": "existing",
+    "image": {
+      "sha256": "3421c0d914d627257a3ca53199f2de7a03ec4c559faddcee0a0e52f3f0c1b05a",
+      "width_px": 1600,
+      "height_px": 945,
+      "dpi": null
+    },
+    "px_to_mm": [
+      25.81906485428715,
+      3.676733357578334e-11,
+      -5125.472290824935,
+      4.7677536010379523e-11,
+      -25.806411829745183,
+      15427.94245509315
+    ],
+    "mm_per_px": 25.812737566725346,
+    "scale_source": "grid_dimensions",
+    "defaults": {
+      "wall_height": 3000,
+      "wall_thickness": 150,
+      "door_height": 2100,
+      "window_sill": 900,
+      "window_height": 1200,
+      "floor_to_floor": 4000
+    },
+    "building_outline": [
+      [
+        [
+          -2485,
+          -2355
+        ],
+        [
+          -2485,
+          -2465
+        ],
+        [
+          -2375,
+          -2465
+        ],
+        [
+          30385,
+          -2465
+        ],
+        [
+          30495,
+          -2465
+        ],
+        [
+          30495,
+          -2355
+        ],
+        [
+          30495,
+          4755
+        ],
+        [
+          30515,
+          4755
+        ],
+        [
+          30515,
+          4905
+        ],
+        [
+          29785,
+          4905
+        ],
+        [
+          29785,
+          8905
+        ],
+        [
+          30515,
+          8905
+        ],
+        [
+          30515,
+          9055
+        ],
+        [
+          30495,
+          9055
+        ],
+        [
+          30495,
+          14395
+        ],
+        [
+          30495,
+          14505
+        ],
+        [
+          30385,
+          14505
+        ],
+        [
+          -2375,
+          14505
+        ],
+        [
+          -2485,
+          14505
+        ],
+        [
+          -2485,
+          14395
+        ],
+        [
+          -2485,
+          8475
+        ],
+        [
+          -2505,
+          8475
+        ],
+        [
+          -2505,
+          8325
+        ],
+        [
+          -1540,
+          8325
+        ],
+        [
+          -1540,
+          3745
+        ],
+        [
+          -2505,
+          3745
+        ],
+        [
+          -2505,
+          3595
+        ],
+        [
+          -2485,
+          3595
+        ]
+      ],
+      [
+        [
+          31605,
+          -1985
+        ],
+        [
+          31605,
+          -2135
+        ],
+        [
+          31755,
+          -2135
+        ],
+        [
+          35505,
+          -2135
+        ],
+        [
+          35655,
+          -2135
+        ],
+        [
+          35655,
+          -1985
+        ],
+        [
+          35655,
+          495
+        ],
+        [
+          35655,
+          645
+        ],
+        [
+          35505,
+          645
+        ],
+        [
+          31755,
+          645
+        ],
+        [
+          31605,
+          645
+        ],
+        [
+          31605,
+          495
+        ]
+      ]
+    ],
+    "gross_area_m2": 563.77,
+    "id_seq": {
+      "W": 77,
+      "C": 51,
+      "D": 19,
+      "S": 2,
+      "R": 70
+    }
+  },
+  "grid": {
+    "axes": [
+      {
+        "id": "GA",
+        "label": "A",
+        "orientation": "vertical",
+        "offset": 0
+      },
+      {
+        "id": "GB",
+        "label": "B",
+        "orientation": "vertical",
+        "offset": 6000
+      },
+      {
+        "id": "GC",
+        "label": "C",
+        "orientation": "vertical",
+        "offset": 12000
+      },
+      {
+        "id": "GD",
+        "label": "D",
+        "orientation": "vertical",
+        "offset": 16000
+      },
+      {
+        "id": "GE",
+        "label": "E",
+        "orientation": "vertical",
+        "offset": 22000
+      },
+      {
+        "id": "GF",
+        "label": "F",
+        "orientation": "vertical",
+        "offset": 28000
+      },
+      {
+        "id": "G3",
+        "label": "3",
+        "orientation": "horizontal",
+        "offset": 0
+      },
+      {
+        "id": "G2",
+        "label": "2",
+        "orientation": "horizontal",
+        "offset": 6000
+      },
+      {
+        "id": "G1",
+        "label": "1",
+        "orientation": "horizontal",
+        "offset": 12000
+      }
+    ]
+  },
+  "walls": [
+    {
+      "id": "W1",
+      "a": [
+        -2430,
+        14450
+      ],
+      "b": [
+        30440,
+        14450
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W2",
+      "a": [
+        -2430,
+        -2410
+      ],
+      "b": [
+        30440,
+        -2410
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W3",
+      "a": [
+        -2430,
+        14450
+      ],
+      "b": [
+        -2430,
+        8400
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W4",
+      "a": [
+        -2430,
+        3670
+      ],
+      "b": [
+        -2430,
+        -2410
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W5",
+      "a": [
+        30440,
+        14450
+      ],
+      "b": [
+        30440,
+        8980
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W6",
+      "a": [
+        30440,
+        4830
+      ],
+      "b": [
+        30440,
+        -2410
+      ],
+      "thickness": 110,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W7",
+      "a": [
+        -2430,
+        8400
+      ],
+      "b": [
+        -580,
+        8400
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W8",
+      "a": [
+        -2430,
+        3670
+      ],
+      "b": [
+        -580,
+        3670
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W9",
+      "a": [
+        28980,
+        8980
+      ],
+      "b": [
+        30440,
+        8980
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W10",
+      "a": [
+        28980,
+        4830
+      ],
+      "b": [
+        30440,
+        4830
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": true,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W11",
+      "a": [
+        -1020,
+        13010
+      ],
+      "b": [
+        12000,
+        13010
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W12",
+      "a": [
+        16000,
+        13010
+      ],
+      "b": [
+        28980,
+        13010
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W13",
+      "a": [
+        -1020,
+        -1110
+      ],
+      "b": [
+        11810,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W14",
+      "a": [
+        16270,
+        -1110
+      ],
+      "b": [
+        30150,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W15",
+      "a": [
+        -1020,
+        13010
+      ],
+      "b": [
+        -1020,
+        8400
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W16",
+      "a": [
+        -1020,
+        3670
+      ],
+      "b": [
+        -1020,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W17",
+      "a": [
+        28980,
+        13010
+      ],
+      "b": [
+        28980,
+        8470
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W18",
+      "a": [
+        30150,
+        4830
+      ],
+      "b": [
+        30150,
+        -1110
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W19",
+      "a": [
+        12000,
+        12290
+      ],
+      "b": [
+        12000,
+        13520
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W20",
+      "a": [
+        12000,
+        13520
+      ],
+      "b": [
+        16000,
+        13520
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W21",
+      "a": [
+        16000,
+        13520
+      ],
+      "b": [
+        16000,
+        12290
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W22",
+      "a": [
+        11810,
+        -1110
+      ],
+      "b": [
+        11810,
+        -1470
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W23",
+      "a": [
+        11810,
+        -1470
+      ],
+      "b": [
+        16270,
+        -1470
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W24",
+      "a": [
+        16270,
+        -1470
+      ],
+      "b": [
+        16270,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W25",
+      "a": [
+        -1860,
+        13860
+      ],
+      "b": [
+        29850,
+        13860
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W26",
+      "a": [
+        -1860,
+        -1820
+      ],
+      "b": [
+        29850,
+        -1820
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W27",
+      "a": [
+        -1860,
+        13860
+      ],
+      "b": [
+        -1860,
+        8400
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W28",
+      "a": [
+        -1860,
+        3670
+      ],
+      "b": [
+        -1860,
+        -1820
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W29",
+      "a": [
+        29850,
+        13860
+      ],
+      "b": [
+        29850,
+        8980
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W30",
+      "a": [
+        29850,
+        4830
+      ],
+      "b": [
+        29850,
+        -1820
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "low",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W31",
+      "a": [
+        0,
+        12600
+      ],
+      "b": [
+        6000,
+        12600
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W32",
+      "a": [
+        6000,
+        12570
+      ],
+      "b": [
+        12000,
+        12570
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W33",
+      "a": [
+        16000,
+        12570
+      ],
+      "b": [
+        21800,
+        12570
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W34",
+      "a": [
+        0,
+        -620
+      ],
+      "b": [
+        6000,
+        -620
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W35",
+      "a": [
+        6000,
+        -620
+      ],
+      "b": [
+        11810,
+        -620
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W36",
+      "a": [
+        -580,
+        12000
+      ],
+      "b": [
+        -580,
+        8400
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W37",
+      "a": [
+        -580,
+        3670
+      ],
+      "b": [
+        -580,
+        150
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "glass",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W38",
+      "a": [
+        -1020,
+        12000
+      ],
+      "b": [
+        -250,
+        12000
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W39",
+      "a": [
+        -1020,
+        150
+      ],
+      "b": [
+        -250,
+        150
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W40",
+      "a": [
+        -1470,
+        8400
+      ],
+      "b": [
+        -1470,
+        3670
+      ],
+      "thickness": 140,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W41",
+      "a": [
+        320,
+        11690
+      ],
+      "b": [
+        320,
+        6000
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": true,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W42",
+      "a": [
+        320,
+        11690
+      ],
+      "b": [
+        5790,
+        11690
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W43",
+      "a": [
+        5790,
+        11690
+      ],
+      "b": [
+        5790,
+        6000
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W44",
+      "a": [
+        2080,
+        9730
+      ],
+      "b": [
+        3930,
+        9730
+      ],
+      "thickness": 210,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W45",
+      "a": [
+        3930,
+        9730
+      ],
+      "b": [
+        3930,
+        8140
+      ],
+      "thickness": 210,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W46",
+      "a": [
+        3930,
+        8140
+      ],
+      "b": [
+        2080,
+        8140
+      ],
+      "thickness": 210,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W47",
+      "a": [
+        2080,
+        8140
+      ],
+      "b": [
+        2080,
+        9730
+      ],
+      "thickness": 210,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W48",
+      "a": [
+        4190,
+        5760
+      ],
+      "b": [
+        4190,
+        3480
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": true,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W49",
+      "a": [
+        16000,
+        11720
+      ],
+      "b": [
+        16000,
+        6300
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W50",
+      "a": [
+        19000,
+        12570
+      ],
+      "b": [
+        19000,
+        6000
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W51",
+      "a": [
+        5790,
+        6000
+      ],
+      "b": [
+        16000,
+        6000
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W52",
+      "a": [
+        16000,
+        6000
+      ],
+      "b": [
+        21800,
+        6000
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W53",
+      "a": [
+        21800,
+        13010
+      ],
+      "b": [
+        21800,
+        6000
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W54",
+      "a": [
+        25980,
+        13010
+      ],
+      "b": [
+        25980,
+        6000
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W55",
+      "a": [
+        21800,
+        6000
+      ],
+      "b": [
+        25980,
+        6000
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W56",
+      "a": [
+        24090,
+        13010
+      ],
+      "b": [
+        24090,
+        7070
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "partition",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W57",
+      "a": [
+        23140,
+        13010
+      ],
+      "b": [
+        23140,
+        10890
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "partition",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W58",
+      "a": [
+        25040,
+        13010
+      ],
+      "b": [
+        25040,
+        10890
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "partition",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W59",
+      "a": [
+        21800,
+        10890
+      ],
+      "b": [
+        25980,
+        10890
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "partition",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W60",
+      "a": [
+        23370,
+        7070
+      ],
+      "b": [
+        25980,
+        7070
+      ],
+      "thickness": 190,
+      "height": null,
+      "base_z": 0,
+      "kind": "partition",
+      "grid_ref": [],
+      "free_ends": true,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W61",
+      "a": [
+        25980,
+        8470
+      ],
+      "b": [
+        28980,
+        8470
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W62",
+      "a": [
+        28200,
+        8470
+      ],
+      "b": [
+        28200,
+        3520
+      ],
+      "thickness": 210,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W63",
+      "a": [
+        29720,
+        8980
+      ],
+      "b": [
+        29720,
+        4830
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W64",
+      "a": [
+        28200,
+        3640
+      ],
+      "b": [
+        30150,
+        3640
+      ],
+      "thickness": 100,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W65",
+      "a": [
+        4190,
+        3480
+      ],
+      "b": [
+        11810,
+        3480
+      ],
+      "thickness": 120,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W66",
+      "a": [
+        11810,
+        3480
+      ],
+      "b": [
+        11810,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W67",
+      "a": [
+        16270,
+        3520
+      ],
+      "b": [
+        23810,
+        3520
+      ],
+      "thickness": 120,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W68",
+      "a": [
+        23810,
+        3520
+      ],
+      "b": [
+        26270,
+        3520
+      ],
+      "thickness": 120,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W69",
+      "a": [
+        26270,
+        3520
+      ],
+      "b": [
+        28200,
+        3520
+      ],
+      "thickness": 120,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W70",
+      "a": [
+        16270,
+        3520
+      ],
+      "b": [
+        16270,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W71",
+      "a": [
+        23810,
+        3520
+      ],
+      "b": [
+        23810,
+        -1110
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W72",
+      "a": [
+        26270,
+        3520
+      ],
+      "b": [
+        26270,
+        -1110
+      ],
+      "thickness": 130,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W73",
+      "a": [
+        28000,
+        3520
+      ],
+      "b": [
+        28000,
+        -1110
+      ],
+      "thickness": 180,
+      "height": null,
+      "base_z": 0,
+      "kind": "interior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W74",
+      "a": [
+        31680,
+        570
+      ],
+      "b": [
+        35580,
+        570
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W75",
+      "a": [
+        35580,
+        570
+      ],
+      "b": [
+        35580,
+        -2060
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W76",
+      "a": [
+        35580,
+        -2060
+      ],
+      "b": [
+        31680,
+        -2060
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "W77",
+      "a": [
+        31680,
+        -2060
+      ],
+      "b": [
+        31680,
+        570
+      ],
+      "thickness": 150,
+      "height": null,
+      "base_z": 0,
+      "kind": "exterior",
+      "grid_ref": [],
+      "free_ends": false,
+      "allow_skew": false,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    }
+  ],
+  "columns": [
+    {
+      "id": "C1",
+      "center": [
+        0,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C2",
+      "center": [
+        0,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C3",
+      "center": [
+        3010,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C4",
+      "center": [
+        3010,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C5",
+      "center": [
+        6000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C6",
+      "center": [
+        6000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C7",
+      "center": [
+        9010,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C8",
+      "center": [
+        9010,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C9",
+      "center": [
+        12000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C10",
+      "center": [
+        12000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C11",
+      "center": [
+        16000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C12",
+      "center": [
+        16000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C13",
+      "center": [
+        19000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C14",
+      "center": [
+        19000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C15",
+      "center": [
+        22000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C16",
+      "center": [
+        22000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C17",
+      "center": [
+        24990,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C18",
+      "center": [
+        24990,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C19",
+      "center": [
+        28000,
+        13740
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1320
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C20",
+      "center": [
+        28000,
+        -1700
+      ],
+      "shape": "rect",
+      "size": [
+        520,
+        1340
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C21",
+      "center": [
+        -1720,
+        12000
+      ],
+      "shape": "rect",
+      "size": [
+        1340,
+        500
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C22",
+      "center": [
+        -1720,
+        9010
+      ],
+      "shape": "rect",
+      "size": [
+        1340,
+        500
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C23",
+      "center": [
+        -1720,
+        3010
+      ],
+      "shape": "rect",
+      "size": [
+        1340,
+        500
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C24",
+      "center": [
+        -1720,
+        0
+      ],
+      "shape": "rect",
+      "size": [
+        1340,
+        500
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C25",
+      "center": [
+        29720,
+        12000
+      ],
+      "shape": "rect",
+      "size": [
+        1340,
+        500
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C26",
+      "center": [
+        -370,
+        12610
+      ],
+      "shape": "rect",
+      "size": [
+        1290,
+        800
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C27",
+      "center": [
+        6000,
+        12610
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        800
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C28",
+      "center": [
+        22000,
+        12610
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        800
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C29",
+      "center": [
+        28000,
+        12610
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        800
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C30",
+      "center": [
+        0,
+        -630
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        850
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C31",
+      "center": [
+        6000,
+        -630
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        850
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C32",
+      "center": [
+        22000,
+        -630
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        850
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C33",
+      "center": [
+        28000,
+        -630
+      ],
+      "shape": "rect",
+      "size": [
+        530,
+        850
+      ],
+      "rotation": 0.0,
+      "kind": "pilaster",
+      "height": null,
+      "grid_ref": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C34",
+      "center": [
+        0,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GA",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C35",
+      "center": [
+        0,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GA",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C36",
+      "center": [
+        0,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GA",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C37",
+      "center": [
+        6000,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GB",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C38",
+      "center": [
+        6000,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GB",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C39",
+      "center": [
+        6000,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GB",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C40",
+      "center": [
+        12000,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GC",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C41",
+      "center": [
+        12000,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GC",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C42",
+      "center": [
+        12000,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GC",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C43",
+      "center": [
+        16000,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GD",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C44",
+      "center": [
+        16000,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GD",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C45",
+      "center": [
+        16000,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GD",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C46",
+      "center": [
+        22000,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GE",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C47",
+      "center": [
+        22000,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GE",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C48",
+      "center": [
+        22000,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GE",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C49",
+      "center": [
+        28000,
+        12000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GF",
+        "G1"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C50",
+      "center": [
+        28000,
+        6000
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GF",
+        "G2"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "C51",
+      "center": [
+        28000,
+        0
+      ],
+      "shape": "h_section",
+      "size": [
+        520,
+        520
+      ],
+      "rotation": 0.0,
+      "kind": "structural",
+      "height": null,
+      "grid_ref": [
+        "GF",
+        "G3"
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    }
+  ],
+  "openings": [
+    {
+      "id": "D1",
+      "category": "door",
+      "wall_id": "W40",
+      "offset": 1590,
+      "width": 1600,
+      "height": null,
+      "sill": 0,
+      "door_type": "double_swing",
+      "hinge": "both",
+      "swing": "left",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D2",
+      "category": "door",
+      "wall_id": "W51",
+      "offset": 2430,
+      "width": 1630,
+      "height": null,
+      "sill": 0,
+      "door_type": "double_swing",
+      "hinge": "both",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D3",
+      "category": "door",
+      "wall_id": "W52",
+      "offset": 940,
+      "width": 830,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D4",
+      "category": "door",
+      "wall_id": "W52",
+      "offset": 3910,
+      "width": 830,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D5",
+      "category": "door",
+      "wall_id": "W59",
+      "offset": 530,
+      "width": 730,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D6",
+      "category": "door",
+      "wall_id": "W59",
+      "offset": 1470,
+      "width": 740,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D7",
+      "category": "door",
+      "wall_id": "W59",
+      "offset": 2420,
+      "width": 730,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D8",
+      "category": "door",
+      "wall_id": "W59",
+      "offset": 3370,
+      "width": 730,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D9",
+      "category": "door",
+      "wall_id": "W54",
+      "offset": 4980,
+      "width": 820,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D10",
+      "category": "door",
+      "wall_id": "W54",
+      "offset": 6040,
+      "width": 820,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D11",
+      "category": "door",
+      "wall_id": "W61",
+      "offset": 540,
+      "width": 830,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "left",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D12",
+      "category": "door",
+      "wall_id": "W63",
+      "offset": 3410,
+      "width": 670,
+      "height": null,
+      "sill": 0,
+      "door_type": "opening",
+      "hinge": null,
+      "swing": null,
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D13",
+      "category": "door",
+      "wall_id": "W64",
+      "offset": 100,
+      "width": 900,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "left",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D14",
+      "category": "door",
+      "wall_id": "W65",
+      "offset": 6610,
+      "width": 780,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D15",
+      "category": "door",
+      "wall_id": "W67",
+      "offset": 4580,
+      "width": 840,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D16",
+      "category": "door",
+      "wall_id": "W67",
+      "offset": 6460,
+      "width": 800,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "end",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D17",
+      "category": "door",
+      "wall_id": "W68",
+      "offset": 430,
+      "width": 1620,
+      "height": null,
+      "sill": 0,
+      "door_type": "double_swing",
+      "hinge": "both",
+      "swing": "left",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D18",
+      "category": "door",
+      "wall_id": "W69",
+      "offset": 260,
+      "width": 780,
+      "height": null,
+      "sill": 0,
+      "door_type": "single_swing",
+      "hinge": "start",
+      "swing": "right",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "D19",
+      "category": "door",
+      "wall_id": "W74",
+      "offset": 2200,
+      "width": 1610,
+      "height": null,
+      "sill": 0,
+      "door_type": "double_swing",
+      "hinge": "both",
+      "swing": "left",
+      "leaf_split": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    }
+  ],
+  "rooms": [
+    {
+      "id": "R1",
+      "polygon": [
+        [
+          260,
+          13925
+        ],
+        [
+          2750,
+          13925
+        ],
+        [
+          2750,
+          14395
+        ],
+        [
+          260,
+          14395
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R2",
+      "polygon": [
+        [
+          3270,
+          13925
+        ],
+        [
+          5740,
+          13925
+        ],
+        [
+          5740,
+          14395
+        ],
+        [
+          3270,
+          14395
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R3",
+      "polygon": [
+        [
+          6260,
+          13925
+        ],
+        [
+          8750,
+          13925
+        ],
+        [
+          8750,
+          14395
+        ],
+        [
+          6260,
+          14395
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R4",
+      "polygon": [
+        [
+          11740,
+          13925
+        ],
+        [
+          11740,
+          14395
+        ],
+        [
+          9270,
+          14395
+        ],
+        [
+          9270,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R5",
+      "polygon": [
+        [
+          15740,
+          14395
+        ],
+        [
+          12260,
+          14395
+        ],
+        [
+          12260,
+          13925
+        ],
+        [
+          15740,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.64,
+      "perimeter_m": 7.9,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R6",
+      "polygon": [
+        [
+          18740,
+          14395
+        ],
+        [
+          16260,
+          14395
+        ],
+        [
+          16260,
+          13925
+        ],
+        [
+          18740,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.9,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R7",
+      "polygon": [
+        [
+          21740,
+          14395
+        ],
+        [
+          19260,
+          14395
+        ],
+        [
+          19260,
+          13925
+        ],
+        [
+          21740,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.9,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R8",
+      "polygon": [
+        [
+          24730,
+          14395
+        ],
+        [
+          22260,
+          14395
+        ],
+        [
+          22260,
+          13925
+        ],
+        [
+          24730,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R9",
+      "polygon": [
+        [
+          27740,
+          14395
+        ],
+        [
+          25250,
+          14395
+        ],
+        [
+          25250,
+          13925
+        ],
+        [
+          27740,
+          13925
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W1",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R10",
+      "polygon": [
+        [
+          -2375,
+          12250
+        ],
+        [
+          -1925,
+          12250
+        ],
+        [
+          -1925,
+          13795
+        ],
+        [
+          -1925,
+          13925
+        ],
+        [
+          -1795,
+          13925
+        ],
+        [
+          -260,
+          13925
+        ],
+        [
+          -260,
+          14395
+        ],
+        [
+          -2375,
+          14395
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.75,
+      "perimeter_m": 8.52,
+      "bounding_walls": [
+        "W1",
+        "W3",
+        "W25",
+        "W27"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R11",
+      "polygon": [
+        [
+          30385,
+          14395
+        ],
+        [
+          28260,
+          14395
+        ],
+        [
+          28260,
+          13925
+        ],
+        [
+          29785,
+          13925
+        ],
+        [
+          29915,
+          13925
+        ],
+        [
+          29915,
+          13795
+        ],
+        [
+          29915,
+          12250
+        ],
+        [
+          30385,
+          12250
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.79,
+      "perimeter_m": 8.54,
+      "bounding_walls": [
+        "W1",
+        "W5",
+        "W25",
+        "W29"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R12",
+      "polygon": [
+        [
+          260,
+          13085
+        ],
+        [
+          2750,
+          13085
+        ],
+        [
+          2750,
+          13795
+        ],
+        [
+          260,
+          13795
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.77,
+      "perimeter_m": 6.4,
+      "bounding_walls": [
+        "W11",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R13",
+      "polygon": [
+        [
+          3270,
+          13085
+        ],
+        [
+          5740,
+          13085
+        ],
+        [
+          5740,
+          13795
+        ],
+        [
+          3270,
+          13795
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.75,
+      "perimeter_m": 6.36,
+      "bounding_walls": [
+        "W11",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R14",
+      "polygon": [
+        [
+          6260,
+          13085
+        ],
+        [
+          8750,
+          13085
+        ],
+        [
+          8750,
+          13795
+        ],
+        [
+          6260,
+          13795
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.77,
+      "perimeter_m": 6.4,
+      "bounding_walls": [
+        "W11",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R15",
+      "polygon": [
+        [
+          9270,
+          13085
+        ],
+        [
+          11740,
+          13085
+        ],
+        [
+          11740,
+          13795
+        ],
+        [
+          9270,
+          13795
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.75,
+      "perimeter_m": 6.36,
+      "bounding_walls": [
+        "W11",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R16",
+      "polygon": [
+        [
+          18740,
+          13795
+        ],
+        [
+          16260,
+          13795
+        ],
+        [
+          16260,
+          13085
+        ],
+        [
+          18740,
+          13085
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.76,
+      "perimeter_m": 6.38,
+      "bounding_walls": [
+        "W12",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R17",
+      "polygon": [
+        [
+          21740,
+          13795
+        ],
+        [
+          19260,
+          13795
+        ],
+        [
+          19260,
+          13085
+        ],
+        [
+          21725,
+          13085
+        ],
+        [
+          21740,
+          13085
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.76,
+      "perimeter_m": 6.38,
+      "bounding_walls": [
+        "W12",
+        "W25",
+        "W53"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R18",
+      "polygon": [
+        [
+          24730,
+          13795
+        ],
+        [
+          22260,
+          13795
+        ],
+        [
+          22260,
+          13085
+        ],
+        [
+          24015,
+          13085
+        ],
+        [
+          24165,
+          13085
+        ],
+        [
+          24730,
+          13085
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.75,
+      "perimeter_m": 6.36,
+      "bounding_walls": [
+        "W12",
+        "W25",
+        "W56"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R19",
+      "polygon": [
+        [
+          27740,
+          13795
+        ],
+        [
+          25250,
+          13795
+        ],
+        [
+          25250,
+          13085
+        ],
+        [
+          27740,
+          13085
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.77,
+      "perimeter_m": 6.4,
+      "bounding_walls": [
+        "W12",
+        "W25"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R20",
+      "polygon": [
+        [
+          -1795,
+          12250
+        ],
+        [
+          -1095,
+          12250
+        ],
+        [
+          -1095,
+          12935
+        ],
+        [
+          -1095,
+          13085
+        ],
+        [
+          -945,
+          13085
+        ],
+        [
+          -260,
+          13085
+        ],
+        [
+          -260,
+          13795
+        ],
+        [
+          -1795,
+          13795
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.67,
+      "perimeter_m": 6.16,
+      "bounding_walls": [
+        "W11",
+        "W15",
+        "W25",
+        "W27"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R21",
+      "polygon": [
+        [
+          29785,
+          13795
+        ],
+        [
+          28260,
+          13795
+        ],
+        [
+          28260,
+          13085
+        ],
+        [
+          28905,
+          13085
+        ],
+        [
+          29055,
+          13085
+        ],
+        [
+          29055,
+          12935
+        ],
+        [
+          29055,
+          12250
+        ],
+        [
+          29785,
+          12250
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.69,
+      "perimeter_m": 6.14,
+      "bounding_walls": [
+        "W12",
+        "W17",
+        "W25",
+        "W29"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R22",
+      "polygon": [
+        [
+          11925,
+          12935
+        ],
+        [
+          6265,
+          12935
+        ],
+        [
+          6265,
+          12645
+        ],
+        [
+          11925,
+          12645
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.64,
+      "perimeter_m": 11.9,
+      "bounding_walls": [
+        "W11",
+        "W19",
+        "W32"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R23",
+      "polygon": [
+        [
+          16075,
+          12645
+        ],
+        [
+          18925,
+          12645
+        ],
+        [
+          19075,
+          12645
+        ],
+        [
+          21725,
+          12645
+        ],
+        [
+          21725,
+          12935
+        ],
+        [
+          16075,
+          12935
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.64,
+      "perimeter_m": 11.88,
+      "bounding_walls": [
+        "W12",
+        "W21",
+        "W33",
+        "W50",
+        "W53"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R24",
+      "polygon": [
+        [
+          24015,
+          12935
+        ],
+        [
+          23190,
+          12935
+        ],
+        [
+          23190,
+          10955
+        ],
+        [
+          24015,
+          10955
+        ]
+      ],
+      "holes": [],
+      "name": "WC",
+      "type": "toilet",
+      "area_m2": 1.63,
+      "perimeter_m": 5.61,
+      "bounding_walls": [
+        "W12",
+        "W56",
+        "W57",
+        "W59"
+      ],
+      "doors": [
+        "D6"
+      ],
+      "label_pos": [
+        23630,
+        12000
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R25",
+      "polygon": [
+        [
+          24165,
+          12935
+        ],
+        [
+          24165,
+          10955
+        ],
+        [
+          24990,
+          10955
+        ],
+        [
+          24990,
+          12935
+        ]
+      ],
+      "holes": [],
+      "name": "WC",
+      "type": "toilet",
+      "area_m2": 1.63,
+      "perimeter_m": 5.61,
+      "bounding_walls": [
+        "W12",
+        "W56",
+        "W58",
+        "W59"
+      ],
+      "doors": [
+        "D7"
+      ],
+      "label_pos": [
+        24580,
+        12000
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R26",
+      "polygon": [
+        [
+          25090,
+          12935
+        ],
+        [
+          25090,
+          10955
+        ],
+        [
+          25915,
+          10955
+        ],
+        [
+          25915,
+          12935
+        ]
+      ],
+      "holes": [],
+      "name": "WC",
+      "type": "toilet",
+      "area_m2": 1.63,
+      "perimeter_m": 5.61,
+      "bounding_walls": [
+        "W12",
+        "W54",
+        "W58",
+        "W59"
+      ],
+      "doors": [
+        "D8"
+      ],
+      "label_pos": [
+        25540,
+        12000
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R27",
+      "polygon": [
+        [
+          21875,
+          10955
+        ],
+        [
+          23090,
+          10955
+        ],
+        [
+          23090,
+          12935
+        ],
+        [
+          22265,
+          12935
+        ],
+        [
+          22265,
+          12210
+        ],
+        [
+          22260,
+          12210
+        ],
+        [
+          22260,
+          11740
+        ],
+        [
+          21875,
+          11740
+        ]
+      ],
+      "holes": [],
+      "name": "WC",
+      "type": "toilet",
+      "area_m2": 1.94,
+      "perimeter_m": 6.39,
+      "bounding_walls": [
+        "W12",
+        "W53",
+        "W57",
+        "W59"
+      ],
+      "doors": [
+        "D5"
+      ],
+      "label_pos": [
+        22700,
+        12000
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R28",
+      "polygon": [
+        [
+          28265,
+          12935
+        ],
+        [
+          28265,
+          12210
+        ],
+        [
+          28260,
+          12210
+        ],
+        [
+          28260,
+          11740
+        ],
+        [
+          27740,
+          11740
+        ],
+        [
+          27740,
+          12210
+        ],
+        [
+          27735,
+          12210
+        ],
+        [
+          27735,
+          12935
+        ],
+        [
+          26045,
+          12935
+        ],
+        [
+          26045,
+          10955
+        ],
+        [
+          26045,
+          10825
+        ],
+        [
+          26045,
+          8545
+        ],
+        [
+          28095,
+          8545
+        ],
+        [
+          28095,
+          8575
+        ],
+        [
+          28305,
+          8575
+        ],
+        [
+          28305,
+          8545
+        ],
+        [
+          28905,
+          8545
+        ],
+        [
+          28905,
+          8905
+        ],
+        [
+          28905,
+          9055
+        ],
+        [
+          28905,
+          12935
+        ]
+      ],
+      "holes": [],
+      "name": "PANTRY",
+      "type": "pantry",
+      "area_m2": 11.92,
+      "perimeter_m": 16.95,
+      "bounding_walls": [
+        "W9",
+        "W12",
+        "W17",
+        "W54",
+        "W59",
+        "W61",
+        "W62"
+      ],
+      "doors": [
+        "D11"
+      ],
+      "label_pos": [
+        27530,
+        10790
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R29",
+      "polygon": [
+        [
+          -2375,
+          11750
+        ],
+        [
+          -2375,
+          9260
+        ],
+        [
+          -1925,
+          9260
+        ],
+        [
+          -1925,
+          11750
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.12,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W3",
+        "W27"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R30",
+      "polygon": [
+        [
+          -1095,
+          11750
+        ],
+        [
+          -1795,
+          11750
+        ],
+        [
+          -1795,
+          9260
+        ],
+        [
+          -1095,
+          9260
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.74,
+      "perimeter_m": 6.38,
+      "bounding_walls": [
+        "W15",
+        "W27"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R31",
+      "polygon": [
+        [
+          29785,
+          11750
+        ],
+        [
+          29055,
+          11750
+        ],
+        [
+          29055,
+          9055
+        ],
+        [
+          29785,
+          9055
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.97,
+      "perimeter_m": 6.85,
+      "bounding_walls": [
+        "W9",
+        "W17",
+        "W29"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R32",
+      "polygon": [
+        [
+          29915,
+          11750
+        ],
+        [
+          29915,
+          9055
+        ],
+        [
+          30385,
+          9055
+        ],
+        [
+          30385,
+          11750
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.27,
+      "perimeter_m": 6.33,
+      "bounding_walls": [
+        "W5",
+        "W9",
+        "W29"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R33",
+      "polygon": [
+        [
+          -655,
+          11925
+        ],
+        [
+          -945,
+          11925
+        ],
+        [
+          -945,
+          8475
+        ],
+        [
+          -655,
+          8475
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.0,
+      "perimeter_m": 7.48,
+      "bounding_walls": [
+        "W7",
+        "W15",
+        "W36",
+        "W38"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R34",
+      "polygon": [
+        [
+          15740,
+          13445
+        ],
+        [
+          12260,
+          13445
+        ],
+        [
+          12260,
+          13080
+        ],
+        [
+          12075,
+          13080
+        ],
+        [
+          12075,
+          12935
+        ],
+        [
+          12075,
+          12645
+        ],
+        [
+          12075,
+          12495
+        ],
+        [
+          12075,
+          12260
+        ],
+        [
+          12260,
+          12260
+        ],
+        [
+          12260,
+          11740
+        ],
+        [
+          11740,
+          11740
+        ],
+        [
+          11740,
+          12260
+        ],
+        [
+          11925,
+          12260
+        ],
+        [
+          11925,
+          12495
+        ],
+        [
+          6265,
+          12495
+        ],
+        [
+          6265,
+          12210
+        ],
+        [
+          6260,
+          12210
+        ],
+        [
+          6260,
+          11740
+        ],
+        [
+          5865,
+          11740
+        ],
+        [
+          5865,
+          6260
+        ],
+        [
+          6260,
+          6260
+        ],
+        [
+          6260,
+          6050
+        ],
+        [
+          11740,
+          6050
+        ],
+        [
+          11740,
+          6260
+        ],
+        [
+          12260,
+          6260
+        ],
+        [
+          12260,
+          6050
+        ],
+        [
+          15740,
+          6050
+        ],
+        [
+          15740,
+          6260
+        ],
+        [
+          15935,
+          6260
+        ],
+        [
+          15935,
+          11740
+        ],
+        [
+          15740,
+          11740
+        ],
+        [
+          15740,
+          12260
+        ],
+        [
+          15925,
+          12260
+        ],
+        [
+          15925,
+          12495
+        ],
+        [
+          15925,
+          12645
+        ],
+        [
+          15925,
+          12935
+        ],
+        [
+          15925,
+          13080
+        ],
+        [
+          15740,
+          13080
+        ]
+      ],
+      "holes": [],
+      "name": "R. MEETING",
+      "type": "meeting",
+      "area_m2": 67.48,
+      "perimeter_m": 37.97,
+      "bounding_walls": [
+        "W11",
+        "W12",
+        "W19",
+        "W20",
+        "W21",
+        "W32",
+        "W33",
+        "W43",
+        "W49",
+        "W51"
+      ],
+      "doors": [
+        "D2"
+      ],
+      "label_pos": [
+        10880,
+        8470
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R35",
+      "polygon": [
+        [
+          21725,
+          12495
+        ],
+        [
+          19075,
+          12495
+        ],
+        [
+          19075,
+          6050
+        ],
+        [
+          21725,
+          6050
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 17.08,
+      "perimeter_m": 18.19,
+      "bounding_walls": [
+        "W33",
+        "W50",
+        "W52",
+        "W53"
+      ],
+      "doors": [
+        "D4"
+      ],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R36",
+      "polygon": [
+        [
+          16260,
+          6050
+        ],
+        [
+          18925,
+          6050
+        ],
+        [
+          18925,
+          12495
+        ],
+        [
+          16075,
+          12495
+        ],
+        [
+          16075,
+          12260
+        ],
+        [
+          16260,
+          12260
+        ],
+        [
+          16260,
+          11740
+        ],
+        [
+          16065,
+          11740
+        ],
+        [
+          16065,
+          6260
+        ],
+        [
+          16260,
+          6260
+        ]
+      ],
+      "holes": [],
+      "name": "GUDANG",
+      "type": "storage",
+      "area_m2": 18.29,
+      "perimeter_m": 18.98,
+      "bounding_walls": [
+        "W21",
+        "W33",
+        "W49",
+        "W50",
+        "W52"
+      ],
+      "doors": [
+        "D3"
+      ],
+      "label_pos": [
+        17590,
+        8470
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R37",
+      "polygon": [
+        [
+          24165,
+          10825
+        ],
+        [
+          24165,
+          7165
+        ],
+        [
+          25915,
+          7165
+        ],
+        [
+          25915,
+          8395
+        ],
+        [
+          25905,
+          8395
+        ],
+        [
+          25905,
+          8545
+        ],
+        [
+          25915,
+          8545
+        ],
+        [
+          25915,
+          10825
+        ]
+      ],
+      "holes": [],
+      "name": "TOILET",
+      "type": "toilet",
+      "area_m2": 6.4,
+      "perimeter_m": 10.84,
+      "bounding_walls": [
+        "W54",
+        "W56",
+        "W59",
+        "W60",
+        "W61"
+      ],
+      "doors": [
+        "D7",
+        "D8",
+        "D9"
+      ],
+      "label_pos": [
+        25070,
+        8980
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R38",
+      "polygon": [
+        [
+          2185,
+          9625
+        ],
+        [
+          2185,
+          8245
+        ],
+        [
+          3825,
+          8245
+        ],
+        [
+          3825,
+          9625
+        ]
+      ],
+      "holes": [],
+      "name": "LIFT",
+      "type": "lift",
+      "area_m2": 2.26,
+      "perimeter_m": 6.04,
+      "bounding_walls": [
+        "W44",
+        "W45",
+        "W46",
+        "W47"
+      ],
+      "doors": [],
+      "label_pos": [
+        3010,
+        8930
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R39",
+      "polygon": [
+        [
+          23370,
+          6975
+        ],
+        [
+          23370,
+          7165
+        ],
+        [
+          24015,
+          7165
+        ],
+        [
+          24015,
+          10825
+        ],
+        [
+          21875,
+          10825
+        ],
+        [
+          21875,
+          6260
+        ],
+        [
+          22260,
+          6260
+        ],
+        [
+          22260,
+          6050
+        ],
+        [
+          25915,
+          6050
+        ],
+        [
+          25915,
+          6975
+        ]
+      ],
+      "holes": [],
+      "name": "TOILET",
+      "type": "toilet",
+      "area_m2": 11.77,
+      "perimeter_m": 18.92,
+      "bounding_walls": [
+        "W53",
+        "W54",
+        "W55",
+        "W56",
+        "W59",
+        "W60"
+      ],
+      "doors": [
+        "D5",
+        "D6",
+        "D10"
+      ],
+      "label_pos": [
+        22960,
+        8980
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R40",
+      "polygon": [
+        [
+          29785,
+          4755
+        ],
+        [
+          28980,
+          4755
+        ],
+        [
+          28980,
+          4905
+        ],
+        [
+          29655,
+          4905
+        ],
+        [
+          29655,
+          8905
+        ],
+        [
+          29055,
+          8905
+        ],
+        [
+          29055,
+          8545
+        ],
+        [
+          29055,
+          8395
+        ],
+        [
+          28905,
+          8395
+        ],
+        [
+          28305,
+          8395
+        ],
+        [
+          28305,
+          3690
+        ],
+        [
+          29785,
+          3690
+        ]
+      ],
+      "holes": [],
+      "name": "TANGGA",
+      "type": "stair",
+      "area_m2": 6.69,
+      "perimeter_m": 14.74,
+      "bounding_walls": [
+        "W9",
+        "W10",
+        "W17",
+        "W30",
+        "W61",
+        "W62",
+        "W63",
+        "W64"
+      ],
+      "doors": [
+        "D12",
+        "D13"
+      ],
+      "label_pos": [
+        29000,
+        6400
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R41",
+      "polygon": [
+        [
+          15740,
+          5950
+        ],
+        [
+          12260,
+          5950
+        ],
+        [
+          12260,
+          5740
+        ],
+        [
+          11740,
+          5740
+        ],
+        [
+          11740,
+          5950
+        ],
+        [
+          6260,
+          5950
+        ],
+        [
+          6260,
+          5740
+        ],
+        [
+          5740,
+          5740
+        ],
+        [
+          5740,
+          5925
+        ],
+        [
+          5715,
+          5925
+        ],
+        [
+          5715,
+          11640
+        ],
+        [
+          370,
+          11640
+        ],
+        [
+          370,
+          6000
+        ],
+        [
+          270,
+          6000
+        ],
+        [
+          270,
+          11640
+        ],
+        [
+          270,
+          11740
+        ],
+        [
+          370,
+          11740
+        ],
+        [
+          5715,
+          11740
+        ],
+        [
+          5715,
+          11765
+        ],
+        [
+          5740,
+          11765
+        ],
+        [
+          5740,
+          12210
+        ],
+        [
+          5735,
+          12210
+        ],
+        [
+          5735,
+          12525
+        ],
+        [
+          275,
+          12525
+        ],
+        [
+          275,
+          12210
+        ],
+        [
+          260,
+          12210
+        ],
+        [
+          260,
+          11740
+        ],
+        [
+          -260,
+          11740
+        ],
+        [
+          -260,
+          11925
+        ],
+        [
+          -505,
+          11925
+        ],
+        [
+          -505,
+          8475
+        ],
+        [
+          -505,
+          8325
+        ],
+        [
+          -655,
+          8325
+        ],
+        [
+          -945,
+          8325
+        ],
+        [
+          -1095,
+          8325
+        ],
+        [
+          -1400,
+          8325
+        ],
+        [
+          -1400,
+          3745
+        ],
+        [
+          -1095,
+          3745
+        ],
+        [
+          -945,
+          3745
+        ],
+        [
+          -655,
+          3745
+        ],
+        [
+          -505,
+          3745
+        ],
+        [
+          -505,
+          3595
+        ],
+        [
+          -505,
+          225
+        ],
+        [
+          -260,
+          225
+        ],
+        [
+          -260,
+          260
+        ],
+        [
+          260,
+          260
+        ],
+        [
+          260,
+          -205
+        ],
+        [
+          265,
+          -205
+        ],
+        [
+          265,
+          -545
+        ],
+        [
+          5735,
+          -545
+        ],
+        [
+          5735,
+          -205
+        ],
+        [
+          5740,
+          -205
+        ],
+        [
+          5740,
+          260
+        ],
+        [
+          6260,
+          260
+        ],
+        [
+          6260,
+          -205
+        ],
+        [
+          6265,
+          -205
+        ],
+        [
+          6265,
+          -545
+        ],
+        [
+          11735,
+          -545
+        ],
+        [
+          11735,
+          3420
+        ],
+        [
+          4130,
+          3420
+        ],
+        [
+          4130,
+          3540
+        ],
+        [
+          4140,
+          3540
+        ],
+        [
+          4140,
+          5760
+        ],
+        [
+          4240,
+          5760
+        ],
+        [
+          4240,
+          3540
+        ],
+        [
+          11735,
+          3540
+        ],
+        [
+          11735,
+          3555
+        ],
+        [
+          11885,
+          3555
+        ],
+        [
+          11885,
+          260
+        ],
+        [
+          12260,
+          260
+        ],
+        [
+          12260,
+          -260
+        ],
+        [
+          11885,
+          -260
+        ],
+        [
+          11885,
+          -545
+        ],
+        [
+          11885,
+          -695
+        ],
+        [
+          11885,
+          -1030
+        ],
+        [
+          12260,
+          -1030
+        ],
+        [
+          12260,
+          -1395
+        ],
+        [
+          15740,
+          -1395
+        ],
+        [
+          15740,
+          -1030
+        ],
+        [
+          16195,
+          -1030
+        ],
+        [
+          16195,
+          -260
+        ],
+        [
+          15740,
+          -260
+        ],
+        [
+          15740,
+          260
+        ],
+        [
+          16195,
+          260
+        ],
+        [
+          16195,
+          3595
+        ],
+        [
+          16345,
+          3595
+        ],
+        [
+          16345,
+          3580
+        ],
+        [
+          23735,
+          3580
+        ],
+        [
+          23735,
+          3595
+        ],
+        [
+          23885,
+          3595
+        ],
+        [
+          23885,
+          3580
+        ],
+        [
+          26205,
+          3580
+        ],
+        [
+          26205,
+          3585
+        ],
+        [
+          26335,
+          3585
+        ],
+        [
+          26335,
+          3580
+        ],
+        [
+          27910,
+          3580
+        ],
+        [
+          27910,
+          3610
+        ],
+        [
+          28090,
+          3610
+        ],
+        [
+          28090,
+          3580
+        ],
+        [
+          28095,
+          3580
+        ],
+        [
+          28095,
+          5740
+        ],
+        [
+          27740,
+          5740
+        ],
+        [
+          27740,
+          6260
+        ],
+        [
+          28095,
+          6260
+        ],
+        [
+          28095,
+          8395
+        ],
+        [
+          26045,
+          8395
+        ],
+        [
+          26045,
+          7165
+        ],
+        [
+          26075,
+          7165
+        ],
+        [
+          26075,
+          6975
+        ],
+        [
+          26045,
+          6975
+        ],
+        [
+          26045,
+          5935
+        ],
+        [
+          25915,
+          5935
+        ],
+        [
+          25915,
+          5950
+        ],
+        [
+          22260,
+          5950
+        ],
+        [
+          22260,
+          5740
+        ],
+        [
+          21740,
+          5740
+        ],
+        [
+          21740,
+          5925
+        ],
+        [
+          21725,
+          5925
+        ],
+        [
+          21725,
+          5950
+        ],
+        [
+          19075,
+          5950
+        ],
+        [
+          19075,
+          5925
+        ],
+        [
+          18925,
+          5925
+        ],
+        [
+          18925,
+          5950
+        ],
+        [
+          16260,
+          5950
+        ],
+        [
+          16260,
+          5740
+        ],
+        [
+          15740,
+          5740
+        ]
+      ],
+      "holes": [
+        [
+          [
+            260,
+            6260
+          ],
+          [
+            260,
+            5740
+          ],
+          [
+            -260,
+            5740
+          ],
+          [
+            -260,
+            6260
+          ]
+        ],
+        [
+          [
+            1975,
+            9625
+          ],
+          [
+            1975,
+            9835
+          ],
+          [
+            2185,
+            9835
+          ],
+          [
+            3825,
+            9835
+          ],
+          [
+            4035,
+            9835
+          ],
+          [
+            4035,
+            9625
+          ],
+          [
+            4035,
+            8245
+          ],
+          [
+            4035,
+            8035
+          ],
+          [
+            3825,
+            8035
+          ],
+          [
+            2185,
+            8035
+          ],
+          [
+            1975,
+            8035
+          ],
+          [
+            1975,
+            8245
+          ]
+        ]
+      ],
+      "name": "GALERY",
+      "type": "lobby",
+      "area_m2": 180.55,
+      "perimeter_m": 148.16,
+      "bounding_walls": [
+        "W7",
+        "W8",
+        "W15",
+        "W16",
+        "W23",
+        "W31",
+        "W34",
+        "W35",
+        "W36",
+        "W37",
+        "W38",
+        "W39",
+        "W40",
+        "W41",
+        "W42",
+        "W43",
+        "W44",
+        "W45",
+        "W46",
+        "W47",
+        "W48",
+        "W50",
+        "W51",
+        "W52",
+        "W53",
+        "W54",
+        "W55",
+        "W60",
+        "W61",
+        "W62",
+        "W65",
+        "W66",
+        "W67",
+        "W68",
+        "W69",
+        "W70",
+        "W71",
+        "W72",
+        "W73"
+      ],
+      "doors": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D9",
+        "D10",
+        "D11",
+        "D14",
+        "D15",
+        "D16",
+        "D17",
+        "D18"
+      ],
+      "label_pos": [
+        5640,
+        1140
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R42",
+      "polygon": [
+        [
+          -1925,
+          2760
+        ],
+        [
+          -2375,
+          2760
+        ],
+        [
+          -2375,
+          250
+        ],
+        [
+          -1925,
+          250
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.13,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W4",
+        "W28"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R43",
+      "polygon": [
+        [
+          -1795,
+          2760
+        ],
+        [
+          -1795,
+          250
+        ],
+        [
+          -1095,
+          250
+        ],
+        [
+          -1095,
+          2760
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.76,
+      "perimeter_m": 6.42,
+      "bounding_walls": [
+        "W16",
+        "W28"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R44",
+      "polygon": [
+        [
+          29785,
+          -1035
+        ],
+        [
+          29785,
+          3590
+        ],
+        [
+          28305,
+          3590
+        ],
+        [
+          28305,
+          3415
+        ],
+        [
+          28095,
+          3415
+        ],
+        [
+          28095,
+          3460
+        ],
+        [
+          28090,
+          3460
+        ],
+        [
+          28090,
+          260
+        ],
+        [
+          28260,
+          260
+        ],
+        [
+          28260,
+          -205
+        ],
+        [
+          28265,
+          -205
+        ],
+        [
+          28265,
+          -1035
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 7.58,
+      "perimeter_m": 12.73,
+      "bounding_walls": [
+        "W14",
+        "W30",
+        "W62",
+        "W64",
+        "W69",
+        "W73"
+      ],
+      "doors": [
+        "D13"
+      ],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R45",
+      "polygon": [
+        [
+          27735,
+          -1035
+        ],
+        [
+          27735,
+          -205
+        ],
+        [
+          27740,
+          -205
+        ],
+        [
+          27740,
+          260
+        ],
+        [
+          27910,
+          260
+        ],
+        [
+          27910,
+          3460
+        ],
+        [
+          26335,
+          3460
+        ],
+        [
+          26335,
+          -1035
+        ]
+      ],
+      "holes": [],
+      "name": "MDF ROOM",
+      "type": "mdf",
+      "area_m2": 6.86,
+      "perimeter_m": 12.14,
+      "bounding_walls": [
+        "W14",
+        "W69",
+        "W72",
+        "W73"
+      ],
+      "doors": [
+        "D18"
+      ],
+      "label_pos": [
+        27140,
+        1760
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R46",
+      "polygon": [
+        [
+          19260,
+          -1030
+        ],
+        [
+          19260,
+          -1035
+        ],
+        [
+          21735,
+          -1035
+        ],
+        [
+          21735,
+          -205
+        ],
+        [
+          21740,
+          -205
+        ],
+        [
+          21740,
+          260
+        ],
+        [
+          22260,
+          260
+        ],
+        [
+          22260,
+          -205
+        ],
+        [
+          22265,
+          -205
+        ],
+        [
+          22265,
+          -1035
+        ],
+        [
+          23735,
+          -1035
+        ],
+        [
+          23735,
+          3460
+        ],
+        [
+          16345,
+          3460
+        ],
+        [
+          16345,
+          -1035
+        ],
+        [
+          18740,
+          -1035
+        ],
+        [
+          18740,
+          -1030
+        ]
+      ],
+      "holes": [],
+      "name": "BATTERY ROOM",
+      "type": "battery_room",
+      "area_m2": 32.53,
+      "perimeter_m": 26.37,
+      "bounding_walls": [
+        "W14",
+        "W24",
+        "W67",
+        "W70",
+        "W71"
+      ],
+      "doors": [
+        "D15",
+        "D16"
+      ],
+      "label_pos": [
+        18110,
+        1760
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R47",
+      "polygon": [
+        [
+          23885,
+          -1035
+        ],
+        [
+          24730,
+          -1035
+        ],
+        [
+          24730,
+          -1030
+        ],
+        [
+          25250,
+          -1030
+        ],
+        [
+          25250,
+          -1035
+        ],
+        [
+          26205,
+          -1035
+        ],
+        [
+          26205,
+          3460
+        ],
+        [
+          23885,
+          3460
+        ]
+      ],
+      "holes": [],
+      "name": "AHU ROOM",
+      "type": "ahu_room",
+      "area_m2": 10.43,
+      "perimeter_m": 13.64,
+      "bounding_walls": [
+        "W14",
+        "W68",
+        "W71",
+        "W72"
+      ],
+      "doors": [
+        "D17"
+      ],
+      "label_pos": [
+        24950,
+        1760
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R48",
+      "polygon": [
+        [
+          29915,
+          -1755
+        ],
+        [
+          29915,
+          -1885
+        ],
+        [
+          29785,
+          -1885
+        ],
+        [
+          28260,
+          -1885
+        ],
+        [
+          28260,
+          -2355
+        ],
+        [
+          30385,
+          -2355
+        ],
+        [
+          30385,
+          4755
+        ],
+        [
+          30215,
+          4755
+        ],
+        [
+          30215,
+          -1035
+        ],
+        [
+          30225,
+          -1035
+        ],
+        [
+          30225,
+          -1185
+        ],
+        [
+          29915,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 2.34,
+      "perimeter_m": 18.49,
+      "bounding_walls": [
+        "W2",
+        "W6",
+        "W10",
+        "W14",
+        "W18",
+        "W26",
+        "W30"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R49",
+      "polygon": [
+        [
+          31755,
+          495
+        ],
+        [
+          31755,
+          -1985
+        ],
+        [
+          35505,
+          -1985
+        ],
+        [
+          35505,
+          495
+        ]
+      ],
+      "holes": [],
+      "name": "CAPASITOR ROOM",
+      "type": "capacitor_room",
+      "area_m2": 9.3,
+      "perimeter_m": 12.46,
+      "bounding_walls": [
+        "W74",
+        "W75",
+        "W76",
+        "W77"
+      ],
+      "doors": [
+        "D19"
+      ],
+      "label_pos": [
+        33590,
+        -830
+      ],
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R50",
+      "polygon": [
+        [
+          265,
+          -695
+        ],
+        [
+          265,
+          -1035
+        ],
+        [
+          2750,
+          -1035
+        ],
+        [
+          2750,
+          -1030
+        ],
+        [
+          3270,
+          -1030
+        ],
+        [
+          3270,
+          -1035
+        ],
+        [
+          5735,
+          -1035
+        ],
+        [
+          5735,
+          -695
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.86,
+      "perimeter_m": 11.63,
+      "bounding_walls": [
+        "W13",
+        "W34"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R51",
+      "polygon": [
+        [
+          8750,
+          -1030
+        ],
+        [
+          9270,
+          -1030
+        ],
+        [
+          9270,
+          -1035
+        ],
+        [
+          11735,
+          -1035
+        ],
+        [
+          11735,
+          -695
+        ],
+        [
+          6265,
+          -695
+        ],
+        [
+          6265,
+          -1035
+        ],
+        [
+          8750,
+          -1035
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.86,
+      "perimeter_m": 11.63,
+      "bounding_walls": [
+        "W13",
+        "W22",
+        "W35",
+        "W66"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R52",
+      "polygon": [
+        [
+          -1095,
+          -1185
+        ],
+        [
+          -1095,
+          -1035
+        ],
+        [
+          -1095,
+          -250
+        ],
+        [
+          -1795,
+          -250
+        ],
+        [
+          -1795,
+          -1755
+        ],
+        [
+          -260,
+          -1755
+        ],
+        [
+          -260,
+          -1185
+        ],
+        [
+          -945,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.53,
+      "perimeter_m": 6.08,
+      "bounding_walls": [
+        "W13",
+        "W16",
+        "W26",
+        "W28"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R53",
+      "polygon": [
+        [
+          260,
+          -1755
+        ],
+        [
+          2750,
+          -1755
+        ],
+        [
+          2750,
+          -1185
+        ],
+        [
+          260,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.42,
+      "perimeter_m": 6.12,
+      "bounding_walls": [
+        "W13",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R54",
+      "polygon": [
+        [
+          3270,
+          -1755
+        ],
+        [
+          5740,
+          -1755
+        ],
+        [
+          5740,
+          -1185
+        ],
+        [
+          3270,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.41,
+      "perimeter_m": 6.08,
+      "bounding_walls": [
+        "W13",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R55",
+      "polygon": [
+        [
+          6260,
+          -1185
+        ],
+        [
+          6260,
+          -1755
+        ],
+        [
+          8750,
+          -1755
+        ],
+        [
+          8750,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.42,
+      "perimeter_m": 6.12,
+      "bounding_walls": [
+        "W13",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R56",
+      "polygon": [
+        [
+          19260,
+          -1755
+        ],
+        [
+          21740,
+          -1755
+        ],
+        [
+          21740,
+          -1185
+        ],
+        [
+          19260,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.41,
+      "perimeter_m": 6.1,
+      "bounding_walls": [
+        "W14",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R57",
+      "polygon": [
+        [
+          22260,
+          -1755
+        ],
+        [
+          24730,
+          -1755
+        ],
+        [
+          24730,
+          -1185
+        ],
+        [
+          23885,
+          -1185
+        ],
+        [
+          23735,
+          -1185
+        ],
+        [
+          22260,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.41,
+      "perimeter_m": 6.08,
+      "bounding_walls": [
+        "W14",
+        "W26",
+        "W71"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R58",
+      "polygon": [
+        [
+          25250,
+          -1755
+        ],
+        [
+          27740,
+          -1755
+        ],
+        [
+          27740,
+          -1185
+        ],
+        [
+          25250,
+          -1185
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.42,
+      "perimeter_m": 6.12,
+      "bounding_walls": [
+        "W14",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R59",
+      "polygon": [
+        [
+          11735,
+          -1545
+        ],
+        [
+          11735,
+          -1395
+        ],
+        [
+          11735,
+          -1185
+        ],
+        [
+          9270,
+          -1185
+        ],
+        [
+          9270,
+          -1755
+        ],
+        [
+          11740,
+          -1755
+        ],
+        [
+          11740,
+          -1545
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.41,
+      "perimeter_m": 6.08,
+      "bounding_walls": [
+        "W13",
+        "W22",
+        "W23",
+        "W26",
+        "W66"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R60",
+      "polygon": [
+        [
+          16260,
+          -1755
+        ],
+        [
+          18740,
+          -1755
+        ],
+        [
+          18740,
+          -1185
+        ],
+        [
+          16345,
+          -1185
+        ],
+        [
+          16345,
+          -1395
+        ],
+        [
+          16345,
+          -1545
+        ],
+        [
+          16260,
+          -1545
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.38,
+      "perimeter_m": 6.1,
+      "bounding_walls": [
+        "W14",
+        "W23",
+        "W24",
+        "W26",
+        "W70"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R61",
+      "polygon": [
+        [
+          -1925,
+          -1885
+        ],
+        [
+          -1925,
+          -1755
+        ],
+        [
+          -1925,
+          -250
+        ],
+        [
+          -2375,
+          -250
+        ],
+        [
+          -2375,
+          -2355
+        ],
+        [
+          -260,
+          -2355
+        ],
+        [
+          -260,
+          -1885
+        ],
+        [
+          -1795,
+          -1885
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.73,
+      "perimeter_m": 8.44,
+      "bounding_walls": [
+        "W2",
+        "W4",
+        "W26",
+        "W28"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R62",
+      "polygon": [
+        [
+          260,
+          -2355
+        ],
+        [
+          2750,
+          -2355
+        ],
+        [
+          2750,
+          -1885
+        ],
+        [
+          260,
+          -1885
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R63",
+      "polygon": [
+        [
+          3270,
+          -2355
+        ],
+        [
+          5740,
+          -2355
+        ],
+        [
+          5740,
+          -1885
+        ],
+        [
+          3270,
+          -1885
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R64",
+      "polygon": [
+        [
+          8750,
+          -2355
+        ],
+        [
+          8750,
+          -1885
+        ],
+        [
+          6260,
+          -1885
+        ],
+        [
+          6260,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R65",
+      "polygon": [
+        [
+          11740,
+          -1885
+        ],
+        [
+          9270,
+          -1885
+        ],
+        [
+          9270,
+          -2355
+        ],
+        [
+          11740,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R66",
+      "polygon": [
+        [
+          15740,
+          -1885
+        ],
+        [
+          12260,
+          -1885
+        ],
+        [
+          12260,
+          -2355
+        ],
+        [
+          15740,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.64,
+      "perimeter_m": 7.9,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R67",
+      "polygon": [
+        [
+          18740,
+          -1885
+        ],
+        [
+          16260,
+          -1885
+        ],
+        [
+          16260,
+          -2355
+        ],
+        [
+          18740,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.9,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R68",
+      "polygon": [
+        [
+          21740,
+          -1885
+        ],
+        [
+          19260,
+          -1885
+        ],
+        [
+          19260,
+          -2355
+        ],
+        [
+          21740,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.9,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R69",
+      "polygon": [
+        [
+          24730,
+          -1885
+        ],
+        [
+          22260,
+          -1885
+        ],
+        [
+          22260,
+          -2355
+        ],
+        [
+          24730,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.16,
+      "perimeter_m": 5.88,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    },
+    {
+      "id": "R70",
+      "polygon": [
+        [
+          27740,
+          -1885
+        ],
+        [
+          25250,
+          -1885
+        ],
+        [
+          25250,
+          -2355
+        ],
+        [
+          27740,
+          -2355
+        ]
+      ],
+      "holes": [],
+      "name": "",
+      "type": "other",
+      "area_m2": 1.17,
+      "perimeter_m": 5.92,
+      "bounding_walls": [
+        "W2",
+        "W26"
+      ],
+      "doors": [],
+      "label_pos": null,
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 0
+      }
+    }
+  ],
+  "stairs": [
+    {
+      "id": "S1",
+      "flights": [
+        {
+          "start": [
+            4990,
+            5760
+          ],
+          "end": [
+            4990,
+            9920
+          ],
+          "width": 1500,
+          "risers": 15
+        },
+        {
+          "start": [
+            1060,
+            9920
+          ],
+          "end": [
+            1060,
+            5760
+          ],
+          "width": 1420,
+          "risers": 15
+        }
+      ],
+      "landings": [
+        [
+          [
+            350,
+            11690
+          ],
+          [
+            5740,
+            11690
+          ],
+          [
+            5740,
+            9920
+          ],
+          [
+            350,
+            9920
+          ]
+        ]
+      ],
+      "base_z": 0,
+      "top_z": null,
+      "room_id": "R41",
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    },
+    {
+      "id": "S2",
+      "flights": [
+        {
+          "start": [
+            29010,
+            4980
+          ],
+          "end": [
+            29010,
+            7720
+          ],
+          "width": 1420,
+          "risers": 10
+        }
+      ],
+      "landings": [],
+      "base_z": 0,
+      "top_z": null,
+      "room_id": "R40",
+      "provenance": {
+        "source": "manual",
+        "confidence": 1.0,
+        "candidate": null,
+        "evidence": {},
+        "changed_in": 1
+      }
+    }
+  ],
+  "objects": [],
+  "provenance_log": []
+}
