@@ -92,7 +92,7 @@ def _symbols(clean: np.ndarray, w: float, s: float) -> np.ndarray:
     mask = np.zeros_like(clean)
     min_area = (SYMBOL_MIN_MM / s) ** 2
     for i in range(1, n):
-        x, y, bw, bh, area = stats[i]
+        _, _, bw, bh, area = stats[i]
         if area >= min_area and max(bw, bh) / max(1, min(bw, bh)) < 4:
             mask[labels == i] = 255
     # cover the blob outline that the opening shaved off
@@ -132,7 +132,7 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     leader_segs, pointers = _leaders(work, texts, s)
     clean = work.copy()
     for t in texts:
-        bx0, by0, bx1, by1 = (int(round(v)) for v in t["bbox"])
+        bx0, by0, bx1, by1 = (round(v) for v in t["bbox"])
         clean[max(0, by0 - TEXT_DILATE_PX):by1 + TEXT_DILATE_PX, max(0, bx0 - TEXT_DILATE_PX):bx1 + TEXT_DILATE_PX] = 0
     for x1_, y1_, x2_, y2_ in leader_segs:
         cv2.line(clean, (round(x1_), round(y1_)), (round(x2_), round(y2_)), 0, 3)
