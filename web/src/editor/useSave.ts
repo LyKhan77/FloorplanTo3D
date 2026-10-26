@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api, ApiError } from '../api/client'
 import type { Spec } from '../types/spec'
 import { rebasePreview } from './ops/compose'
@@ -20,12 +20,15 @@ export function autoRegenerate(): boolean {
 export function useSave(projectId: string, regenerate: (version: number) => void) {
   const qc = useQueryClient()
   const [saving, setSaving] = useState(false)
+  const inFlight = useRef(false) // state lags a render; two quick Ctrl+S must not both POST
   const [conflict, setConflict] = useState<{ head: Spec; failed: OpFailure[] } | null>(null)
 
   const save = async (message?: string) => {
     const s = useEditorStore.getState()
-    if (!s.ops.length || s.baseVersion === null || saving) return
+    if (!s.ops.length || s.baseVersion === null || inFlight.current) return
+    inFlight.current = true
     setSaving(true)
+    s.setSaving(true)
     try {
       const r = await api.post<{ version: number; spec: Spec; issues: Issue[] }>(`/api/projects/${projectId}/specs`,
         { base_version: s.baseVersion, ops: s.ops, message: message ?? `Edit editor: ${s.ops.length} op` })
@@ -40,8 +43,12 @@ export function useSave(projectId: string, regenerate: (version: number) => void
     } catch (e) {
       if (!(e instanceof ApiError)) return s.setNotice({ kind: 'error', text: String(e) })
       if (e.status === 409 && e.code === 'spec_conflict') {
-        const head = await api.get<Spec>(`/api/projects/${projectId}/specs/HEAD`)
-        setConflict({ head, failed: rebasePreview(head, useEditorStore.getState().ops) })
+        try {
+          const head = await api.get<Spec>(`/api/projects/${projectId}/specs/HEAD`)
+          setConflict({ head, failed: rebasePreview(head, useEditorStore.getState().ops) })
+        } catch (err) {
+          s.setNotice({ kind: 'error', text: `Spec berubah, tetapi HEAD tidak bisa dimuat: ${String(err)}` })
+        }
       } else if (e.status === 422) {
         s.setSaveIssues((e.details.issues as Issue[]) ?? [])
         s.setNotice({ kind: 'error', text: 'Validasi gagal: perbaiki masalah di panel Masalah, lalu Save lagi' })
@@ -51,7 +58,9 @@ export function useSave(projectId: string, regenerate: (version: number) => void
         s.setNotice({ kind: e.status === 409 ? 'warning' : 'error', text: e.message })
       }
     } finally {
+      inFlight.current = false
       setSaving(false)
+      useEditorStore.getState().setSaving(false)
     }
   }
 

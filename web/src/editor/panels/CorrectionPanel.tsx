@@ -91,7 +91,11 @@ function StairForm({ s }: { s: Stair }) {
       ))}
       <MmInput id="cs-w" label="Lebar semua flight (mm)" value={s.flights[0]?.width} min={300} max={10000} onCommit={(v) => flights(() => ({ width: v }))} />
       <MmInput id="cs-top" label="top_z (mm)" value={s.top_z} min={500} max={12000} onCommit={(v) => apply({ op: 'set_stair', id: s.id, top_z: v })} />
-      <Button size="sm" kind="tertiary" onClick={() => flights((f) => ({ start: f.end, end: f.start }))}>Balik arah naik</Button>
+      <Button size="sm" kind="tertiary"
+        onClick={() => apply({ op: 'set_stair', id: s.id,
+          flights: [...s.flights].reverse().map((f) => ({ ...f, start: f.end, end: f.start })) as SetStair['flights'] })}>
+        Balik arah naik
+      </Button>
       <DeleteWithReason id="cs-del" label="Hapus tangga" onDelete={(reason) => apply({ op: 'delete_stair', id: s.id, reason })} />
     </>
   )

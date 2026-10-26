@@ -47,7 +47,8 @@ describe('CorrectionPanel', () => {
     act(() => st().select([s1.id]))
     render(<CorrectionPanel />)
     fireEvent.click(screen.getByRole('button', { name: 'Balik arah naik' }))
-    expect(st().ops).toEqual([{ op: 'set_stair', id: s1.id, flights: s1.flights.map((f) => ({ ...f, start: f.end, end: f.start })) }])
+    // walking the stair the other way: last flight first, each one reversed
+    expect(st().ops).toEqual([{ op: 'set_stair', id: s1.id, flights: [...s1.flights].reverse().map((f) => ({ ...f, start: f.end, end: f.start })) }])
   })
 
   it('door form edits width', () => {

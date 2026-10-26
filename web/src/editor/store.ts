@@ -49,6 +49,7 @@ interface EditorState {
   gizmo: Gizmo
   wallDraft: { a?: [number, number]; b?: [number, number] }
   focus: [number, number] | null
+  saving: boolean
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -76,6 +77,7 @@ interface EditorState {
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
   setFocus(p: [number, number] | null): void
   takeFocus(): [number, number] | null
+  setSaving(on: boolean): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -111,13 +113,18 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, focus: null,
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, focus: null, saving: false,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {} }),
     apply: (op) => get().applyMany([op]),
     applyMany: (list) => {
-      const { base } = get()
+      const { base, saving } = get()
       if (!base) return false
+      // markSaved replaces the op list with the server's answer; an edit made meanwhile would vanish
+      if (saving) {
+        set({ notice: { kind: 'warning', text: 'Sedang menyimpan; tunggu sebentar' } })
+        return false
+      }
       let next = get().ops
       for (const op of list) {
         const r = pushOp(base, next, op)
@@ -131,12 +138,12 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     },
     undo: () => {
       const { base, ops, past, future, selection } = get()
-      if (!base || !past.length) return
+      if (!base || !past.length || get().saving) return
       set({ ...derived(base, past.at(-1)!, selection), past: past.slice(0, -1), future: [ops, ...future] })
     },
     redo: () => {
       const { base, ops, past, future, selection } = get()
-      if (!base || !future.length) return
+      if (!base || !future.length || get().saving) return
       set({ ...derived(base, future[0], selection), past: [...past, ops], future: future.slice(1) })
     },
     select: (ids, additive) => set((s) => ({ selection: additive ? [...new Set([...s.selection, ...ids])] : ids })),
@@ -150,9 +157,11 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     clearMeasurements: () => set({ measurements: [] }),
     markSaved: (spec) => set((s) => ({ ...fresh(spec), selection: derived(spec, [], s.selection).selection })),
     acceptRebase: (head, drop) => {
-      const { ops, selection } = get()
+      const { ops, selection, base } = get()
       const kept = ops.filter((_, i) => !drop.includes(i))
-      set({ ...fresh(head), ...derived(head, kept, selection) })
+      // a predicted id may now name the other tab's new element: keep only ids the old base had
+      const known = new Set(base ? allIds(base) : [])
+      set({ ...fresh(head), ...derived(head, kept, selection.filter((id) => known.has(id))) })
     },
     setNotice: (notice) => set({ notice }),
     setSaveIssues: (saveIssues) => set({ saveIssues }),
@@ -164,6 +173,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setGizmo: (gizmo) => set({ gizmo }),
     setWallDraft: (wallDraft) => set({ wallDraft }),
     setFocus: (focus) => set({ focus }),
+    setSaving: (saving) => set({ saving }),
     takeFocus: () => {
       const { focus } = get()
       if (focus) set({ focus: null })

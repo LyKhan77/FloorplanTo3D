@@ -42,6 +42,12 @@ describe('ObjectProps', () => {
     expect(st().ops).toEqual([{ op: 'update_object', id: 'O1', label: null }])
   })
 
+  it('a locked object only offers unlocking', () => {
+    const o = { ...st().view!.objects![0], locked: true }
+    render(<ObjectProps o={o} t={rack} />)
+    for (const label of ['X (mm)', 'Y (mm)', 'Z (mm)', 'Rotasi (°)', 'D (mm)', 'Label']) expect(screen.getByLabelText(label)).toBeDisabled()
+  })
+
   it('position edit keeps the object inside a room', () => {
     render(<ObjectProps o={st().view!.objects![0]} t={rack} />)
     type('X (mm)', String(mx + 100))

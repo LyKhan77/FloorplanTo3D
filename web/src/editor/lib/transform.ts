@@ -1,6 +1,7 @@
 import type { Template } from '../../api/types'
 import type { PlacedObject, Spec } from '../../types/spec'
 import type { EditorOp } from '../ops/reducer'
+import { compareIds } from '../ops/ids'
 import { roomAt, roundHalfEven } from './geom'
 import { snapPosition } from './snap'
 
@@ -54,4 +55,10 @@ export function duplicateOps(objs: PlacedObject[], stepMm: number): EditorOp[] {
   }))
 }
 
-export const deleteOps = (objs: PlacedObject[]): EditorOp[] => unlocked(objs).map((o) => ({ op: 'delete_object', id: o.id }))
+/** Highest id first: deleting an unsaved object drops its add_object and renumbers every later new object. */
+export const deleteOps = (objs: PlacedObject[]): EditorOp[] =>
+  unlocked(objs).sort((a, b) => compareIds(b.id, a.id)).map((o) => ({ op: 'delete_object', id: o.id }))
+
+/** The scale gizmo turns with a single object, so its X/Z handles are the object's w/d. */
+export const gizmoYawDeg = (objs: PlacedObject[], mode: 'translate' | 'rotate' | 'scale'): number =>
+  mode === 'scale' && objs.length === 1 ? objs[0].rotation ?? 0 : 0

@@ -30,6 +30,7 @@ export function ObjectProps({ o, t }: { o: PlacedObject; t: Template | undefined
   }
   const commitLabel = () => { if (label !== (o.label ?? '')) update({ label: label.trim() ? label : null }) }
   const fixed = t?.scale_mode === 'fixed'
+  const locked = !!o.locked // only "Terkunci" stays editable
   return (
     <>
       <h4 className="editor-panel__title">Objek {o.id}</h4>
@@ -39,20 +40,20 @@ export function ObjectProps({ o, t }: { o: PlacedObject; t: Template | undefined
         {GIZMOS.map(([g, text]) => <Switch key={g} name={g} text={text} />)}
       </ContentSwitcher>
       <div className="editor-grid3">
-        <MmInput id="obj-x" label="X (mm)" value={o.position[0]} min={-FAR} max={FAR} onCommit={(v) => moveTo(v, o.position[1])} />
-        <MmInput id="obj-y" label="Y (mm)" value={o.position[1]} min={-FAR} max={FAR} onCommit={(v) => moveTo(o.position[0], v)} />
-        <MmInput id="obj-z" label="Z (mm)" value={o.position[2]} min={-FAR} max={FAR}
+        <MmInput id="obj-x" label="X (mm)" value={o.position[0]} min={-FAR} max={FAR} disabled={locked} onCommit={(v) => moveTo(v, o.position[1])} />
+        <MmInput id="obj-y" label="Y (mm)" value={o.position[1]} min={-FAR} max={FAR} disabled={locked} onCommit={(v) => moveTo(o.position[0], v)} />
+        <MmInput id="obj-z" label="Z (mm)" value={o.position[2]} min={-FAR} max={FAR} disabled={locked}
           onCommit={(v) => update({ position: [o.position[0], o.position[1], v] })} />
       </div>
-      <MmInput id="obj-rot" label="Rotasi (°)" unit="°" value={o.rotation ?? 0} min={-360} max={360}
+      <MmInput id="obj-rot" label="Rotasi (°)" unit="°" value={o.rotation ?? 0} min={-360} max={360} disabled={locked}
         onCommit={(v) => update({ rotation: ((v % 360) + 360) % 360 })} />
       <div className="editor-grid3">
         {AXES.map(([k, name], i) => (
           <MmInput key={k} id={`obj-${k}`} label={`${name} (mm)`} value={o.dims[i]} min={1} max={FAR}
-            disabled={fixed || (t ? !t.resizable?.[k] : false)} onCommit={(v) => setDim(i, v)} />
+            disabled={locked || fixed || (t ? !t.resizable?.[k] : false)} onCommit={(v) => setDim(i, v)} />
         ))}
       </div>
-      <TextInput id="obj-label" labelText="Label" size="sm" value={label} onChange={(e) => setLabel(e.target.value)}
+      <TextInput id="obj-label" labelText="Label" size="sm" value={label} disabled={locked} onChange={(e) => setLabel(e.target.value)}
         onBlur={commitLabel} onKeyDown={(e) => { if (e.key === 'Enter') commitLabel() }} />
       <Toggle id="obj-locked" size="sm" labelText="Terkunci" labelA="tidak" labelB="ya" toggled={!!o.locked}
         onToggle={(on) => update({ locked: on })} />

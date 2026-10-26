@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import gtJson from '../../../benchmarks/gatsu/gt_spec.json'
 import type { AddObject } from '../types/ops'
 import type { Spec } from '../types/spec'
+import { deleteOps } from './lib/transform'
 import { rebasePreview } from './ops/compose'
 import { applyOps, type EditorOp } from './ops/reducer'
 import { useEditorStore } from './store'
@@ -59,6 +60,36 @@ describe('useEditorStore', () => {
     st().setFocus([1000, 2000])
     expect(st().takeFocus()).toEqual([1000, 2000])
     expect(st().takeFocus()).toBeNull()
+  })
+
+  it('deleting several unsaved objects removes exactly those (no renumbering mid-batch)', () => {
+    st().applyMany([add(0), add(1000), add(2000)])
+    const [a, b] = st().view!.objects!
+    expect(st().applyMany(deleteOps([a, b]))).toBe(true)
+    expect(st().view!.objects!.map((o) => o.position[0])).toEqual([px + 2000])
+    st().load('p-1', gt)
+    st().applyMany([add(0), add(1000)])
+    expect(st().applyMany(deleteOps(st().view!.objects!))).toBe(true)
+    expect(st().ops).toEqual([])
+  })
+
+  it('refuses edits while a save is in flight', () => {
+    st().apply(add(0))
+    st().setSaving(true)
+    expect(st().apply(add(100))).toBe(false)
+    expect(st().notice?.text).toContain('menyimpan')
+    st().undo()
+    expect(st().ops).toHaveLength(1)
+    st().setSaving(false)
+    expect(st().apply(add(100))).toBe(true)
+  })
+
+  it('accepting a rebase drops selected predicted ids (they may name the other tab\'s element now)', () => {
+    st().apply(add(0))
+    st().select(['O1', 'W1'])
+    const head = applyOps(gt, [{ ...add(0), position: [px + 1234, py, 0] }]).spec
+    st().acceptRebase(head, [])
+    expect(st().selection).toEqual(['W1'])
   })
 
   it('drops selected ids that no longer exist', () => {

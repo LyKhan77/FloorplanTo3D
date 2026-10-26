@@ -1,6 +1,7 @@
 import { Euler, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
-import { fromThree, rotToThree, toThree } from './coords'
+import { Quaternion } from 'three'
+import { fromThree, rotToThree, toThree, yawOf } from './coords'
 
 describe('coords', () => {
   it('maps spec mm (Z-up) to three meters (Y-up) and back', () => {
@@ -15,5 +16,15 @@ describe('coords', () => {
     const [x, y] = fromThree(front)
     expect(x).toBeCloseTo(-1000)
     expect(y).toBeCloseTo(0)
+  })
+})
+
+describe('yawOf', () => {
+  it('reads Y rotations past ±90° (XYZ Euler would flip them)', () => {
+    for (const deg of [30, 120, 180, -150]) {
+      const q = new Quaternion().setFromEuler(new Euler(0, rotToThree(deg), 0))
+      const got = (yawOf(q) * 180) / Math.PI
+      expect(((got - deg) % 360 + 540) % 360 - 180).toBeCloseTo(0)
+    }
   })
 })

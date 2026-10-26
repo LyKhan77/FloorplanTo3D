@@ -48,6 +48,16 @@ describe('useSave', () => {
     expect(regenerate).toHaveBeenCalledWith(5)
   })
 
+  it('a second save while the first is in flight sends nothing', async () => {
+    let finish: (v: unknown) => void = () => {}
+    post.mockImplementation(() => new Promise((r) => { finish = r }) as never)
+    const { result } = setup()
+    let first: Promise<void> = Promise.resolve()
+    act(() => { first = result.current.save(); void result.current.save() })
+    expect(post).toHaveBeenCalledTimes(1)
+    await act(async () => { finish({ version: 5, spec: { ...gt, meta: { ...gt.meta, version: 5 } }, issues: [] }); await first })
+  })
+
   it('422 keeps ops and shows issues', async () => {
     const issues = [{ code: 'V001', severity: 'error', element_ids: ['O1'], message: 'objek di luar ruang' }]
     post.mockRejectedValue(new ApiError(422, 'validation_failed', 'validation failed', { issues }))

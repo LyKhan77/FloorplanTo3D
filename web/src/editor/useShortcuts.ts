@@ -1,18 +1,15 @@
 import { useEffect } from 'react'
 import type { Template } from '../api/types'
-import { keyAction } from './lib/keys'
+import { ignoredTarget, keyAction } from './lib/keys'
 import { deleteOps, duplicateOps, rotateOps, templateOf } from './lib/transform'
 import { useEditorStore } from './store'
-
-const TYPING = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
 
 /** PRD/07 §10 shortcuts while the Editor tab is shown; typing in fields and open Carbon modals are left alone. */
 export function useShortcuts(templates: Template[], save: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as Element | null
-      if (target?.closest?.(TYPING) || document.querySelector('.cds--modal.is-visible')) return
-      const action = keyAction(e)
+      if (ignoredTarget(e.target as Element | null) || document.querySelector('.cds--modal.is-visible')) return
+      const action = keyAction(e, useEditorStore.getState().mode)
       if (!action) return
       if (['save', 'undo', 'redo', 'duplicate'].includes(action)) e.preventDefault()
       const s = useEditorStore.getState()

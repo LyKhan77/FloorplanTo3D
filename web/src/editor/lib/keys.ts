@@ -8,7 +8,19 @@ const PLAIN: Record<string, Action> = {
   h: 'tool:height', g: 'snap:toggle',
 }
 
-export function keyAction(e: { key: string; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }): Action | null {
+const TYPING = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="combobox"], [role="listbox"], [role="option"]'
+
+/** Keys typed into fields or Carbon dropdowns (type-ahead, Esc) belong to them. */
+export const ignoredTarget = (el: Element | null): boolean => !!el?.closest?.(TYPING)
+
+export function keyAction(e: { key: string; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }, mode?: string): Action | null {
+  const action = mapKey(e)
+  // walking: WASD and friends drive the camera; only mode keys and Esc stay shortcuts
+  if (mode === 'walk' && action && !action.startsWith('mode:') && action !== 'cancel') return null
+  return action
+}
+
+function mapKey(e: { key: string; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }): Action | null {
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
   if (e.ctrlKey || e.metaKey) {
     if (key === 'z') return e.shiftKey ? 'redo' : 'undo'

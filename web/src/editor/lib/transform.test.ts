@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Template } from '../../api/types'
 import type { PlacedObject, Spec } from '../../types/spec'
-import { deleteOps, duplicateOps, groupCenter, moveOps, rotateOps } from './transform'
+import { deleteOps, duplicateOps, gizmoYawDeg, groupCenter, moveOps, rotateOps } from './transform'
 
 const gt = gtJson as unknown as Spec
 const [mx, my] = gt.rooms!.find((r) => r.name === 'R. MEETING')!.label_pos as [number, number]
@@ -49,5 +49,13 @@ describe('transform', () => {
     expect(rotateOps(objs, 90).map((o) => 'id' in o && o.id)).toEqual(['O2'])
     expect(duplicateOps(objs, 600)).toHaveLength(1)
     expect(moveOps(objs, [0, 0], gt, false, [rack])).toMatchObject([{ id: 'O2' }])
+  })
+})
+
+describe('gizmoYawDeg', () => {
+  it('the scale gizmo turns with a single object so its handles match w/d', () => {
+    expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 })], 'scale')).toBe(90)
+    expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 })], 'translate')).toBe(0)
+    expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 }), obj('O2', 0, 0)], 'scale')).toBe(0)
   })
 })

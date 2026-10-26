@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Group } from 'three'
 import type { Template } from '../../api/types'
 import type { EditorOp } from '../ops/reducer'
-import { fromThree, toThree } from '../lib/coords'
+import { fromThree, rotToThree, toThree, yawOf } from '../lib/coords'
 import { clampDims } from '../lib/resize'
-import { groupCenter, moveOps, rotateOps, templateOf, unlocked } from '../lib/transform'
+import { gizmoYawDeg, groupCenter, moveOps, rotateOps, templateOf, unlocked } from '../lib/transform'
 import { useEditorStore } from '../store'
-import { gizmoState } from './gizmoState'
+import { endDrag, gizmoState } from './gizmoState'
 import { boxEdges, objectMatrix } from './objectMatrix'
 
 
@@ -45,17 +45,17 @@ export function TransformGizmo({ templates }: { templates: Template[] }) {
   const t = single ? templateOf(single, templates) : undefined
   const mode = gizmo === 'scale' && !single ? 'translate' : gizmo
   const resizable = (k: 'w' | 'd' | 'h') => !!t && t.scale_mode !== 'fixed' && !!t.resizable?.[k]
-  const key = objs.map((o) => `${o.id}:${o.position}:${o.rotation}:${o.dims}`).join('|')
+  const yaw = gizmoYawDeg(objs, mode)
+  const key = `${mode}|` + objs.map((o) => `${o.id}:${o.position}:${o.rotation}:${o.dims}`).join('|')
 
   const reset = () => {
     if (!proxy) return
     proxy.position.set(...toThree([cx, cy, 0]))
-    proxy.rotation.set(0, 0, 0)
+    proxy.rotation.set(0, rotToThree(yaw), 0)
     proxy.scale.set(1, 1, 1)
   }
   const commit = () => {
-    gizmoState.dragging = false
-    gizmoState.endedAt = performance.now()
+    endDrag()
     const s = useEditorStore.getState()
     if (!proxy || !s.view) return
     let ops: EditorOp[] | { error: string }
@@ -63,7 +63,7 @@ export function TransformGizmo({ templates }: { templates: Template[] }) {
       const [x, y] = fromThree(proxy.position)
       ops = moveOps(objs, [x - cx, y - cy], s.view, s.snap && !alt, templates)
     } else if (mode === 'rotate') {
-      ops = rotateOps(objs, Math.round((proxy.rotation.y * 180) / Math.PI * 10) / 10)
+      ops = rotateOps(objs, Math.round((yawOf(proxy.quaternion) * 180) / Math.PI * 10) / 10)
     } else {
       const o = single!
       const dims: [number, number, number] = [Math.round(o.dims[0] * proxy.scale.x), Math.round(o.dims[1] * proxy.scale.z),
@@ -76,10 +76,10 @@ export function TransformGizmo({ templates }: { templates: Template[] }) {
 
   return (
     <>
-      <group key={key} ref={setProxy} position={toThree([cx, cy, 0])}>
+      <group key={key} ref={setProxy} position={toThree([cx, cy, 0])} rotation={[0, rotToThree(yaw), 0]}>
         {objs.map((o) => (
           <lineSegments key={o.id} geometry={boxEdges} matrixAutoUpdate={false} raycast={() => null}
-            matrix={objectMatrix({ ...o, position: [o.position[0] - cx, o.position[1] - cy, o.position[2]] }, undefined)}>
+            matrix={objectMatrix({ ...o, rotation: (o.rotation ?? 0) - yaw, position: [o.position[0] - cx, o.position[1] - cy, o.position[2]] }, undefined)}>
             <lineBasicMaterial color="#78a9ff" depthTest={false} transparent />
           </lineSegments>
         ))}
