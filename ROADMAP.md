@@ -260,7 +260,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** Strata meningkatkan hasil secara terukur tanpa pernah memperburuknya. Referensi: `05-llm-review.md`.
 
 ### Tugas
-- [ ] Spike Strata (bila belum dilakukan di M0).
+- [ ] Spike Strata (bila belum dilakukan di M0). **Status 2026-10-26: ditunda dari M0 karena Strata tidak aktif** (`benchmarks/reports/spike-strata.md`). Kerjakan paling awal di M6 mengikuti Task 6 plan M0.
 - [ ] `core/llm_review/client.py`: SDK openai, healthcheck, timeout, retry JSON invalid, pencatatan token dan latensi.
 - [ ] Pembuat crop zoom + thumbnail konteks + bukti teks.
 - [ ] Tugas T0 (parse prompt), T1, T2, T3: prompt berversi, schema output, voting.
