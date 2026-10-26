@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Dokumen Map 3D — {{ d.title }}</title>
+<link rel="stylesheet" href="report.css"></head>
+<body>
+{% macro img(key, caption) -%}
+  {% if renders.get(key) %}<figure><img src="{{ renders[key] }}" alt="{{ caption }}"><figcaption>{{ caption }}</figcaption></figure>
+  {%- else %}<p class="empty">—</p>{% endif %}
+{%- endmacro %}
+<header class="cover">
+  <h1>Dokumen Map 3D — {{ d.title }}</h1>
+  <p>Lantai: {{ d.floor }} · Versi spec: v{{ d.spec_version }} · {{ d.date }}</p>
+  <p>Status verifikasi: <strong class="status-{{ d.status }}">{{ d.status }}</strong></p>
+</header>
+
+<section><h2>Ringkasan</h2>
+  {% set s = d.summary %}
+  <div class="kv">
+    <span>Luas kotor bangunan</span><span>{{ s.gross_area_m2 }} m²</span>
+    <span>Luas bersih total</span><span>{{ s.net_area_m2 }} m²</span>
+    <span>Ruang / pintu / kolom</span><span>{{ s.n_rooms }} / {{ s.n_doors }} / {{ s.n_columns }}</span>
+    <span>Tinggi dinding default</span><span>{{ s.wall_height }} mm</span>
+    <span>Skala</span><span>{{ s.mm_per_px }} mm/px ({{ s.scale_source }})</span>
+    <span>IoU top-down</span><span>{{ s.iou if s.iou is not none else "—" }}</span>
+  </div>
+</section>
+
+<section class="figures"><h2>Denah asli & overlay</h2><div class="grid">{{ img("plan", "Denah asli") }}{{ img("overlay", "Overlay spec di atas denah") }}</div></section>
+<section class="figures"><h2>Top view</h2>{{ img("top", "Top view 3D dengan label ruang dan grid") }}</section>
+<section class="figures"><h2>Isometrik</h2><div class="grid">
+  {% for k in ["iso_ne", "iso_nw", "iso_se", "iso_sw"] %}{{ img(k, k) }}{% endfor %}</div></section>
+
+<section><h2>Tabel ruang</h2>
+  {% if d.rooms %}<table><tr><th>ID</th><th>Nama</th><th>Tipe</th><th class="num">Luas (m²)</th><th class="num">Keliling (m)</th><th class="num">Pintu</th><th class="num">Tinggi dinding (mm)</th></tr>
+  {% for r in d.rooms %}<tr><td>{{ r.id }}</td><td>{{ r.name }}</td><td>{{ r.type }}</td><td class="num">{{ r.area_m2 }}</td><td class="num">{{ r.perimeter_m }}</td><td class="num">{{ r.n_doors }}</td><td class="num">{{ r.wall_height }}</td></tr>{% endfor %}
+  </table>{% else %}<p class="empty">—</p>{% endif %}
+</section>
+
+<section><h2>Jadwal pintu</h2>
+  {% if d.doors %}<table><tr><th>ID</th><th>Ruang</th><th>Tipe</th><th>Lebar × tinggi (mm)</th><th>Engsel</th><th>Arah</th></tr>
+  {% for x in d.doors %}<tr><td>{{ x.id }}</td><td>{{ x.rooms }}</td><td>{{ x.type }}</td><td>{{ x.size }}</td><td>{{ x.hinge }}</td><td>{{ x.swing }}</td></tr>{% endfor %}
+  </table>{% else %}<p class="empty">—</p>{% endif %}
+</section>
+
+<section><h2>Tangga</h2>
+  {% if d.stairs %}<table><tr><th>ID</th><th>Ruang</th><th class="num">Flight</th><th class="num">Tanjakan</th><th class="num">Tinggi tanjakan (mm)</th><th class="num">Injakan (mm)</th><th>Arah naik</th></tr>
+  {% for x in d.stairs %}<tr><td>{{ x.id }}</td><td>{{ x.room }}</td><td class="num">{{ x.flights }}</td><td class="num">{{ x.risers }}</td><td class="num">{{ x.riser_mm }}</td><td class="num">{{ x.tread_mm }}</td><td>{{ x.direction }}</td></tr>{% endfor %}
+  </table>{% else %}<p class="empty">—</p>{% endif %}
+</section>
+
+<section><h2>Ringkasan dinding</h2><div class="grid">
+  <table><tr><th>Jenis</th><th class="num">Panjang (m)</th></tr>{% for w in d.walls.by_kind %}<tr><td>{{ w.kind }}</td><td class="num">{{ w.length_m }}</td></tr>{% endfor %}</table>
+  <table><tr><th>Tebal (mm)</th><th class="num">Panjang (m)</th></tr>{% for w in d.walls.by_thickness %}<tr><td>{{ w.thickness }}</td><td class="num">{{ w.length_m }}</td></tr>{% endfor %}</table>
+</div></section>
+
+<section><h2>Objek</h2>
+  {% if d.objects.by_template %}<div class="grid">
+  <table><tr><th>Template</th><th>Dimensi (mm)</th><th class="num">Jumlah</th></tr>{% for o in d.objects.by_template %}<tr><td>{{ o.template }}</td><td>{{ o.dims }}</td><td class="num">{{ o.count }}</td></tr>{% endfor %}</table>
+  <table><tr><th>Ruang</th><th class="num">Jumlah</th></tr>{% for o in d.objects.by_room %}<tr><td>{{ o.room }}</td><td class="num">{{ o.count }}</td></tr>{% endfor %}</table>
+  </div>{% else %}<p class="empty">—</p>{% endif %}
+</section>
+
+<section class="figures"><h2>Render per ruang</h2>
+  {% set rooms_r = renders | dictsort | selectattr(0, "match", "room_") | list %}
+  {% if rooms_r %}<div class="grid">{% for k, v in rooms_r %}{{ img(k, k[5:]) }}{% endfor %}</div>{% else %}<p class="empty">—</p>{% endif %}
+</section>
+
+<section><h2>Peringatan & provenance</h2>
+  {% if d.issues %}<ul>{% for i in d.issues %}<li>{{ i }}</li>{% endfor %}</ul>{% else %}<p class="empty">—</p>{% endif %}
+  <p>Elemen per sumber: {% if d.provenance %}{% for k, v in d.provenance.items() %}{{ k }} {{ v }}{% if not loop.last %} · {% endif %}{% endfor %}{% else %}—{% endif %}</p>
+</section>
+
+<section><h2>Metadata</h2>
+  {% set m = d.metadata %}
+  <div class="kv">
+    <span>SHA-256 input</span><span>{{ m.input_sha256 }}</span>
+    <span>Run</span><span>{{ m.run_id }}</span>
+    <span>Versi kode</span><span>{{ m.code_version }}</span>
+    <span>Versi Blender</span><span>{{ m.blender_version }}</span>
+    <span>Versi prompt LLM</span><span>{{ m.prompt_version }}</span>
+  </div>
+</section>
+</body>
+</html>

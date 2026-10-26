@@ -1,0 +1,23 @@
+/* Carbon light, print-friendly (PRD/06 §7.3) */
+@page { size: A4 landscape; margin: 14mm 14mm 16mm 14mm;
+  @bottom-right { content: counter(page) " / " counter(pages); font-size: 9pt; color: #525252; } }
+* { box-sizing: border-box; }
+body { font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif; color: #161616; background: #ffffff; margin: 0;
+  font-size: 10pt; line-height: 1.4; }
+header.cover { border-left: 6px solid #0f62fe; padding: 8mm 10mm; margin-bottom: 8mm; }
+header.cover h1 { font-size: 24pt; font-weight: 400; margin: 0 0 4mm; }
+header.cover p { margin: 1mm 0; color: #525252; }
+section { margin-bottom: 8mm; page-break-inside: avoid; }
+section.figures { page-break-inside: auto; }
+h2 { font-size: 14pt; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; padding-bottom: 2mm; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; }
+th, td { border-bottom: 1px solid #e0e0e0; padding: 1.5mm 2mm; text-align: left; }
+th { background: #f4f4f4; font-weight: 600; }
+td.num, th.num { text-align: right; }
+.grid { display: flex; flex-wrap: wrap; gap: 4mm; }
+.grid figure { margin: 0; width: calc(50% - 2mm); }
+figure img { width: 100%; border: 1px solid #e0e0e0; }
+figcaption { font-size: 8.5pt; color: #525252; }
+.kv { display: grid; grid-template-columns: max-content auto; gap: 1mm 6mm; }
+.status-succeeded { color: #198038; } .status-needs_attention, .status-failed { color: #da1e28; }
+.empty { color: #8d8d8d; }
