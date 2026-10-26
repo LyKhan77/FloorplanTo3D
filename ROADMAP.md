@@ -126,26 +126,26 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** spec menghasilkan keempat output secara deterministik. Referensi: `06-builder-outputs.md`.
 
 ### Tugas
-- [ ] `core/build_prep/`: spec → `build_input.json`.
-  - [ ] Tapak dinding per ID, dengan sambungan dibagi di garis bagi sudut, tanpa overlap.
-  - [ ] Cutter bukaan.
-  - [ ] Transform kusen dan daun pintu (single/double/sliding/opening/rolling).
-  - [ ] Poligon lantai per ruang (termasuk lubang kolom), slab per `building_outline`, kolom dan pilaster.
-  - [ ] Tangga: balok anak tangga pejal per flight + bordes (`06-builder-outputs.md` §4.5b).
-  - [ ] Objek dengan path template + skala per sumbu.
-  - [ ] Daftar kamera (top, iso ×4, per ruang).
-- [ ] `builder/scene/*`: walls (ekstrusi + Boolean EXACT), doors, windows, floors, columns, stairs, objects (linked duplicates), materials, cameras, annotations.
-- [ ] Konvensi nama + custom properties + `export_extras`.
-- [ ] Export: `shell.glb`, `layout_full.glb`, `layout.blend`, `layout.fbx`, `layout.obj`.
-- [ ] Protokol progres `@@PROGRESS` dan exit code.
-- [ ] `core/templates/make_placeholders.py`: 7 template placeholder (`10-template-contract.md` §6) + `validate.py`.
-- [ ] `core/verify/`:
-  - [ ] Cek glb 1:1 (pygltflib).
-  - [ ] Cek grid.
-  - [ ] IoU top-down dengan mask dinding sederhana dari binarisasi. Mask ini disempurnakan di M5.
-- [ ] `core/report/`: template Jinja2 (Carbon light untuk cetak), seluruh 12 bagian dokumen, PDF via WeasyPrint.
-- [ ] CLI: `uv run python -m core.cli build <spec.json> <out_dir>` untuk menjalankan tahap 7–9 tanpa server.
-- [ ] Test builder (`blender -b -P builder/tests/run.py`): jumlah objek, nama, extras, dimensi.
+- [x] `core/build_prep/`: spec → `build_input.json`.
+  - [x] Tapak dinding per ID, dengan sambungan dibagi di garis bagi sudut, tanpa overlap.
+  - [x] Cutter bukaan.
+  - [x] Transform kusen dan daun pintu (single/double/sliding/opening/rolling).
+  - [x] Poligon lantai per ruang (termasuk lubang kolom), slab per `building_outline`, kolom dan pilaster.
+  - [x] Tangga: balok anak tangga pejal per flight + bordes (`06-builder-outputs.md` §4.5b).
+  - [x] Objek dengan path template + skala per sumbu.
+  - [x] Daftar kamera (top, iso ×4, per ruang).
+- [x] `builder/scene/*`: walls (ekstrusi + Boolean EXACT), doors, windows, floors, columns, stairs, objects (linked duplicates), materials, cameras, annotations.
+- [x] Konvensi nama + custom properties + `export_extras`.
+- [x] Export: `shell.glb`, `layout_full.glb`, `layout.blend`, `layout.fbx`, `layout.obj`.
+- [x] Protokol progres `@@PROGRESS` dan exit code.
+- [x] `core/templates/make_placeholders.py`: 7 template placeholder (`10-template-contract.md` §6) + `validate.py`.
+- [x] `core/verify/`:
+  - [x] Cek glb 1:1 (pygltflib).
+  - [x] Cek grid.
+  - [x] IoU top-down dengan mask dinding sederhana dari binarisasi. Mask ini disempurnakan di M5.
+- [x] `core/report/`: template Jinja2 (Carbon light untuk cetak), seluruh 12 bagian dokumen, PDF via WeasyPrint.
+- [x] CLI: `uv run python -m core.cli build <spec.json> <out_dir>` untuk menjalankan tahap 7–9 tanpa server.
+- [x] Test builder (`blender -b -P builder/tests/run.py`): jumlah objek, nama, extras, dimensi.
 
 ### Kriteria selesai
 - GT Gatsu (+ 10 objek placeholder) menghasilkan semua output dalam ≤ 90 detik di M4.
@@ -153,6 +153,13 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - IoU top-down GT terhadap denah ≥ 0.85. Ini juga memvalidasi GT dan pipeline render.
 - `report.html` dan `report.pdf` lengkap dengan render.
 - `.glb` terbuka benar di three.js editor/online viewer dan di Blender. Orientasi utara (+Y spec) konsisten.
+
+**Status M2 (2026-10-26), branch `m2-builder`:**
+- `uv run --env-file .env pytest` → 145 passed, 2 xfailed (OCR grid dari M0, IoU Gatsu). Ruff bersih.
+- `core.cli build`: GT Gatsu + 10 rack placeholder → semua output dalam **6.1 s** (target ≤ 90 s). Cek glb 77 dinding: galat maks **0.001 mm**. Dokumen 16 halaman HTML + PDF dengan 19 render.
+- **IoU 0.453, target ≥ 0.85 belum tercapai.** Alignment render dan denah sudah tepat; masalahnya mask denah sederhana yang ikut menghitung furnitur, anak tangga, busur pintu, dan dimensi sebagai dinding. Target dibawa ke M5 (mask dari kandidat ekstraksi). Rincian di `benchmarks/reports/m2-verify.md`.
+- Penyimpangan dari rencana: engine render default Workbench (Eevee opsional lewat `--engine`); grid check `skipped` sampai OCR dimensi tersedia di M5; test builder dijalankan lewat pytest (tanpa `builder/tests/run.py`); sudut tapak dinding menjadi milik ID terkecil (bukan dibagi garis bagi sudut).
+- Belum dicek manual: membuka `.glb` di viewer three.js online. Konvensi sumbu sudah diverifikasi lewat test glTF dan render.
 
 **FR:** FR-BO-01…07.
 
