@@ -3,17 +3,17 @@
 import cv2
 import numpy as np
 
-DARK = 110
 MIN_COMPONENT_PX = 40
 
 
 def plan_wall_mask(image: np.ndarray, ocr: bool = True) -> np.ndarray:
-    """Simple wall mask: dark pixels, text removed, double lines closed, thin single lines opened away.
+    """Simple wall mask: ink pixels (Otsu threshold), text removed, double lines closed, thin lines opened away.
 
     ponytail: M2 heuristic; M5 replaces it with the chosen extraction candidate's wall mask.
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
-    dark = np.where(gray < DARK, 255, 0).astype(np.uint8)
+    # Otsu adapts to the drawing's ink tone (JPEG wall lines are often grey, not black)
+    _, dark = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     if ocr:
         from core.extraction.ocr import run_ocr
 

@@ -62,7 +62,7 @@
 
 <section class="figures"><h2>Render per ruang</h2>
   {% set rooms_r = renders | dictsort | selectattr(0, "match", "room_") | list %}
-  {% if rooms_r %}<div class="grid">{% for k, v in rooms_r %}{{ img(k, k[5:]) }}{% endfor %}</div>{% else %}<p class="empty">—</p>{% endif %}
+  {% if rooms_r %}<div class="grid three">{% for k, v in rooms_r %}{{ img(k, k[5:]) }}{% endfor %}</div>{% else %}<p class="empty">—</p>{% endif %}
 </section>
 
 <section><h2>Peringatan & provenance</h2>

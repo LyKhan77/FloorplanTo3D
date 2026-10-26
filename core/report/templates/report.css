@@ -9,14 +9,17 @@ header.cover h1 { font-size: 24pt; font-weight: 400; margin: 0 0 4mm; }
 header.cover p { margin: 1mm 0; color: #525252; }
 section { margin-bottom: 8mm; page-break-inside: avoid; }
 section.figures { page-break-inside: auto; }
-h2 { font-size: 14pt; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; padding-bottom: 2mm; }
+h2 { font-size: 14pt; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; padding-bottom: 2mm;
+  page-break-after: avoid; }
 table { border-collapse: collapse; width: 100%; font-size: 9pt; }
 th, td { border-bottom: 1px solid #e0e0e0; padding: 1.5mm 2mm; text-align: left; }
 th { background: #f4f4f4; font-weight: 600; }
 td.num, th.num { text-align: right; }
 .grid { display: flex; flex-wrap: wrap; gap: 4mm; }
-.grid figure { margin: 0; width: calc(50% - 2mm); }
-figure img { width: 100%; border: 1px solid #e0e0e0; }
+figure { margin: 0; page-break-inside: avoid; }
+.grid figure { width: calc(50% - 2mm); }
+.grid.three figure { width: calc(33.3% - 3mm); }
+figure img { width: 100%; max-height: 82mm; object-fit: contain; border: 1px solid #e0e0e0; }
 figcaption { font-size: 8.5pt; color: #525252; }
 .kv { display: grid; grid-template-columns: max-content auto; gap: 1mm 6mm; }
 .status-succeeded { color: #198038; } .status-needs_attention, .status-failed { color: #da1e28; }
