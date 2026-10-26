@@ -10,18 +10,17 @@ import { useCancelRun, useImportSpec, useProject, useRegenerate, useRuns, useSta
 import { useProjectEvents } from '../api/sse'
 import type { ApiEvent } from '../api/types'
 import { LogViewer } from '../components/LogViewer'
+import { OutputsTab } from '../components/OutputsTab'
 import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
 import { StatusTag } from '../components/StatusTag'
+import { VersionsTab } from '../components/VersionsTab'
 import { applyEvent, stageLabel } from '../lib/runState'
 
 const TABS = ['pipeline', 'logs', 'review', 'editor', 'outputs', 'versions']
 const TAB_LABELS = ['Pipeline', 'Logs', 'Review', 'Editor', 'Outputs', 'Versions']
 
-export function ProjectDetailPage({ outputsTab, versionsTab }: {
-  outputsTab?: (id: string) => React.ReactNode
-  versionsTab?: (id: string) => React.ReactNode
-}) {
+export function ProjectDetailPage() {
   const { id = '' } = useParams()
   const [params, setParams] = useSearchParams()
   const tab = Math.max(TABS.indexOf(params.get('tab') ?? 'pipeline'), 0)
@@ -91,8 +90,8 @@ export function ProjectDetailPage({ outputsTab, versionsTab }: {
           <TabPanel><LogViewer projectId={id} runs={runs} events={events} /></TabPanel>
           <TabPanel><p className="helper">Overlay bernomor dan keputusan Strata tersedia di M5/M6.</p></TabPanel>
           <TabPanel><p className="helper">Web editor tersedia di M4.</p></TabPanel>
-          <TabPanel>{outputsTab?.(id)}</TabPanel>
-          <TabPanel>{versionsTab?.(id)}</TabPanel>
+          <TabPanel><OutputsTab projectId={id} /></TabPanel>
+          <TabPanel><VersionsTab projectId={id} /></TabPanel>
         </TabPanels>
       </Tabs>
 

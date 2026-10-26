@@ -299,3 +299,151 @@ body {
 .log-level--error {
   color: #fa4d56;
 }
+
+.tab-pad {
+  padding-top: 1rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 1.5rem 0 1rem;
+}
+
+.outputs-head,
+.diff-pickers {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  max-width: 40rem;
+}
+
+.file-grid,
+.render-grid,
+.template-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.file-grid {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.file-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.render-grid {
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.render-card img,
+.template-card img {
+  width: 100%;
+  display: block;
+  background: #262626;
+}
+
+.template-grid {
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.template-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.template-open:focus-visible {
+  outline: 2px solid #ffffff;
+}
+
+.narrow-filter {
+  max-width: 20rem;
+}
+
+.versions-table {
+  width: 100%;
+}
+
+.versions-actions {
+  white-space: nowrap;
+}
+
+.diff-summary,
+.diff-ops {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.875rem;
+}
+
+.system-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1rem;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+  word-break: break-all;
+}
+
+.overlay-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.overlay-box {
+  position: relative;
+  height: 60vh;
+  overflow: hidden;
+  background: #161616;
+  border: 1px solid #393939;
+  cursor: grab;
+  touch-action: none;
+}
+
+.overlay-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.overlay-stage img {
+  display: block;
+  user-select: none;
+}
+
+.overlay-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@media (max-width: 1055px) {
+  .app-content {
+    margin-left: 0;
+  }
+
+  .pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .log-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
