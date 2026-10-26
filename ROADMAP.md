@@ -170,31 +170,39 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** pipeline bisa dijalankan dan dipantau dari browser. Referensi: `02-architecture.md`, `08-dashboard.md`, `09-api.md`.
 
 ### Tugas — Server
-- [ ] `server/storage.py`: akses `DATA_DIR` yang aman (anti traversal, tanpa symlink).
-- [ ] `server/orchestrator.py`: state machine tahap 0–10, run `full`/`from_stage`/`regenerate`, antrean satu worker, pemulihan saat restart, pembatalan.
-- [ ] Tahap 1–6 berupa **stub** yang melewatkan spec impor, sampai M5/M6 selesai. Tahap 7–9 memanggil builder (M2).
-- [ ] `server/events.py`: `emit`, `events.jsonl`, `seq` monoton, SSE dengan `Last-Event-ID` + heartbeat.
-- [ ] Routes: projects, runs, artifacts, specs (termasuk `import`, `validate`, `diff`), regenerate, outputs (ETag), events, templates, profiles, health/config.
-- [ ] Validasi upload (magic bytes, ukuran) dan format error standar.
-- [ ] Test integrasi API (pytest + httpx): alur impor → regenerate → output.
+- [x] `server/storage.py`: akses `DATA_DIR` yang aman (anti traversal, tanpa symlink).
+- [x] `server/orchestrator.py`: state machine tahap 0–10, run `full`/`from_stage`/`regenerate`, antrean satu worker, pemulihan saat restart, pembatalan.
+- [x] Tahap 1–6 berupa **stub** yang melewatkan spec impor, sampai M5/M6 selesai. Tahap 7–9 memanggil builder (M2).
+- [x] `server/events.py`: `emit`, `events.jsonl`, `seq` monoton, SSE dengan `Last-Event-ID` + heartbeat.
+- [x] Routes: projects, runs, artifacts, specs (termasuk `import`, `validate`, `diff`), regenerate, outputs (ETag), events, templates, profiles, health/config.
+- [x] Validasi upload (magic bytes, ukuran) dan format error standar.
+- [x] Test integrasi API (pytest + httpx): alur impor → regenerate → output.
 
 ### Tugas — Dashboard
-- [ ] App shell Carbon (Header, SideNav), tema g100, font Plex Sans/Mono, indikator kesehatan.
-- [ ] Klien API + TanStack Query + hook SSE.
-- [ ] `/projects` (DataTable), `/projects/new` (form + upload + parameter lanjutan).
-- [ ] Detail project:
-  - [ ] Tab Pipeline: `ProgressIndicator` + panel tahap. Panel 7–10 lengkap, panel 0–6 berupa kerangka.
-  - [ ] Tab Logs (virtualized, filter, follow, unduh).
-  - [ ] Tab Outputs.
-  - [ ] Tab Versions (daftar + diff ringkas).
-- [ ] `/templates` (grid read-only) dan `/system`.
-- [ ] Komponen `OverlayViewer` (zoom/pan gambar + layer) untuk dipakai M5.
+- [x] App shell Carbon (Header, SideNav), tema g100, font Plex Sans/Mono, indikator kesehatan.
+- [x] Klien API + TanStack Query + hook SSE.
+- [x] `/projects` (DataTable), `/projects/new` (form + upload + parameter lanjutan).
+- [x] Detail project:
+  - [x] Tab Pipeline: timeline tahap (daftar kustom, bukan `ProgressIndicator`) + panel tahap. Panel 7–10 lengkap, panel 0–6 berupa kerangka.
+  - [x] Tab Logs (virtualized, filter, follow, unduh).
+  - [x] Tab Outputs.
+  - [x] Tab Versions (daftar + diff ringkas).
+- [x] `/templates` (grid read-only) dan `/system`.
+- [x] Komponen `OverlayViewer` (zoom/pan gambar + layer) untuk dipakai M5.
 
 ### Kriteria selesai
 - Dari dashboard, pengguna bisa membuat project, mengimpor GT Gatsu, lalu menekan Regenerate.
 - Log muncul live dengan latensi ≤ 1 detik. Output bisa diunduh, dan dokumen tampil di iframe.
 - Restart server di tengah run: run ditandai `interrupted`, dan antrean berlanjut.
 - Lighthouse a11y ≥ 90 di halaman daftar dan detail.
+
+**Status M3 (2026-10-26), branch `m3-server`:**
+- `uv run --env-file .env pytest` → 195 passed, 2 xfailed (sama dengan M2). Web: Vitest 20 passed; oxlint dan build bersih.
+- Alur browser (Playwright, Vite dev + Uvicorn): buat project "MSC Gatsu L1" → impor GT → v1 muncul di Versions → Regenerate. Tahap 7–10 bergerak live; run selesai `needs_attention` karena IoU 0.453 (diketahui sejak M2). Unduh `shell.glb` → 200 (338 KB). Dokumen tampil di iframe. Indikator Strata merah (server Strata mati), Blender hijau.
+- Latensi log (waktu event sampai baris muncul di DOM, 37 event): median **9 ms**, maks **70 ms** (target ≤ 1 s).
+- Restart di tengah tahap 7: run ditandai `failed` + `interrupted`, run antrean dari project lain berjalan, dan Regenerate baru menghasilkan v3. Uji ini menemukan dua bug yang sudah diperbaiki. Pertama, proses lama tetap hidup selama dashboard memegang stream SSE, karena graceful shutdown Uvicorn menunggu semua respons selesai. Akibatnya run yang sudah ditandai interrupted masih mempublikasikan output dan dua proses menulis `events.jsonl`. Kedua, browser berhenti reconnect setelah proxy membalas 502. Setelah perbaikan, proses lama keluar dalam 0.3 s tanpa sisa proses Blender, dan dashboard tersambung ulang dari `seq` terakhir.
+- Lighthouse a11y: **1.00** di `/projects`, detail project, `/projects/new`, `/templates`, `/system`.
+- Penyimpangan: `POST /api/profiles` → 501 (profil parameter baru dipakai M5). Tab Review dan Editor masih placeholder (M6/M4). Pratinjau 3D template ditunda ke M4. `OverlayViewer` sudah ada tetapi belum dipakai halaman mana pun sampai panel tahap M5. Tahap 1–4 ditandai `skipped` ("belum diimplementasi sampai M5").
 
 **FR:** FR-IN-01…03, FR-IN-05, FR-DB-01…09, API.
 

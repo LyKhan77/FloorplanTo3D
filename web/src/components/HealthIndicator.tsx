@@ -17,7 +17,7 @@ export function HealthIndicator() {
   const blender = !data ? ['#6f6f6f', 'memuat'] : !data.blender.ok ? ['#fa4d56', 'tidak ada'] : data.blender.busy ? ['#4589ff', 'sibuk'] : ['#42be65', 'siap']
   const waiting = data?.queue.waiting ?? 0
   return (
-    <Link to="/system" className="health-indicator" aria-label="Status sistem">
+    <Link to="/system" className="health-indicator">
       <Dot color={strata[0]} label="Strata" value={strata[1]} />
       <Dot color={blender[0]} label="Blender" value={blender[1]} />
       <span className="health-item mono" title="Run dalam antrean">Antrean {waiting}</span>
