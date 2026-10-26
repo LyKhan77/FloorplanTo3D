@@ -56,3 +56,23 @@ def test_run_with_profile_sweeps_around_it(tmp_path, monkeypatch):
     project, work = fake_run(tmp_path, {})
     stages.stage_extract(project, work.parent / "03_extract", 12, profile=PARAMS)
     assert seen[0] == PARAMS
+
+
+def test_from_run_outside_the_projects_folder_is_refused(tmp_path):
+    st = Storage(tmp_path)
+    finished_run(st)
+    # a finished-looking run outside projects/: "../evil" resolves to projects/../runs/evil
+    import shutil
+
+    shutil.copytree(st.projects_dir / "p" / "runs" / "r", st.projects_dir.parent / "runs" / "evil")
+    for bad in ("../evil", "p/../r", "p/r/../../p/r", "/etc/r", "p/"):
+        with pytest.raises(ProfileNotFound):
+            save_profile(st, "x", bad)
+
+
+def test_run_without_params_is_a_conflict(tmp_path):
+    st = Storage(tmp_path)
+    ref = finished_run(st)
+    write_json(st.projects_dir / "p" / "runs" / "r" / "stages" / "05_validate" / "chosen.json", {"index": 0, "params": None})
+    with pytest.raises(ProfileConflict):
+        save_profile(st, "x", ref)

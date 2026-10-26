@@ -24,13 +24,17 @@ def _slug(name: str) -> str:
 def save_profile(storage, name: str, from_run: str) -> dict:
     """from_run = "<project_id>/<run_id>"; the run's stage 5 must have succeeded."""
     pid, _, rid = from_run.partition("/")
+    if not re.fullmatch(r"[a-z0-9-]+", pid) or not re.fullmatch(r"[A-Za-z0-9-]+", rid):
+        raise ProfileNotFound(f"run {from_run} not found")  # also keeps the path inside the projects folder
     run_dir = storage.projects_dir / pid / "runs" / rid
     chosen = run_dir / "stages" / "05_validate" / "chosen.json"
-    if not pid or not rid or not (run_dir / "run.json").exists() or not chosen.exists():
+    if not (run_dir / "run.json").exists() or not chosen.exists():
         raise ProfileNotFound(f"run {from_run} has no stage 5 result")
     if json.loads((run_dir / "run.json").read_text())["stages"][5]["status"] != "succeeded":
         raise ProfileConflict(f"stage 5 of run {from_run} did not succeed")
-    params = json.loads(chosen.read_text())["params"]
+    params = json.loads(chosen.read_text()).get("params") or {}
+    if any(k not in params for k in PARAM_KEYS):
+        raise ProfileConflict(f"run {from_run} has no sweep parameters")
     profile = {"profile_id": f"{_slug(name)}-{secrets.token_hex(2)}", "name": name,
                "params": {k: params[k] for k in PARAM_KEYS}, "from_run": from_run,
                "created_at": datetime.now().astimezone().isoformat(timespec="seconds")}
