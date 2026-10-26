@@ -293,11 +293,11 @@ def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progres
     crops = crop_labels(page, spec, grid["px_to_mm"])
     labels += crops
     if crops:
-        spec = rebuild_rooms(spec, labels, pick=best_label)
+        spec = rebuild_rooms(spec, labels, pick=best_label, source="cv")
     store = SpecStore(project_dir / "specs")
     head, report = store.head(), None
     if head is not None:
-        spec, report = carry_over(spec, store.load(head), labels)
+        spec, report = carry_over(spec, store.load(head))
         write_json(work / "carryover.json", report)
     final = validate(spec, ctx)
     try:

@@ -11,7 +11,7 @@ from shapely.ops import unary_union
 
 from core.spec.derive import column_footprint, derive, id_key, wall_footprint
 from core.spec.ids import take_id
-from core.spec.models import Point, Room, Spec
+from core.spec.models import Point, Provenance, Room, Spec
 
 MIN_ROOM_AREA_MM2 = 1_000_000  # 1 m²
 MAX_ASPECT = 20
@@ -66,8 +66,9 @@ def _ring(coords) -> list[tuple[int, int]]:
 
 
 def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None,
-                  pick: Callable[[list[RoomLabel]], RoomLabel | None] | None = None) -> Spec:
-    """`pick` chooses among several labels inside one room (default: the first)."""
+                  pick: Callable[[list[RoomLabel]], RoomLabel | None] | None = None, source: str = "manual") -> Spec:
+    """`pick` chooses among several labels inside one room (default: the first). New rooms get provenance `source`
+    ("cv" when the pipeline forms them)."""
     s = spec.model_copy(deep=True)
     polys, outlines = form_rooms(s)
     old = [(r, SPolygon(r.polygon, r.holes)) for r in s.rooms]
@@ -100,7 +101,7 @@ def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None,
             name=prev.name if prev else "",
             type=prev.type if prev else "other",
             label_pos=prev.label_pos if prev else None,
-            provenance=prev.provenance if prev else Room.model_fields["provenance"].default,
+            provenance=prev.provenance if prev else Provenance(source=source),
         )
         inside = [lb for lb in labels or [] if p.covers(SPoint(lb.at))]
         label = pick(inside) if pick else next(iter(inside), None)

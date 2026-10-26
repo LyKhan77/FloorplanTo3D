@@ -2,7 +2,7 @@ import random
 
 from core.spec.carryover import assign_ids, carry_over
 from core.spec.models import PlacedObject, Provenance
-from core.spec.rooms import RoomLabel
+from core.spec.rooms import RoomLabel, rebuild_rooms
 from tests.spec.fixtures import spec_with_rooms
 
 
@@ -35,10 +35,10 @@ def test_assign_ids_order_is_positional():
 def test_matching_walls_keep_head_ids():
     head = head_spec()
     near = moved(head, "W5", dx=150)
-    out, rep = carry_over(assign_ids(near), head, [])
+    out, rep = carry_over(assign_ids(near), head)
     assert any(w.id == "W5" and w.a == (5150, 0) for w in out.walls)
     far = moved(head, "W5", dx=250)
-    out, rep = carry_over(assign_ids(far), head, [])
+    out, rep = carry_over(assign_ids(far), head)
     assert any(w.id == "W6" and w.a == (5250, 0) for w in out.walls) and not any(w.id == "W5" for w in out.walls)
     assert rep["removed"]["walls"] == ["W5"] and rep["new"]["walls"] == 1
 
@@ -49,7 +49,7 @@ def test_small_angle_still_matches():
     w = next(w for w in s.walls if w.id == "W5")
     w.b = (5000 + 200, 6000)  # ~1.9°
     w.allow_skew = True
-    out, _ = carry_over(assign_ids(s), head, [])
+    out, _ = carry_over(assign_ids(s), head)
     assert any(w.id == "W5" and w.b == (5200, 6000) for w in out.walls)
 
 
@@ -63,7 +63,8 @@ def test_editor_edits_survive_reextraction():
     for w in new.walls:
         w.height = None
     labels = [RoomLabel((2500, 3000), "DATA HALL", "data_hall"), RoomLabel((7500, 3000), "GUDANG", "storage")]
-    out, _ = carry_over(new, head, labels)
+    new = rebuild_rooms(new, labels, source="cv")  # the new extraction, labelled as stages 4-5 do
+    out, _ = carry_over(new, head)
     assert next(w for w in out.walls if w.id == "W2").height == 4500
     r1, r2 = (next(r for r in out.rooms if r.id == i) for i in ("R1", "R2"))
     assert (r1.name, r1.type) == ("SERVER A", "data_hall")
@@ -75,7 +76,7 @@ def test_doors_and_columns_match_by_centre():
     s = head.model_copy(deep=True)
     s.openings[0].offset += 250
     s.columns[0].center = (350, 0)
-    out, _ = carry_over(assign_ids(s), head, [])
+    out, _ = carry_over(assign_ids(s), head)
     assert {o.id for o in out.openings} == {"D1", "D2"}
     assert [c.id for c in out.columns] == ["C2"]
 
@@ -84,7 +85,7 @@ def test_objects_copied_and_room_recomputed():
     head = head_spec()
     head.objects = [PlacedObject(id="O1", template_id="rack", template_version="1.0", position=(2000, 3000, 0),
                                  dims=(600, 1200, 2000))]
-    out, _ = carry_over(assign_ids(head.model_copy(update={"objects": []})), head, [])
+    out, _ = carry_over(assign_ids(head.model_copy(update={"objects": []})), head)
     assert [(o.id, o.room_id) for o in out.objects] == [("O1", "R1")]
     assert out.meta.defaults == head.meta.defaults
 
@@ -94,12 +95,12 @@ def test_lost_edit_reported():
     head.walls[1].height = 4500  # W2 (east wall)
     new = head.model_copy(deep=True)
     new.walls = [w for w in new.walls if w.id != "W2"]
-    _, rep = carry_over(assign_ids(new), head, [])
+    _, rep = carry_over(assign_ids(new), head)
     assert {"id": "W2", "field": "height", "value": 4500} in rep["lost_edits"]
 
 
 def test_ids_never_reused():
     head = head_spec()
     head.meta.id_seq["W"] = 9  # W6-W9 were deleted
-    out, _ = carry_over(assign_ids(moved(head, "W5", dx=400)), head, [])
+    out, _ = carry_over(assign_ids(moved(head, "W5", dx=400)), head)
     assert any(w.id == "W10" for w in out.walls)

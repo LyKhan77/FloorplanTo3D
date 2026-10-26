@@ -122,3 +122,23 @@ def test_stage_rooms_gatsu(tmp_path):
         s = json.loads((stages / f"04_rooms/candidates/{k}/spec.json").read_text())
         assert all(Polygon(r["polygon"], r["holes"]).is_valid for r in s["rooms"]), k
     assert (stages / "04_rooms/candidates/0/rooms.png").exists()
+
+
+def test_extracted_rooms_are_cv_sourced():
+    spec, _ = assemble_spec(box_elements(), GRID, [], META)
+    assert {r.provenance.source for r in spec.rooms} == {"cv"}
+
+
+def test_reextraction_takes_new_labels_and_types_without_false_lost_edits():
+    from core.spec.carryover import carry_over
+
+    head, _ = assemble_spec(box_elements(), GRID, [], META)  # first run: no labels
+    stair = {"flights": [{"start": [1000, 1000], "end": [1000, 3500], "width": 1000, "risers": 14}], "landings": [],
+             "confidence": 0.9, "direction_source": "text"}
+    moved = box_elements(stairs=[stair])
+    moved["walls"][4] = wall((4500, 0), (4500, 5000), 100, "partition")  # partition moved 500 mm: rooms change
+    new, _ = assemble_spec(moved, GRID, [RoomLabel((6500, 2500), "PANTRY", "pantry")], META)
+    out, rep = carry_over(new, head)
+    types = sorted((r.name, r.type) for r in out.rooms)
+    assert types == [("", "stair"), ("PANTRY", "pantry")]
+    assert rep["lost_edits"] == []

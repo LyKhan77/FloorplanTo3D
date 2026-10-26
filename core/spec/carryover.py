@@ -7,7 +7,7 @@ from shapely.geometry import Polygon as SPolygon
 from core.spec.derive import derive
 from core.spec.ids import seed_id_seq, take_id
 from core.spec.models import Spec, Wall
-from core.spec.rooms import RoomLabel, rebuild_rooms
+from core.spec.rooms import rebuild_rooms
 
 WALL_DIST_MM = 200
 WALL_ANGLE_DEG = 3
@@ -108,7 +108,21 @@ def _point_pairs(new_pts: dict[str, tuple], old_pts: dict[str, tuple]) -> dict[s
                     if p is not None and q is not None and math.dist(p, q) <= POINT_MATCH_MM])
 
 
-def carry_over(new: Spec, head: Spec, labels: list[RoomLabel]) -> tuple[Spec, dict]:
+def _best_room(shape: SPolygon, rooms) -> object | None:
+    """The room overlapping `shape` with IoU >= 0.5, best first."""
+    best, best_iou = None, 0.5
+    for r in rooms:
+        other = SPolygon(r.polygon, r.holes)
+        inter = shape.intersection(other).area
+        iou = inter / shape.union(other).area if inter else 0.0
+        if iou >= best_iou:
+            best, best_iou = r, iou
+    return best
+
+
+def carry_over(new: Spec, head: Spec) -> tuple[Spec, dict]:
+    """HEAD IDs for matching elements. Rooms keep HEAD's name/type only when a person set them (editor, manual,
+    llm); otherwise they take the new extraction's labels and types (stage 4-5 picked those)."""
     alloc = head.model_copy(deep=True)  # allocates new IDs above everything HEAD ever used
     seed_id_seq(alloc)
 
@@ -134,12 +148,16 @@ def carry_over(new: Spec, head: Spec, labels: list[RoomLabel]) -> tuple[Spec, di
     s.meta.id_seq = dict(alloc.meta.id_seq)
     s.objects = [ob.model_copy() for ob in head.objects]
     s.rooms = [r.model_copy(deep=True) for r in head.rooms]  # rebuild_rooms matches them (IoU >= 0.5 / 90%)
-    s = rebuild_rooms(s, labels)
+    s = rebuild_rooms(s, source="cv")
     head_rooms = {r.id: r for r in head.rooms}
     for r in s.rooms:
         old = head_rooms.get(r.id)
         if old and old.provenance.source in EDITED_SOURCES:
             r.name, r.type, r.label_pos, r.provenance = old.name, old.type, old.label_pos, old.provenance
+        elif fresh := _best_room(SPolygon(r.polygon, r.holes), new.rooms):
+            r.name, r.type, r.label_pos, r.provenance = fresh.name, fresh.type, fresh.label_pos, fresh.provenance
+        else:
+            r.name, r.type, r.label_pos = "", "other", None
     s = derive(Spec.model_validate(s.model_dump()))
 
     kept = {"walls": set(wm.values()), "openings": set(om.values()), "columns": set(cm.values()),
@@ -152,7 +170,7 @@ def carry_over(new: Spec, head: Spec, labels: list[RoomLabel]) -> tuple[Spec, di
     lost = [{"id": w.id, "field": "height", "value": w.height} for w in head.walls
             if w.height is not None and w.id not in kept["walls"]]
     lost += [{"id": r.id, "field": "name", "value": r.name} for r in head.rooms
-             if r.provenance.source in EDITED_SOURCES and r.id not in kept["rooms"]]
+             if r.provenance.source in EDITED_SOURCES and (r.name or r.type != "other") and r.id not in kept["rooms"]]
     report = {"matched": {k: len(v) for k, v in kept.items()},
               "new": {k: new_counts[k] - len(kept[k]) for k in kept},
               "removed": {k: [i for i in old_ids[k] if i not in kept[k]] for k in kept},
