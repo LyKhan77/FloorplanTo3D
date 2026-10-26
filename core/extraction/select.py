@@ -14,7 +14,7 @@ from core.spec.models import Spec
 from core.spec.rooms import RoomLabel
 
 TIE = 0.01  # scores this close are a tie, settled by wall coverage (V018)
-MIN_COVERAGE = 0.6  # V018: a candidate covering less of the drawn lines loses before scores are compared
+MIN_COVERAGE = 0.6  # share of the best candidate's coverage a candidate needs before scores are compared
 CROP_MIN_M2 = 4  # rooms that V015 counts
 CROP_SCALE = 3
 TYPED = ("stair", "lift", "outdoor")  # geometry already says what these rooms are
@@ -27,13 +27,15 @@ def ocr_dimensions_from(grid_doc: dict) -> list[tuple[str, str, int]]:
 def choose(scored: list[dict]) -> dict | None:
     """Best validator score among candidates without errors; ties (<= 0.01) go to higher coverage, then index.
 
-    Candidates below 60% coverage are left out first: the score only subtracts violations, so an almost empty
-    candidate breaks almost nothing (Gatsu S1, one wall: 0.997). When none covers enough, the best of the rest wins.
+    Candidates below 60% of the best coverage are left out first: the score only subtracts violations, so an
+    almost empty candidate breaks almost nothing (Gatsu S1, one wall: 0.997).
     """
     passed = [c for c in scored if c["passed"]]
-    valid = [c for c in passed if c["coverage"] >= MIN_COVERAGE] or passed
-    if not valid:
+    if not passed:
         return None
+    # relative to the best coverage: on a cluttered plan (furniture lines in the estimate) all may sit below 60%
+    cut = MIN_COVERAGE * max(c["coverage"] for c in passed)
+    valid = [c for c in passed if c["coverage"] >= cut]
     top = max(c["score"] for c in valid)
     return min((c for c in valid if top - c["score"] <= TIE), key=lambda c: (-c["coverage"], c["index"]))
 

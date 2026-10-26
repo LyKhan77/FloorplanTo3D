@@ -174,3 +174,10 @@ def test_label_of_unknown_type_keeps_the_geometric_room_type():
     out = rebuild_rooms(spec, [RoomLabel((2000, 2500), "ANEL", "other")])
     room = next(r for r in out.rooms if r.name == "ANEL")
     assert room.type == "stair"
+
+
+def test_coverage_cut_is_relative_on_cluttered_plans():
+    """Furniture lines inflate the line estimate: every candidate may sit below 60%, the empty one must still lose."""
+    empty = {"index": 0, "score": 0.997, "passed": True, "coverage": 0.01}
+    real = {"index": 1, "score": 0.82, "passed": True, "coverage": 0.4}
+    assert choose([empty, real])["index"] == 1
