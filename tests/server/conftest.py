@@ -65,3 +65,63 @@ def project_id(client, plan_bytes):
 def project_with_gt(client, project_id):
     import_gt(client, project_id)
     return project_id
+
+
+@pytest.fixture
+def app_factory(data_dir):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def factory(stage_impls=None, env=None):
+        with TestClient(create_app(settings_for(data_dir, **(env or {})), stage_impls=stage_impls)) as c:
+            yield c
+
+    return factory
+
+
+def wait_status(client, pid, rid, statuses, timeout=10.0):
+    import time
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        run = client.get(f"/api/projects/{pid}/runs/{rid}").json()
+        if run.get("status") in statuses:
+            return run
+        time.sleep(0.05)
+    raise AssertionError(f"run {rid} did not reach {statuses}: {run}")
+
+
+def wait_stage_running(client, pid, rid, n, timeout=10.0):
+    import time
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        run = client.get(f"/api/projects/{pid}/runs/{rid}").json()
+        if run["stages"][n]["status"] == "running":
+            return run
+        time.sleep(0.05)
+    raise AssertionError(f"stage {n} of {rid} never ran")
+
+
+def client_events(client, pid):
+    import json
+
+    return [json.loads(line) for line in client.get(f"/api/projects/{pid}/events.jsonl").text.splitlines() if line]
+
+
+def write_fake_run(run_dir, rid, status, stage_running=None, kind="regenerate"):
+    import json
+
+    names = ["input", "preprocess", "grid", "extract", "rooms", "validate", "review", "build", "verify", "report",
+             "publish"]
+    stages = [{"n": n, "name": name, "status": "skipped" if kind == "regenerate" and n < 7 else "pending",
+               "started_at": None, "ended_at": None, "duration_ms": None, "progress": None, "metrics": {},
+               "warnings": []} for n, name in enumerate(names)]
+    if stage_running is not None:
+        stages[stage_running]["status"] = "running"
+    run = {"run_id": rid, "project_id": run_dir.parent.name, "kind": kind, "from_stage": 7 if kind == "regenerate" else 0,
+           "version": 1, "spec_version_in": 1, "spec_version_out": None, "status": status, "stages": stages,
+           "code_version": "test", "blender_version": None, "created_at": f"2026-10-26T00:00:0{rid[-1] == 'b' and 1 or 0}+07:00",
+           "error": None}
+    (run_dir / rid).mkdir(parents=True)
+    (run_dir / rid / "run.json").write_text(json.dumps(run))
