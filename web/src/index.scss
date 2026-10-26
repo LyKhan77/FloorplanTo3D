@@ -542,6 +542,51 @@ body {
   border-top: 1px solid #393939;
 }
 
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #393939;
+}
+
+.editor-panel__title {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.editor-info {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  dt {
+    color: #c6c6c6;
+  }
+
+  dd {
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}
+
+.editor-rooms {
+  max-height: 16rem;
+  overflow: auto;
+
+  .cds--btn {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 .editor-room-label,
 .editor-axis-label {
   color: #f4f4f4;

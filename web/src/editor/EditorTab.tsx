@@ -4,6 +4,8 @@ import { useRegenerate } from '../api/hooks'
 import type { Run } from '../api/types'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
+import { LayersPanel } from './panels/LayersPanel'
+import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
@@ -65,7 +67,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
-      {right && <aside className="editor__props" aria-label="Properti" />}
+      {right && <aside className="editor__props" aria-label="Properti"><PropertiesPanel /><LayersPanel /></aside>}
       <StatusBar />
     </div>
   )
