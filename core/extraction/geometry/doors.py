@@ -99,19 +99,23 @@ def _branches(comp: np.ndarray) -> list[np.ndarray]:
 
 
 def find_arcs(curves: np.ndarray, s: float) -> list[dict]:
-    n, labels = cv2.connectedComponents(curves, connectivity=8)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(curves, connectivity=8)
     arcs = []
     for i in range(1, n):
-        comp = (labels == i).astype(np.uint8) * 255
-        ys, xs = np.nonzero(comp)
-        if len(xs) < MIN_ARC_PX:
+        x, y, w, h, area = stats[i]
+        if area < MIN_ARC_PX:
             continue
-        whole = _arc(np.column_stack([xs, ys]), s)
+        # work on the component's own bbox (padded): full-image masks per component cost seconds
+        x0, y0 = max(0, x - 1), max(0, y - 1)
+        comp = (labels[y0:y + h + 1, x0:x + w + 1] == i).astype(np.uint8) * 255
+        ys, xs = np.nonzero(comp)
+        pts = np.column_stack([xs + x0, ys + y0])
+        whole = _arc(pts, s)
         if whole:
             arcs.append(whole)
             continue
         for piece in _branches(comp):
-            arcs += _arcs_in(_ordered(piece), s)
+            arcs += _arcs_in(_ordered(piece + np.array([x0, y0])), s)
     return sorted(arcs, key=lambda a: (round(a["center"][1]), round(a["center"][0])))
 
 
