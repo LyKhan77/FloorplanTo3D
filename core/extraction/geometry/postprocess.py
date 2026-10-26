@@ -109,9 +109,9 @@ def join_ends(walls: list[dict], s: float) -> list[dict]:
                 if o is w or o["orient"] in (w["orient"], "o"):
                     continue
                 t = _t(o, s)
-                if abs(v - o["c"]) <= t and o["a"] - t <= w["c"] <= o["b"] + t:
-                    if best is None or abs(v - o["c"]) < abs(v - best):
-                        best = o["c"]
+                if abs(v - o["c"]) <= t and o["a"] - t <= w["c"] <= o["b"] + t \
+                        and (best is None or abs(v - o["c"]) < abs(v - best)):
+                    best = o["c"]
             ends[which] = v if best is None else best
         if ends["b"] - ends["a"] > 0:
             out.append(_rebuild(w, a=ends["a"], b=ends["b"]))

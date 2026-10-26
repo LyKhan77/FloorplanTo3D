@@ -20,7 +20,7 @@ def W(orient, c, a, b, t=150):
 def test_text_gap_closed_by_collinear_merge():
     walls, _ = merge_collinear([W("h", 100, 0, 200), W("h", 100.5, 232, 400)], S)  # 400 mm
     assert len(walls) == 1 and (walls[0]["a"], walls[0]["b"]) == (0, 400)
-    walls, gaps = merge_collinear([W("h", 100, 0, 200), W("h", 100, 272, 400)], S)  # 900 mm, clean ends
+    walls, _ = merge_collinear([W("h", 100, 0, 200), W("h", 100, 272, 400)], S)  # 900 mm, clean ends
     assert len(walls) == 1 and walls[0]["evidence"]["gaps"] == [[200, 272]]
     walls, _ = merge_collinear([W("h", 100, 0, 200), W("h", 100, 480, 600)], S)  # 3500 mm
     assert len(walls) == 2
