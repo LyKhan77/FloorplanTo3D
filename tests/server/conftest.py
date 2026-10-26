@@ -125,3 +125,13 @@ def write_fake_run(run_dir, rid, status, stage_running=None, kind="regenerate"):
            "error": None}
     (run_dir / rid).mkdir(parents=True)
     (run_dir / rid / "run.json").write_text(json.dumps(run))
+
+
+@pytest.fixture
+def client_with_outputs(client, project_id, data_dir):
+    out = data_dir / "projects" / project_id / "outputs" / "v1"
+    (out / "renders").mkdir(parents=True)
+    (out / "shell.glb").write_bytes(b"glTF-binary-placeholder")
+    (out / "report.html").write_text("<html>report</html>")
+    (out / "renders" / "top.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    return client, project_id
