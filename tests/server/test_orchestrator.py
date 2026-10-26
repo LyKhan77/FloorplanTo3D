@@ -47,7 +47,9 @@ def test_full_run_without_spec_stops_needs_attention(app_factory, project_id):
     with app_factory() as client:  # default stage impls; stage 5 has no spec to use
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
         run = wait_status(client, project_id, rid, {"needs_attention"})
-        assert run["stages"][0]["status"] == "succeeded" and run["stages"][3]["status"] == "skipped"
+        # stages 0-3 run the extraction (M5a/M5b); stage 4 (rooms) arrives in M5c
+        assert run["stages"][0]["status"] == "succeeded" and run["stages"][3]["status"] == "succeeded"
+        assert run["stages"][4]["status"] == "skipped"
         assert run["stages"][5]["status"] == "needs_attention" and run["stages"][7]["status"] == "pending"
 
 

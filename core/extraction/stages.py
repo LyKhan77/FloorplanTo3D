@@ -9,6 +9,9 @@ from pathlib import Path
 
 import cv2
 
+from core.extraction.geometry.candidate import extract_candidate
+from core.extraction.geometry.overlay import render_elements_overlay
+from core.extraction.geometry.sweep import run_sweep, sweep_params
 from core.extraction.grid import detect_grid
 from core.extraction.overlay import render_grid_overlay
 from core.extraction.params import input_doc, merge_params, parse_prompt
@@ -119,3 +122,59 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
             "metrics": {"axes_v": len(grid["vertical"]), "axes_h": len(grid["horizontal"]),
                         "mm_per_px": round(doc["mm_per_px"], 4) if doc.get("mm_per_px") else None,
                         "scale_source": doc.get("scale_source"), "residual_max_pct": round(100 * max(residuals), 3)}}
+
+
+def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
+    """One sweep candidate (top-level so ProcessPoolExecutor can pickle it). Writes its own artefacts."""
+    el = extract_candidate(inputs["page"], inputs["binary"], inputs["colour"], inputs["ocr"], inputs["grid"],
+                           inputs["meta"], params, inputs["defaults"])
+    out = Path(inputs["work"]) / "candidates" / str(index)
+    out.mkdir(parents=True, exist_ok=True)
+    write_json(out / "elements.json", {k: v for k, v in el.items() if not k.startswith("_")})
+    cv2.imwrite(str(out / "overlay.png"), render_elements_overlay(inputs["page"], el, inputs["grid"]["mm_per_px_work"]))
+    if index == 0:
+        (Path(inputs["work"]) / "masks").mkdir(exist_ok=True)
+        for name, mask in el["_masks"].items():
+            cv2.imwrite(str(Path(inputs["work"]) / "masks" / f"{name}.png"), mask)
+    s = inputs["grid"]["mm_per_px_work"]
+    wall_len = sum(((w["p1"][0] - w["p0"][0]) ** 2 + (w["p1"][1] - w["p0"][1]) ** 2) ** 0.5 for w in el["_px"]["walls"]) * s
+    return {"index": index, "params": params, "error": None, "wall_len_m": round(wall_len / 1000, 2),
+            "counts": {"walls": len(el["walls"]), "doors": len(el["openings"]), "columns": len(el["columns"]),
+                       "stairs": len(el["stairs"])},
+            "low_conf": sum(w["confidence"] < 0.6 for w in el["walls"])}
+
+
+def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progress: Progress = None,
+                  override: dict | None = None) -> dict:
+    """Stage 3 (PRD/04 §3): K candidates -> candidates/<k>/{elements.json,overlay.png}, candidates.json, masks/."""
+    import functools
+    import time
+
+    t0 = time.monotonic()
+    work.mkdir(parents=True, exist_ok=True)
+    pre, grid_dir = work.parent / "01_preprocess", work.parent / "02_grid"
+    params_final = run_params(project_dir, override)
+    inputs = {
+        "page": cv2.imread(str(pre / "page.png"), cv2.IMREAD_GRAYSCALE),
+        "binary": cv2.imread(str(pre / "bin.png"), cv2.IMREAD_GRAYSCALE),
+        "colour": cv2.imread(str(pre / "colour.png"), cv2.IMREAD_GRAYSCALE),
+        "meta": json.loads((pre / "meta.json").read_text()),
+        "ocr": json.loads((grid_dir / "ocr.json").read_text()),
+        "grid": json.loads((grid_dir / "grid.json").read_text()),
+        "defaults": {k: params_final[k] for k in ("wall_thickness",) if k in params_final},
+        "work": str(work),
+    }
+    params = sweep_params(max_candidates)
+    if progress:
+        progress(5, f"{len(params)} kandidat")
+    results = run_sweep(functools.partial(_candidate_job, inputs), params)
+    summary = [r if r.get("index") is not None else {"index": i, "params": p, "error": r.get("error"),
+                                                      "counts": None, "wall_len_m": 0, "low_conf": 0}
+               for i, (r, p) in enumerate(zip(results, params, strict=True))]
+    write_json(work / "candidates.json", summary)
+    best = max((r["wall_len_m"] for r in summary if not r["error"]), default=0)
+    metrics = {"candidates": len(summary), "best_wall_len_m": best, "seconds": round(time.monotonic() - t0, 1)}
+    if not any(r["counts"] and r["counts"]["walls"] for r in summary):
+        return {"status": "failed", "message": "semua kandidat kosong", "metrics": metrics}
+    errors = [f"kandidat {r['index']}: {r['error']}" for r in summary if r["error"]]
+    return {"status": "succeeded", "metrics": metrics, "warnings": errors}

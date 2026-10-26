@@ -17,7 +17,7 @@ from pathlib import Path
 
 from core.blender_run import parse_progress
 from core.config import Settings
-from core.extraction.stages import stage_grid, stage_input, stage_preprocess
+from core.extraction.stages import stage_extract, stage_grid, stage_input, stage_preprocess
 from core.pipeline import publish, stage_build, stage_report, stage_verify
 from core.spec.store import SpecStore
 from server.errors import ApiError
@@ -77,6 +77,11 @@ def _preprocess(ctx: StageContext) -> dict:
 
 def _grid(ctx: StageContext) -> dict:
     return stage_grid(ctx.project_dir, ctx.work_dir, ctx.params_override, ctx.emit_progress)
+
+
+def _extract(ctx: StageContext) -> dict:
+    return stage_extract(ctx.project_dir, ctx.work_dir, ctx.settings.sweep_max_candidates, ctx.emit_progress,
+                         ctx.params_override)
 
 
 def _not_yet(milestone: str) -> Callable[[StageContext], dict]:
@@ -143,7 +148,7 @@ def _publish(ctx: StageContext) -> dict:
 
 
 DEFAULT_IMPLS: dict[int, Callable[[StageContext], dict]] = {
-    0: _input, 1: _preprocess, 2: _grid, 3: _not_yet("M5b"), 4: _not_yet("M5c"), 5: _validate,
+    0: _input, 1: _preprocess, 2: _grid, 3: _extract, 4: _not_yet("M5c"), 5: _validate,
     6: _review, 7: _build, 8: _verify, 9: _report, 10: _publish,
 }
 
