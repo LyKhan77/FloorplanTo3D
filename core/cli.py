@@ -5,9 +5,7 @@ Usage: uv run --env-file .env python -m core.cli build <spec.json> <out_dir> [--
 """
 
 import argparse
-import json
 import os
-import re
 import shutil
 import sys
 import time
@@ -15,22 +13,12 @@ from pathlib import Path
 
 import cv2
 
-from core.blender_run import parse_progress, run_blender
-from core.build_prep.assemble import build_input_for
-from core.config import load_settings
-from core.report.data import report_data
-from core.report.overlay import render_overlay
-from core.report.render import write_report
+from core.blender_run import parse_progress
+from core.pipeline import BuildFailed, stage_build, stage_report, stage_verify
 from core.spec.models import Spec
 from core.spec.validate import validate
-from core.verify.run import run_verify
 
 BLENDER_TIMEOUT_S = 300
-
-
-def _blender_version(log: Path) -> str:
-    m = re.search(r"Blender (\d+\.\d+\.\d+)", log.read_text(errors="replace")) if log.exists() else None
-    return m[1] if m else "—"
 
 
 def _on_line(line: str) -> None:
@@ -65,38 +53,25 @@ def build(spec_path: Path, out_dir: Path, image: Path | None, templates: Path | 
             if i.severity == "error":
                 print(f"error {i.code} {','.join(i.element_ids)}: {i.message}", file=sys.stderr)
         return 2
-    img = cv2.imread(str(image)) if image else None
-    if image and img is None:
+    if image and cv2.imread(str(image)) is None:
         print(f"cannot read image {image}", file=sys.stderr)
         return 2
-    doc, warnings = build_input_for(spec, templates, (img.shape[1], img.shape[0]) if img is not None else None, engine)
 
     tmp = out_dir.parent / f"{out_dir.name}.tmp-{os.getpid()}"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
     try:
-        (tmp / "build_input.json").write_text(json.dumps(doc))
-        rc = run_blender(tmp / "build_input.json", tmp, load_settings().blender_bin, BLENDER_TIMEOUT_S, _on_line)
-        if rc != 0:
-            failed_log = out_dir.parent / f"{out_dir.name}.failed.log"
-            shutil.copy(tmp / "blender.log", failed_log)
-            print(f"blender failed (exit {rc}); log: {failed_log}", file=sys.stderr)
-            return 1
-        verify = run_verify(tmp, spec, doc, image, extra_warnings=warnings)
-        renders_dir = tmp / "renders"
-        renders_dir.mkdir(exist_ok=True)
-        if image:
-            shutil.copy(image, renders_dir / "plan.png" if image.suffix == ".png" else renders_dir / f"plan{image.suffix}")
-            render_overlay(spec, image, renders_dir / "overlay.png")
-        renders = {p.stem: f"renders/{p.name}" for p in sorted(renders_dir.iterdir())}
-        placed = {i["props"]["spec_id"] for i in doc["instances"]}
-        missing = [o.id for o in spec.objects if o.id not in placed]
-        run = {"run_id": spec.meta.run_id, "blender_version": _blender_version(tmp / "blender.log")}
-        data = report_data(spec, verify, run, missing_objects=missing)
-        write_report(tmp, data, renders)
+        doc, warnings = stage_build(spec, tmp, image, templates, engine, _on_line, timeout_s=BLENDER_TIMEOUT_S)
+        verify = stage_verify(spec, tmp, doc, image, warnings)
+        stage_report(spec, tmp, doc, verify, image, spec.meta.run_id)
         if out_dir.exists():
             shutil.rmtree(out_dir)
         tmp.rename(out_dir)
+    except BuildFailed as e:
+        failed_log = out_dir.parent / f"{out_dir.name}.failed.log"
+        shutil.copy(e.log, failed_log)
+        print(f"blender failed (exit {e.exit_code}); log: {failed_log}", file=sys.stderr)
+        return 1
     except Exception as e:  # noqa: BLE001 - any failure must not leave a half-written output folder
         print(f"build failed: {e!r}", file=sys.stderr)
         return 1

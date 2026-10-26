@@ -17,7 +17,8 @@ def parse_progress(line: str) -> tuple[int, str] | None:
 
 
 def run_blender(build_input: Path, out_dir: Path, blender_bin: str, timeout_s: int = 300,
-                on_line: Callable[[str], None] | None = None) -> int:
+                on_line: Callable[[str], None] | None = None,
+                on_start: Callable[[subprocess.Popen], None] | None = None) -> int:
     """Stream stdout+stderr line by line to `on_line` and out_dir/blender.log; return the exit code (124 = timeout)."""
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [blender_bin, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(BUILDER), "--",
@@ -28,6 +29,8 @@ def run_blender(build_input: Path, out_dir: Path, blender_bin: str, timeout_s: i
         except OSError as e:
             log.write(f"cannot start blender: {e}\n")
             return 127
+        if on_start:  # lets a caller cancel the build (terminate the process)
+            on_start(proc)
         timer = threading.Timer(timeout_s, proc.kill)
         timer.start()
         try:
