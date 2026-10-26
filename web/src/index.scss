@@ -763,6 +763,10 @@ body {
   }
 }
 
+.candidate-scroll {
+  overflow-x: auto;
+}
+
 .candidate-table {
   width: 100%;
   margin-bottom: 1rem;

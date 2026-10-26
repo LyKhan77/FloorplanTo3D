@@ -112,31 +112,40 @@ function CandidatesStage({ art, runId, projectId }: { art: (p: string) => string
     queryFn: () => api.get<Candidate[]>(art('03_extract/candidates.json')),
   })
   if (!list.data) return null
+  const failed = list.data.find((c) => c.index === selected)?.error
   return (
     <>
-      <table className="candidate-table">
-        <thead><tr><th>#</th><th>Strategi</th><th>k</th><th>t_min</th><th>L_fix</th><th>Dinding</th><th>Pintu</th><th>Kolom</th>
-          <th>Tangga</th><th>Panjang (m)</th><th>Keyakinan rendah</th></tr></thead>
-        <tbody>
-          {list.data.map((c) => (
-            <tr key={c.index} className={c.index === selected ? 'is-selected' : ''} onClick={() => setSelected(c.index)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(c.index) }} tabIndex={0}
-              aria-selected={c.index === selected}>
-              <td className="mono">{c.index}</td><td>{c.params.strategy}</td><td className="mono">{c.params.sauvola_k}</td>
-              <td className="mono">{c.params.t_min}</td><td className="mono">{c.params.l_fix}</td>
-              {c.error ? <td colSpan={6} className="helper">{c.error}</td> : (
-                <>
-                  <td className="mono">{c.counts?.walls}</td><td className="mono">{c.counts?.doors}</td>
-                  <td className="mono">{c.counts?.columns}</td><td className="mono">{c.counts?.stairs}</td>
-                  <td className="mono">{c.wall_len_m}</td><td className="mono">{c.low_conf}</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="candidate-scroll">
+        <table className="candidate-table">
+          <thead><tr><th>#</th><th>Strategi</th><th>k</th><th>t_min</th><th>L_fix</th><th>Dinding</th><th>Pintu</th><th>Kolom</th>
+            <th>Tangga</th><th>Panjang (m)</th><th>Keyakinan rendah</th></tr></thead>
+          <tbody>
+            {list.data.map((c) => (
+              <tr key={c.index} className={c.index === selected ? 'is-selected' : ''} onClick={() => setSelected(c.index)}>
+                <td className="mono">
+                  <label>
+                    <input type="radio" name={`candidate-${runId}`} checked={c.index === selected}
+                      onChange={() => setSelected(c.index)} aria-label={`Kandidat ${c.index}`} /> {c.index}
+                  </label>
+                </td>
+                <td>{c.params.strategy}</td><td className="mono">{c.params.sauvola_k}</td>
+                <td className="mono">{c.params.t_min}</td><td className="mono">{c.params.l_fix}</td>
+                {c.error ? <td colSpan={6} className="helper">{c.error}</td> : (
+                  <>
+                    <td className="mono">{c.counts?.walls}</td><td className="mono">{c.counts?.doors}</td>
+                    <td className="mono">{c.counts?.columns}</td><td className="mono">{c.counts?.stairs}</td>
+                    <td className="mono">{c.wall_len_m}</td><td className="mono">{c.low_conf}</td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <figure>
-        <img src={art(`03_extract/candidates/${selected}/overlay.png`)} alt={`Kandidat ${selected}: elemen terdeteksi`} className="artifact-img" />
+        {failed
+          ? <p className="helper">Kandidat {selected} gagal: {failed}</p>
+          : <img src={art(`03_extract/candidates/${selected}/overlay.png`)} alt={`Kandidat ${selected}: elemen terdeteksi`} className="artifact-img" />}
         <figcaption className="helper">Biru: dinding · Oranye: dinding keyakinan rendah / kolom · Hijau: pintu · Ungu: tangga · Abu-abu: hatch dan simbol</figcaption>
       </figure>
     </>

@@ -69,6 +69,21 @@ describe('ExtractionStage', () => {
     expect(screen.getByAltText(/Kandidat/).getAttribute('src')).toMatch(/03_extract\/candidates\/1\/overlay\.png$/)
   })
 
+  it('stage 3 candidates are keyboard-selectable radios; a failed candidate shows its error, not an overlay', async () => {
+    get.mockResolvedValue([
+      { index: 0, params: { strategy: 'S2', sauvola_k: 0.2, t_min: 80, t_max: 450, l_fix: 0 }, counts: { walls: 161, doors: 38, columns: 30, stairs: 1 }, wall_len_m: 386.1, low_conf: 12, error: null },
+      { index: 1, params: { strategy: 'S1', sauvola_k: 0.2, t_min: 80, t_max: 450, l_fix: 0 }, counts: null, wall_len_m: 0, low_conf: 0, error: 'MemoryError: boom' },
+    ])
+    show(run([stage(0), stage(1), stage(2), stage(3, { metrics: { candidates: 2 } })]), 3)
+    const radios = await screen.findAllByRole('radio')
+    expect(radios).toHaveLength(2)
+    expect(radios[0]).toBeChecked()
+    fireEvent.click(radios[1])
+    expect(radios[1]).toBeChecked()
+    expect(screen.queryByAltText(/Kandidat/)).toBeNull()
+    expect(screen.getAllByText('MemoryError: boom').length).toBeGreaterThan(0)
+  })
+
   it('stage 1 shows the working page and preprocess facts', () => {
     show(run([stage(0), stage(1, { metrics: { deskew_deg: 0, upscale: 2, work_w: 3200, work_h: 1890 } })]), 1)
     expect(screen.getByRole('img').getAttribute('src')).toMatch(/01_preprocess\/page\.png$/)
