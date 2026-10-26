@@ -73,3 +73,18 @@ def run_ocr(image: np.ndarray, upscale: float = 2.0) -> list[OcrItem]:
     keep_flat = [f for f in flat if not any(r.angle == 90 and _iou(r.bbox, f.bbox) > 0.5 for r in rotated)]
     keep_rot = [r for r in rotated if r.angle == 90 or all(_iou(r.bbox, f.bbox) <= 0.5 for f in flat)]
     return keep_flat + keep_rot
+
+
+def ocr_crop(image: np.ndarray, bbox: BBox, scale: float = 4.0) -> list[OcrItem]:
+    """OCR one region enlarged `scale` times (single grid characters the page-wide pass misses)."""
+    h, w = image.shape[:2]
+    x0, y0 = max(0, int(bbox[0])), max(0, int(bbox[1]))
+    x1, y1 = min(w, int(round(bbox[2]))), min(h, int(round(bbox[3])))
+    crop = image[y0:y1, x0:x1]
+    if crop.size == 0:
+        return []
+    if crop.ndim == 2:
+        crop = cv2.cvtColor(crop, cv2.COLOR_GRAY2BGR)
+    big = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+    return [OcrItem(i.text, (i.bbox[0] + x0, i.bbox[1] + y0, i.bbox[2] + x0, i.bbox[3] + y0), i.angle, i.conf)
+            for i in _ocr_pass(big, scale, None)]
