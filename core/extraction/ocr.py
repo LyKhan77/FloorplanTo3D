@@ -79,7 +79,7 @@ def ocr_crop(image: np.ndarray, bbox: BBox, scale: float = 4.0) -> list[OcrItem]
     """OCR one region enlarged `scale` times (single grid characters the page-wide pass misses)."""
     h, w = image.shape[:2]
     x0, y0 = max(0, int(bbox[0])), max(0, int(bbox[1]))
-    x1, y1 = min(w, int(round(bbox[2]))), min(h, int(round(bbox[3])))
+    x1, y1 = min(w, round(bbox[2])), min(h, round(bbox[3]))
     crop = image[y0:y1, x0:x1]
     if crop.size == 0:
         return []
