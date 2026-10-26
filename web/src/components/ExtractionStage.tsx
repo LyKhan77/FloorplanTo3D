@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import { useSaveProfile, useStartRun } from '../api/hooks'
+import { useContinueRun, useSaveProfile, useStartRun } from '../api/hooks'
 import type { Run, Stage, ValidationIssue } from '../api/types'
 import type { Spec } from '../types/spec'
 
@@ -225,6 +225,7 @@ function ValidateStage({ art, run, stage, projectId }: { art: (p: string) => str
   const issues = useQuery({ queryKey: key('issues'), queryFn: () => api.get<ValidationIssue[]>(art('05_validate/issues.json')),
     enabled: !!stage.metrics.version })
   const save = useSaveProfile()
+  const proceed = useContinueRun(projectId)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [saved, setSaved] = useState<string | null>(null)
@@ -262,6 +263,12 @@ function ValidateStage({ art, run, stage, projectId }: { art: (p: string) => str
       {stage.status === 'succeeded' && (
         <Button kind="tertiary" size="sm" onClick={() => setOpen(true)}>Simpan sebagai profile</Button>
       )}
+      {stage.status === 'needs_attention' && !!stage.metrics.version && (
+        <Button size="sm" disabled={proceed.isPending || proceed.isSuccess} onClick={() => proceed.mutate(run.run_id)}>
+          Lanjutkan tetap
+        </Button>
+      )}
+      {proceed.isError && <InlineNotification kind="error" lowContrast title="Gagal melanjutkan" subtitle={String(proceed.error)} />}
       {saved && <InlineNotification kind="success" lowContrast title="Profile tersimpan" subtitle={saved} onClose={() => setSaved(null)} />}
       <Modal open={open} modalHeading="Simpan sebagai profile" primaryButtonText="Simpan" secondaryButtonText="Batal"
         primaryButtonDisabled={!name.trim() || save.isPending} onRequestClose={() => setOpen(false)}

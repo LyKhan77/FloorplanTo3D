@@ -119,6 +119,15 @@ describe('ExtractionStage', () => {
     await waitFor(() => expect(post).toHaveBeenCalledWith('/api/profiles', { name: 'Gatsu', from_run: 'p1/r1' }))
   })
 
+  it('stage 5 below 0.6 offers continue anyway', async () => {
+    get.mockImplementation(async (url: string) => (url.endsWith('chosen.json') ? { index: 0, params: {}, score: 0.5, version: 1 } : []))
+    post.mockResolvedValue({ run_id: 'r2' })
+    show(run([stage(0), stage(1), stage(2), stage(3), stage(4), stage(5, { status: 'needs_attention', metrics: { version: 1, score: 0.5 } })]), 5,
+      'skor validator 0.50 < 0.6: periksa lalu pilih lanjutkan tetap')
+    fireEvent.click(await screen.findByRole('button', { name: 'Lanjutkan tetap' }))
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/api/projects/p1/runs/r1/continue', { accept_low_score: true }))
+  })
+
   it('stage 1 shows the working page and preprocess facts', () => {
     show(run([stage(0), stage(1, { metrics: { deskew_deg: 0, upscale: 2, work_w: 3200, work_h: 1890 } })]), 1)
     expect(screen.getByRole('img').getAttribute('src')).toMatch(/01_preprocess\/page\.png$/)

@@ -78,3 +78,11 @@ export function useSaveProfile() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profiles'] }),
   })
 }
+
+export function useContinueRun(id: string) {
+  const invalidate = useInvalidate(id)
+  return useMutation({
+    mutationFn: (runId: string) => api.post<{ run_id: string }>(`${P(id)}/runs/${runId}/continue`, { accept_low_score: true }),
+    onSuccess: invalidate,
+  })
+}
