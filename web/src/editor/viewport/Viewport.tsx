@@ -4,6 +4,8 @@ import { Suspense, useMemo, useRef } from 'react'
 import { toThree } from '../lib/coords'
 import { useEditorStore } from '../store'
 import { specBounds, type Bounds } from './bounds'
+import type { Template } from '../../api/types'
+import { ObjectsLayer } from './ObjectsLayer'
 import { SceneHelpers } from './SceneHelpers'
 import { Shell } from './Shell'
 
@@ -49,7 +51,7 @@ function FpsMeter() {
   return null
 }
 
-export function Viewport({ shellUrl }: { shellUrl: string }) {
+export function Viewport({ shellUrl, templates }: { shellUrl: string; templates: Template[] }) {
   const base = useEditorStore((s) => s.base)
   const outline = base?.meta.building_outline
   const bounds = useMemo(() => (base ? specBounds(base) : null), [outline]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -61,6 +63,7 @@ export function Viewport({ shellUrl }: { shellUrl: string }) {
       <hemisphereLight intensity={0.9} groundColor="#3d3d3d" />
       <directionalLight position={[30, 60, 20]} intensity={1.4} />
       <Suspense fallback={null}><Shell url={shellUrl} /></Suspense>
+      <ObjectsLayer templates={templates} />
       <SceneHelpers />
       <CameraRig bounds={bounds} />
       <FpsMeter />

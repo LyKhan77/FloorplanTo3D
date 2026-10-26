@@ -63,7 +63,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
             <p>Belum ada shell. Regenerate dulu.</p>
             <Button size="sm" disabled={regenerate.isPending} onClick={() => regenerate.mutate('HEAD')}>Regenerate</Button>
           </div>
-        ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} /></div>}
+        ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
       {right && <aside className="editor__props" aria-label="Properti" />}
       <StatusBar />
