@@ -24,7 +24,8 @@ Yang dimodelkan 1:1 adalah elemen denah umum: dinding, lantai, tangga, pintu, ko
 
 | Elemen | Keputusan | Alasan / risiko |
 |---|---|---|
-| Pita luar | `skin` exterior t=110 (garis terluar) + rail `low` t=130 di dalamnya + garis dalam pita (muka bangunan) exterior t=150 | Ketiganya digambar sebagai garis ganda. Rail ditafsirkan sebagai tepi planter/pagar rendah. |
+| Pita luar | `skin` exterior t=110 (garis terluar) + rail `low` t=130 di dalamnya + garis dalam pita (muka bangunan) exterior t=150 | Ketiganya digambar sebagai garis ganda. Rail ditafsirkan sebagai tepi planter/pagar rendah dengan **tinggi 1000 mm (asumsi; tidak terbaca dari denah)**. Dinding `low` tidak ikut membagi ruang. |
+| Sel pita luar | Sel di antara sirip diberi tipe `outdoor` (25 ruang tanpa nama) | PRD/04 tahap 4 langkah 2b. |
 | Blok sirip | `column kind: pilaster`: baris utara/selatan di setiap sumbu grid dan tengah bentang (20×51 px), 4 di barat, 1 di timur | Sesuai jawaban pengguna: blok kecil di sekeliling bangunan dimodelkan. |
 | Pier | Kotak antara garis dalam pita dan kolom baris 1/3 dimodelkan sebagai pilaster yang sedikit overlap dengan kolom | Di gambar pier menyatu dengan kolom; celah 1 px membuat ruang bocor. |
 | Bay C–D | Tonjolan utara (R. Meeting) dan selatan antara sumbu C dan D | Dibentuk garis 653–829 px. |
@@ -35,7 +36,7 @@ Yang dimodelkan 1:1 adalah elemen denah umum: dinding, lantai, tangga, pintu, ko
 | Garis leader | Garis vertikal panjang ke label "ROUTE CABLE" (mis. x≈1007 px) diabaikan | Anotasi. |
 | Battery Room + Ex Mushola | **Satu ruang**, berlabel BATTERY ROOM | Tidak ada dinding tergambar di antaranya. Catatan "PROPOSED PANEL EXISTING AFTER DISMANTLE THE WALL" menyiratkan ada dinding existing yang akan dibongkar, tetapi posisinya tidak tergambar, jadi tidak dikarang. **Perlu konfirmasi pengguna.** |
 | Galery | Satu ruang besar: galery + koridor sepanjang sumbu 2 + area tangga S1 + vestibule barat | Semua terbuka satu sama lain di gambar. |
-| Ruang tanpa label | Ruang di timur Gudang (D–E, pintu sendiri) dan ruang servis di timur MDF dibiarkan tanpa nama (`other`) | Tidak ada teks di gambar. |
+| Ruang tanpa label | Ruang di timur Gudang (D–E, pintu sendiri), ruang servis di timur MDF, dan celah sempit di antara glazing dan muka bangunan dibiarkan tanpa nama (`other`, 7 ruang) | Tidak ada teks di gambar. |
 | Tangga S1 (U, antara A–B) | Flight 1 naik ke utara (x≈392 px), bordes utara, flight 2 ke selatan; 15 tanjakan per flight dari hitungan garis injakan; arah dari teks "NK" + walking line | Dengan default `floor_to_floor` 4000, tanjakan = 133 mm (V019 warning). Tinggi lantai sebenarnya kemungkinan 4.5–5 m. **Perlu konfirmasi tinggi lantai.** |
 | Tangga S2 (timur) | Satu flight 1.4 m, 10 tanjakan, diasumsikan naik ke utara | Tidak ada teks arah. Garis tengah ditafsirkan sebagai railing. 10 tanjakan tidak cukup untuk satu lantai (V019), jadi kemungkinan ini tangga keluar ke level tanah. **Arah dan tujuan belum pasti.** |
 | Lift | Shaft dinding t=210 di tengah tangga S1, ruang `lift` | Simbol silang dalam kotak. |

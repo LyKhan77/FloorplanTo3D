@@ -27,28 +27,42 @@ def column_footprint(col: Column) -> SPolygon:
     return affinity.rotate(box, col.rotation, origin=(x, y)) if col.rotation else box
 
 
-def endpoint_connected(spec: Spec, wall: Wall, end: Literal["a", "b"]) -> bool:
-    """End touches another wall's centerline or a column footprint within thickness/2."""
+def _host_walls(spec: Spec, wall: Wall, end: Literal["a", "b"]) -> list[Wall]:
     p = Point(wall.a if end == "a" else wall.b)
     tol = wall.thickness / 2
-    if any(LineString([o.a, o.b]).distance(p) <= tol for o in spec.walls if o.id != wall.id):
+    return [o for o in spec.walls if o.id != wall.id and LineString([o.a, o.b]).distance(p) <= tol]
+
+
+def endpoint_connected(spec: Spec, wall: Wall, end: Literal["a", "b"]) -> bool:
+    """End touches another wall's centerline or a column footprint within thickness/2."""
+    if _host_walls(spec, wall, end):
         return True
-    return any(column_footprint(c).distance(p) <= tol for c in spec.columns)
+    p = Point(wall.a if end == "a" else wall.b)
+    return any(column_footprint(c).distance(p) <= wall.thickness / 2 for c in spec.columns)
 
 
 def wall_footprint(wall: Wall, spec: Spec) -> SPolygon:
-    """Centerline buffered by t/2 (flat cap, mitre join); connected ends extended by t/2 to close L corners."""
+    """Centerline buffered by t/2 (flat cap, mitre join).
+
+    An end that meets another wall is extended by that wall's half thickness: an L corner closes without a
+    notch, and a T stem stops at the host's far face instead of poking into the room beyond it. An end that
+    only meets a column is extended by its own half thickness into the column.
+    """
     (ax, ay), (bx, by) = wall.a, wall.b
     length = math.hypot(bx - ax, by - ay)
     if length == 0:
         return SPolygon()
     ux, uy = (bx - ax) / length, (by - ay) / length
-    h = wall.thickness / 2
-    if endpoint_connected(spec, wall, "a"):
-        ax, ay = ax - ux * h, ay - uy * h
-    if endpoint_connected(spec, wall, "b"):
-        bx, by = bx + ux * h, by + uy * h
-    return LineString([(ax, ay), (bx, by)]).buffer(h, cap_style="flat", join_style="mitre")
+    def ext(end: Literal["a", "b"]) -> float:
+        hosts = _host_walls(spec, wall, end)
+        if hosts:
+            return max(o.thickness / 2 for o in hosts)
+        # column only: push t/2 into the column (it covers the overshoot) to close hairline gaps
+        return wall.thickness / 2 if endpoint_connected(spec, wall, end) else 0.0
+
+    ext_a, ext_b = ext("a"), ext("b")
+    line = LineString([(ax - ux * ext_a, ay - uy * ext_a), (bx + ux * ext_b, by + uy * ext_b)])
+    return line.buffer(wall.thickness / 2, cap_style="flat", join_style="mitre")
 
 
 @dataclass(frozen=True)
@@ -92,7 +106,11 @@ def derive(spec: Spec) -> Spec:
         room_shapes.append((r, shape))
         r.area_m2 = round(shape.area / 1e6, 2)
         r.perimeter_m = round(outer.length / 1000, 2)
-        r.bounding_walls = sorted((wid for wid, fp in footprints.items() if fp.distance(outer) <= 1), key=id_key)
+        # Bounding = the room's edge runs along the wall for more than its thickness (an end face does not count).
+        r.bounding_walls = sorted(
+            (wid for wid, fp in footprints.items()
+             if outer.exterior.intersection(fp.buffer(1)).length > walls[wid].thickness + 3),  # t + 2*buffer + slack
+            key=id_key)
         # A door belongs to a room only if its opening (not just its wall) faces the room.
         r.doors = sorted((d for d, (seg, half_t) in door_segments.items() if seg.distance(outer) <= half_t + 1),
                          key=id_key)

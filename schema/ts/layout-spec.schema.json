@@ -874,6 +874,7 @@
             "minItems": 2,
             "type": "array"
           },
+          "minItems": 3,
           "title": "Polygon",
           "type": "array"
         },

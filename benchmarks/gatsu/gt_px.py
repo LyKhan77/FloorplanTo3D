@@ -104,15 +104,17 @@ wall([(1366.5, 411), (1366.5, 641)], t_mm(5), "exterior")
 wall([(662.5, 122), (662.5, 74), (819, 74), (819, 122)], INNER, "exterior")
 wall([(656, 641), (656, 655), (829, 655), (829, 641)], INNER, "exterior")
 # low rail ring inside the band (planter edge), between skin and band inner line
-RAIL = t_mm(5)
-wall([(126.5, 61), (1355, 61)], RAIL, "low")
-wall([(126.5, 668.5), (1355, 668.5)], RAIL, "low")
-wall([(126.5, 61), (126.5, 272.5)], RAIL, "low")
-wall([(126.5, 456), (126.5, 668.5)], RAIL, "low")
-wall([(1355, 61), (1355, 250)], RAIL, "low")
-wall([(1355, 411), (1355, 668.5)], RAIL, "low")
+# height is an assumption (not readable from a plan): 1000 mm, see NOTES.md
+RAIL, RAIL_H = t_mm(5), 1000
+wall([(126.5, 61), (1355, 61)], RAIL, "low", height=RAIL_H)
+wall([(126.5, 668.5), (1355, 668.5)], RAIL, "low", height=RAIL_H)
+wall([(126.5, 61), (126.5, 272.5)], RAIL, "low", height=RAIL_H)
+wall([(126.5, 456), (126.5, 668.5)], RAIL, "low", height=RAIL_H)
+wall([(1355, 61), (1355, 250)], RAIL, "low", height=RAIL_H)
+wall([(1355, 411), (1355, 668.5)], RAIL, "low", height=RAIL_H)
 # pilaster fins: north and south rows at grid lines and mid-bays, west column of four, one east
-for x in (199.3, 315.3, 431.3, 547.5, 663.7, 818.7, 934.8, 1050.7, 1166.7, 1283.7):
+FIN_X = (199.3, 315.3, 431.3, 547.5, 663.7, 818.7, 934.8, 1050.7, 1166.7, 1283.7)
+for x in FIN_X:
     column(x, 65.5, 20, 51, kind="pilaster")
     column(x, 664, 20, 52, kind="pilaster")
 for y in (132.5, 249, 481.5, 598):
@@ -227,6 +229,14 @@ room(1165, 530, "AHU ROOM", "ahu_room")
 room(1250, 530, "MDF ROOM", "mdf")
 room(1500, 630, "CAPASITOR ROOM", "capacitor_room")
 room(1322, 350, "TANGGA", "stair")
+# outer band cells between the fins are outdoor space (PRD/04 stage 4 step 2b)
+for x0, x1 in itertools.pairwise((104.5, *FIN_X, 1378)):
+    room((x0 + x1) / 2, 50, "", "outdoor")
+    room((x0 + x1) / 2, 680, "", "outdoor")
+for y0, y1 in (*itertools.pairwise((38, 132.5, 249, 272.5)), *itertools.pairwise((456, 481.5, 598, 691.5))):
+    room(115, (y0 + y1) / 2, "", "outdoor")
+for y0, y1 in itertools.pairwise((38, 132.7, 250)):
+    room(1366, (y0 + y1) / 2, "", "outdoor")
 
 
 def main() -> None:

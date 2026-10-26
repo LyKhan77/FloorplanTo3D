@@ -212,8 +212,10 @@ def v014(spec: Spec, ctx: ValidationContext) -> RuleResult:
         refs = [axes.get(i) for i in c.grid_ref]
         if None in refs:
             return None  # V002 reports unknown axes
-        x = next(a.offset for a in refs if a.orientation == "vertical")
-        y = next(a.offset for a in refs if a.orientation == "horizontal")
+        x = next((a.offset for a in refs if a.orientation == "vertical"), None)
+        y = next((a.offset for a in refs if a.orientation == "horizontal"), None)
+        if x is None or y is None:
+            return "grid_ref must name one vertical and one horizontal axis"
         d = math.hypot(c.center[0] - x, c.center[1] - y)
         return f"column {d:.0f} mm from grid intersection" if d > 150 else None
     return _per_element("V014", "warning", [c for c in spec.columns if c.grid_ref], bad)

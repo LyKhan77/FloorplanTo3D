@@ -111,10 +111,10 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - `spec.ts` tergenerate dan terkompilasi di `web/`.
 
 **Status M1 (2026-10-26), branch `m1-spec-gt`:**
-- `uv run --env-file .env pytest` → 82 passed, 1 xfailed (OCR grid dari M0). Coverage `core/spec` 95%. Ruff, oxlint, dan `npm run build` bersih.
+- `uv run --env-file .env pytest` → 95 passed, 1 xfailed (OCR grid dari M0). Coverage `core/spec` ≥ 95%. Ruff, oxlint, dan `npm run build` bersih.
 - `core/spec`: model Pydantic, field turunan, pembentukan ruang dari dinding + pewarisan ID, 18 ops (`apply` murni dan atomik), validator V001–V019, `SpecStore` append-only, ekspor JSON Schema + `web/src/types/{spec,ops}.ts`.
-- GT Gatsu (`benchmarks/gatsu/`): 77 dinding, 51 kolom (18 H + 33 pilaster/pier), 19 bukaan, 2 tangga, 70 ruang; RMS kalibrasi 7.6 mm; skor validator 0.993; 2 massa bangunan; luas kotor 563.77 m².
-- Dua bug core ditemukan saat menulis GT dan sudah diperbaiki: pulau dinding (shaft lift) terhitung sebagai massa bangunan, dan pintu di dinding bersama terdaftar untuk semua ruang.
+- GT Gatsu (`benchmarks/gatsu/`): 77 dinding, 51 kolom (18 H + 33 pilaster/pier), 19 bukaan, 2 tangga, 48 ruang (25 sel pita luar `outdoor`); RMS kalibrasi 7.6 mm; skor validator 0.993; 2 massa bangunan; luas kotor 563.77 m².
+- Bug core yang ditemukan dan sudah diperbaiki: pulau dinding terhitung sebagai massa bangunan, pintu di dinding bersama terdaftar untuk semua ruang, ID yang dihapus bisa dipakai ulang, ujung T memotong ruang seberang, null di op dilaporkan di indeks yang salah, `provenance_log` menumpuk antar-versi, dan merge dinding terbalik tidak membalik engsel.
 - **Belum:** review GT oleh orang kedua (R-17). Pertanyaan terbuka ada di `benchmarks/gatsu/NOTES.md`: batas Battery/Ex Mushola, tinggi lantai, arah tangga timur, dan rail pita luar.
 
 **FR terkait:** dasar untuk semua FR. Langsung: V-rules, FR-EX-14.

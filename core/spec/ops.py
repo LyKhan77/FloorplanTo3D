@@ -3,12 +3,20 @@
 import math
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, TypeAdapter, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    TypeAdapter,
+    ValidationError,
+    model_validator,
+)
 
 from core.spec.derive import derive, id_key
-from core.spec.ids import take_id
+from core.spec.ids import seed_id_seq, take_id
 from core.spec.models import (
     Defaults,
     Flight,
@@ -34,6 +42,15 @@ PARALLEL_TOL_DEG = 1.5
 
 class _Op(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    # Optional op fields mean "leave unchanged"; an explicit null is only allowed where the target field is nullable.
+    nullable: ClassVar[frozenset[str]] = frozenset()
+
+    @model_validator(mode="after")
+    def _no_null_on_required(self):
+        bad = [k for k in self.model_fields_set if getattr(self, k) is None and k not in self.nullable]
+        if bad:
+            raise ValueError(f"{', '.join(sorted(bad))} must not be null")
+        return self
 
 
 class AddObject(_Op):
@@ -48,6 +65,7 @@ class AddObject(_Op):
 
 class UpdateObject(_Op):
     op: Literal["update_object"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"label"})
     id: str
     position: tuple[Mm, Mm, Mm] | None = None
     rotation: float | None = None
@@ -63,6 +81,7 @@ class DeleteObject(_Op):
 
 class SetWallHeight(_Op):
     op: Literal["set_wall_height"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"height"})
     id: str  # wall ID or "*"
     height: Mm | None
 
@@ -122,6 +141,7 @@ class AddWall(_Op):
 
 class SetDoor(_Op):
     op: Literal["set_door"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"door_type", "hinge", "swing", "height"})
     id: str
     door_type: DoorType | None = None
     hinge: Literal["start", "end", "both"] | None = None
@@ -139,6 +159,7 @@ class DeleteOpening(_Op):
 
 class AddOpening(_Op):
     op: Literal["add_opening"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"height", "sill", "door_type", "hinge", "swing", "leaf_split"})
     wall_id: str
     category: Literal["door", "window"]
     offset: Mm
@@ -153,6 +174,7 @@ class AddOpening(_Op):
 
 class SetStair(_Op):
     op: Literal["set_stair"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"top_z"})
     id: str
     flights: list[Flight] | None = Field(None, min_length=1)
     landings: list[Polygon] | None = None
@@ -167,6 +189,7 @@ class DeleteStair(_Op):
 
 class AddStair(_Op):
     op: Literal["add_stair"]
+    nullable: ClassVar[frozenset[str]] = frozenset({"top_z"})
     flights: list[Flight] = Field(min_length=1)
     landings: list[Polygon] = []
     top_z: Mm | None = None
@@ -305,6 +328,9 @@ def _merge_walls(s: Spec, op: MergeWalls, ctx: Ctx) -> None:
             wx, wy, _ = _unit(w)
             ends = [along((w.a[0] + wx * d, w.a[1] + wy * d)) for d in (o.offset, o.offset + o.width)]
             o.wall_id, o.offset = keep.id, round(min(ends) - t0)
+            if wx * ux + wy * uy < 0:  # hinge/swing are relative to a->b; a reversed wall mirrors them
+                o.hinge = {"start": "end", "end": "start"}.get(o.hinge, o.hinge)
+                o.swing = {"left": "right", "right": "left"}.get(o.swing, o.swing)
     a = _pt(keep.a[0] + ux * t0, keep.a[1] + uy * t0)
     b = _pt(keep.a[0] + ux * t1, keep.a[1] + uy * t1)
     _touch(keep, ctx, a=a, b=b)
@@ -395,6 +421,8 @@ HANDLERS: dict[str, Callable[[Spec, Any, Ctx], None]] = {
 
 def apply(spec: Spec, ops: list[Any], by: Literal["editor", "llm", "manual", "pipeline"], version: int) -> Spec:
     work = spec.model_copy(deep=True)
+    work.provenance_log = []  # the log describes the ops that form this version only
+    seed_id_seq(work)
     ctx = Ctx(by=by, version=version)
     geometry_changed = False
     for i, raw in enumerate(ops):

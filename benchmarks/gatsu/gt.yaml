@@ -152,31 +152,37 @@ walls:
   b: [29850, 13860]
   t: 130
   kind: low
+  height: 1000
 - id: W26
   a: [-1860, -1820]
   b: [29850, -1820]
   t: 130
   kind: low
+  height: 1000
 - id: W27
   a: [-1860, 13860]
   b: [-1860, 8400]
   t: 130
   kind: low
+  height: 1000
 - id: W28
   a: [-1860, 3670]
   b: [-1860, -1820]
   t: 130
   kind: low
+  height: 1000
 - id: W29
   a: [29850, 13860]
   b: [29850, 8980]
   t: 130
   kind: low
+  height: 1000
 - id: W30
   a: [29850, 4830]
   b: [29850, -1820]
   t: 130
   kind: low
+  height: 1000
 - id: W31
   a: [0, 12600]
   b: [6000, 12600]
@@ -780,3 +786,93 @@ rooms:
 - at: [29000, 6400]
   name: TANGGA
   type: stair
+- at: [-1200, 14140]
+  name: ''
+  type: outdoor
+- at: [-1200, -2120]
+  name: ''
+  type: outdoor
+- at: [1520, 14140]
+  name: ''
+  type: outdoor
+- at: [1520, -2120]
+  name: ''
+  type: outdoor
+- at: [4510, 14140]
+  name: ''
+  type: outdoor
+- at: [4510, -2120]
+  name: ''
+  type: outdoor
+- at: [7510, 14140]
+  name: ''
+  type: outdoor
+- at: [7510, -2120]
+  name: ''
+  type: outdoor
+- at: [10510, 14140]
+  name: ''
+  type: outdoor
+- at: [10510, -2120]
+  name: ''
+  type: outdoor
+- at: [14010, 14140]
+  name: ''
+  type: outdoor
+- at: [14010, -2120]
+  name: ''
+  type: outdoor
+- at: [17510, 14140]
+  name: ''
+  type: outdoor
+- at: [17510, -2120]
+  name: ''
+  type: outdoor
+- at: [20500, 14140]
+  name: ''
+  type: outdoor
+- at: [20500, -2120]
+  name: ''
+  type: outdoor
+- at: [23490, 14140]
+  name: ''
+  type: outdoor
+- at: [23490, -2120]
+  name: ''
+  type: outdoor
+- at: [26500, 14140]
+  name: ''
+  type: outdoor
+- at: [26500, -2120]
+  name: ''
+  type: outdoor
+- at: [29230, 14140]
+  name: ''
+  type: outdoor
+- at: [29230, -2120]
+  name: ''
+  type: outdoor
+- at: [-2160, 13230]
+  name: ''
+  type: outdoor
+- at: [-2160, 10510]
+  name: ''
+  type: outdoor
+- at: [-2160, 8700]
+  name: ''
+  type: outdoor
+- at: [-2160, 3340]
+  name: ''
+  type: outdoor
+- at: [-2160, 1500]
+  name: ''
+  type: outdoor
+- at: [-2160, -1210]
+  name: ''
+  type: outdoor
+- at: [30130, 13230]
+  name: ''
+  type: outdoor
+- at: [30130, 10500]
+  name: ''
+  type: outdoor

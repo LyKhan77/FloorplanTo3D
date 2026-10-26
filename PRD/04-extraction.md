@@ -182,13 +182,13 @@ Elemen dengan `confidence < 0.6` menjadi **antrean review** tahap 6.
 
 ## Tahap 4 — Pembentukan Ruang
 
-1. Bangun **tapak dinding**: buffer tiap garis tengah dinding sebesar tebal/2 (cap flat, join mitre), lalu union semuanya. Bukaan pintu **tidak** memotong tapak, agar ruang tertutup.
+1. Bangun **tapak dinding**: buffer tiap garis tengah dinding sebesar tebal/2 (cap flat, join mitre), lalu union semuanya. Ujung yang bertemu dinding lain diperpanjang setengah tebal dinding **tuan rumah** (sudut L tertutup, ujung T berhenti di muka seberang); ujung yang hanya bertemu kolom diperpanjang setengah tebal sendiri ke dalam kolom. Bukaan pintu **tidak** memotong tapak, agar ruang tertutup. Dinding `kind: low` ikut membentuk kontur bangunan tetapi **tidak** membagi ruang.
 2. **Area interior** = poligon kontur luar bangunan (dari dinding `exterior` atau `meta.building_outline`) dikurangi tapak dinding dan tapak kolom. Bangunan terpisah (Gatsu: Capasitor Room di timur grid F) diproses sebagai kontur luar terpisah.
 2b. **`building_outline`** = union tapak semua dinding, kolom (termasuk `pilaster`), dan area interior, lalu diambil kontur luarnya per massa bangunan. Di Gatsu, hasilnya mencakup pita luar dengan blok sirip di luar grid. Area antara pita luar dan dinding utama menjadi ruang bertipe `outdoor`/`corridor` sesuai labelnya. Luas kotor (`gross_area_m2`) dihitung dari outline ini.
 3. **Polygonize**: setiap komponen poligon hasil pengurangan menjadi kandidat ruang. Kandidat < 1 m² atau dengan rasio aspek > 20 (sisa celah) dibuang. Area sangat tipis digabung ke tetangganya.
 4. **Label**: teks OCR `room_label` dipasangkan ke ruang yang memuat pusat bbox-nya. Bila satu ruang memuat beberapa label, dipilih label dengan skor leksikon tertinggi. Teks `annotation` diabaikan.
 5. **Tipe**: dipetakan dari leksikon (§4.3). Bila tidak cocok, tipe `other` dan masuk antrean review T3.
-6. **Turunan**: `holes` (tapak kolom yang sepenuhnya berada di dalam ruang), `area_m2` (bersih, dikurangi `holes`), `perimeter_m`, `bounding_walls` (dinding yang tapaknya bersentuhan), dan `doors` (pintu yang dinding induknya membatasi ruang).
+6. **Turunan**: `holes` (tapak kolom yang sepenuhnya berada di dalam ruang), `area_m2` (bersih, dikurangi `holes`), `perimeter_m`, `bounding_walls` (dinding yang tepi ruangnya berimpit dengan tapak sepanjang lebih dari tebal dinding; muka ujung tidak dihitung), dan `doors` (pintu yang segmen bukaannya berada dalam tebal/2 dari tepi ruang).
 6b. **Cek kebocoran ruang**: dua area yang seharusnya terpisah bisa menyatu lewat celah dinding yang tidak tertutup. Deteksi: ruang dengan "leher" sempit (lebar < 600 mm, dari erosi poligon) yang tidak memuat pintu, atau ruang yang memuat ≥ 2 label `room_label` berbeda. Penanganan: coba tutup leher dengan dinding sintetis (tebal = median tetangga), lalu terima bila skor validator naik. Bila tidak, catat warning dengan ID ruang agar bisa diperbaiki lewat panel koreksi.
 7. **Ruang tangga/lift**: ruang yang memuat flight dari §3.4b diberi tipe `stair` dan dihubungkan ke `stairs[].room_id`. Ruang dengan simbol silang dalam kotak diberi tipe `lift`.
 

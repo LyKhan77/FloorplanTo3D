@@ -66,8 +66,27 @@ def _grid_ref(ref) -> tuple[str, str] | None:
     return (f"G{m[1]}", f"G{m[2]}") if m else None
 
 
+ALLOWED_KEYS = {
+    "walls": {"id", "a", "b", "t", "kind", "free_ends", "allow_skew", "height", "base_z"},
+    "columns": {"id", "at", "shape", "size", "rotation", "kind", "grid", "height"},
+    "openings": {"id", "category", "wall", "offset", "width", "height", "sill", "type", "hinge", "swing", "leaf_split"},
+    "stairs": {"id", "flights", "landings", "top_z", "base_z"},
+    "rooms": {"at", "name", "type"},
+}
+
+
+def _check_keys(d: dict) -> None:
+    """A typo in the YAML must fail loudly, not silently drop a measurement."""
+    for section, allowed in ALLOWED_KEYS.items():
+        for entry in d.get(section, []):
+            unknown = set(entry) - allowed
+            if unknown:
+                raise ValueError(f"{section} entry {entry.get('id', entry)}: unknown key(s) {sorted(unknown)}")
+
+
 def load_gt(path: Path) -> Spec:
     d = yaml.safe_load(Path(path).read_text())
+    _check_keys(d)
     grid = build_grid(d["grid"])
     px_to_mm, _ = fit_px_to_mm({k: tuple(v) for k, v in d["calibration"].items()}, grid)
     image_path = Path(d["image"])
@@ -78,18 +97,20 @@ def load_gt(path: Path) -> Spec:
 
 
     walls = [Wall(id=x["id"], a=pt(x["a"]), b=pt(x["b"]), thickness=x["t"], kind=x["kind"],
-                  free_ends=x.get("free_ends", False), allow_skew=x.get("allow_skew", False), provenance=MANUAL)
+                  free_ends=x.get("free_ends", False), allow_skew=x.get("allow_skew", False),
+                  height=x.get("height"), base_z=x.get("base_z", 0), provenance=MANUAL)
              for x in d.get("walls", [])]
     columns = [Column(id=x["id"], center=pt(x["at"]), shape=x["shape"], size=tuple(x["size"]),
-                      rotation=x.get("rotation", 0), kind=x.get("kind", "structural"),
+                      rotation=x.get("rotation", 0), kind=x.get("kind", "structural"), height=x.get("height"),
                       grid_ref=_grid_ref(x["at"]) if x.get("grid") else None, provenance=MANUAL)
                for x in d.get("columns", [])]
     openings = [Opening(id=x["id"], category=x.get("category", "door"), wall_id=x["wall"], offset=x["offset"],
                         width=x["width"], height=x.get("height"),
                         sill=x.get("sill", 0 if x.get("category", "door") == "door" else Defaults().window_sill),
-                        door_type=x.get("type"), hinge=x.get("hinge"), swing=x.get("swing"), provenance=MANUAL)
+                        door_type=x.get("type"), hinge=x.get("hinge"), swing=x.get("swing"),
+                        leaf_split=x.get("leaf_split"), provenance=MANUAL)
                 for x in d.get("openings", [])]
-    stairs = [Stair(id=x["id"], top_z=x.get("top_z"), provenance=MANUAL,
+    stairs = [Stair(id=x["id"], top_z=x.get("top_z"), base_z=x.get("base_z", 0), provenance=MANUAL,
                     flights=[Flight(start=pt(f["start"]), end=pt(f["end"]), width=f["width"], risers=f["risers"])
                              for f in x["flights"]],
                     landings=[[pt(p) for p in poly] for poly in x.get("landings", [])])

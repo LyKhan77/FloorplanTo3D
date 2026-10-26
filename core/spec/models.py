@@ -161,7 +161,7 @@ RoomType = Literal[
 
 class Room(_Model):
     id: str
-    polygon: Polygon
+    polygon: Annotated[Polygon, Field(min_length=3)]
     holes: list[Polygon] = []
     name: str = ""
     type: RoomType = "other"
@@ -198,6 +198,11 @@ class Stair(_Model):
     top_z: Mm | None = None
     room_id: str | None = None
     provenance: Provenance = Provenance()
+
+    @field_validator("landings")
+    @classmethod
+    def _ccw(cls, v: list) -> list:
+        return [_oriented(p, ccw=True) for p in v]
 
 
 class PlacedObject(_Model):

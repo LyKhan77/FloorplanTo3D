@@ -98,7 +98,10 @@ export type Id5 = string;
 export type LabelPos = [number, number] | null;
 export type Name = string;
 export type PerimeterM = number;
-export type Polygon = [number, number][];
+/**
+ * @minItems 3
+ */
+export type Polygon = [[number, number], [number, number], [number, number], ...[number, number][]];
 export type Type =
   | "data_hall"
   | "ups_room"

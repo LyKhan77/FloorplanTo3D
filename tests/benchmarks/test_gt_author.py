@@ -73,3 +73,16 @@ def test_render_overlay_writes_image(tmp_path):
     render_overlay(s, Path("floorplan/plan.jpeg"), out)
     img = cv2.imread(str(out))
     assert img is not None and img.shape[:2] == (945, 1600)
+
+
+def test_load_gt_carries_heights_and_rejects_unknown_keys(tmp_path):
+    d = yaml.safe_load(minimal_yaml())
+    d["walls"].append({"id": "W5", "a": ["A3", 1000, 3000], "b": ["A3", 2000, 3000], "t": 100, "kind": "low",
+                       "height": 1000, "free_ends": True})
+    (tmp_path / "gt.yaml").write_text(yaml.safe_dump(d))
+    s = load_gt(tmp_path / "gt.yaml")
+    assert next(w for w in s.walls if w.id == "W5").height == 1000
+    d["walls"][-1]["heigth"] = 900
+    (tmp_path / "gt.yaml").write_text(yaml.safe_dump(d))
+    with pytest.raises(ValueError, match="heigth"):
+        load_gt(tmp_path / "gt.yaml")

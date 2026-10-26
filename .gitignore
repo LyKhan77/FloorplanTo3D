@@ -10,3 +10,4 @@ __pycache__/
 benchmarks/spike/crops/
 .superpowers/
 .playwright-mcp/
+.coverage

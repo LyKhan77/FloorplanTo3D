@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
+from core.spec.ids import seed_id_seq
 from core.spec.models import ProvenanceLogEntry, Spec
 from core.spec.ops import apply
 from core.spec.validate import Issue, ValidationResult, validate
@@ -69,6 +70,7 @@ class SpecStore:
         s.meta.run_id = run_id
         if message:
             s.provenance_log.append(ProvenanceLogEntry(op="commit", by=source, reason=message))
+        seed_id_seq(s)
         s = Spec.model_validate(s.model_dump())
         result = validate(s)
         if not result.passed:

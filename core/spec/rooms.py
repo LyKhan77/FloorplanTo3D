@@ -40,13 +40,16 @@ def _aspect(poly: SPolygon) -> float:
 
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
-    solids = [wall_footprint(w, spec) for w in spec.walls] + [column_footprint(c) for c in spec.columns]
-    union = unary_union(solids)
+    cols = [column_footprint(c) for c in spec.columns]
+    union = unary_union([wall_footprint(w, spec) for w in spec.walls] + cols)
+    # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
+    dividers = unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols)
     shells = [SPolygon(p.exterior) for p in _parts(union)]
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
-    interior = unary_union(outlines).difference(union) if outlines else SPolygon()
-    rooms = [p for p in _parts(interior) if p.area >= MIN_ROOM_AREA_MM2 and _aspect(p) <= MAX_ASPECT]
+    interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
+    pieces = [p.simplify(0) for p in _parts(interior)]  # drop collinear vertices left by abutting footprints
+    rooms = [p for p in pieces if p.area >= MIN_ROOM_AREA_MM2 and _aspect(p) <= MAX_ASPECT]
     return rooms, outlines
 
 
