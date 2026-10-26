@@ -1,0 +1,297 @@
+{
+  "$defs": {
+    "Clearance": {
+      "additionalProperties": false,
+      "properties": {
+        "back": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Back",
+          "type": "integer"
+        },
+        "front": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Front",
+          "type": "integer"
+        },
+        "left": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Left",
+          "type": "integer"
+        },
+        "right": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Right",
+          "type": "integer"
+        }
+      },
+      "title": "Clearance",
+      "type": "object"
+    },
+    "Dims": {
+      "additionalProperties": false,
+      "properties": {
+        "d": {
+          "exclusiveMinimum": 0,
+          "title": "D",
+          "type": "integer"
+        },
+        "h": {
+          "exclusiveMinimum": 0,
+          "title": "H",
+          "type": "integer"
+        },
+        "w": {
+          "exclusiveMinimum": 0,
+          "title": "W",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "w",
+        "d",
+        "h"
+      ],
+      "title": "Dims",
+      "type": "object"
+    },
+    "Range": {
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "exclusiveMinimum": 0,
+          "title": "Max",
+          "type": "integer"
+        },
+        "min": {
+          "exclusiveMinimum": 0,
+          "title": "Min",
+          "type": "integer"
+        },
+        "step": {
+          "exclusiveMinimum": 0,
+          "title": "Step",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "step"
+      ],
+      "title": "Range",
+      "type": "object"
+    },
+    "Resizable": {
+      "additionalProperties": false,
+      "properties": {
+        "d": {
+          "anyOf": [
+            {
+              "const": false,
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/Range"
+            }
+          ],
+          "title": "D"
+        },
+        "h": {
+          "anyOf": [
+            {
+              "const": false,
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/Range"
+            }
+          ],
+          "title": "H"
+        },
+        "w": {
+          "anyOf": [
+            {
+              "const": false,
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/Range"
+            }
+          ],
+          "title": "W"
+        }
+      },
+      "required": [
+        "w",
+        "d",
+        "h"
+      ],
+      "title": "Resizable",
+      "type": "object"
+    },
+    "Snap": {
+      "additionalProperties": false,
+      "properties": {
+        "align": {
+          "enum": [
+            "edge",
+            "center"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "grid_mm": {
+          "exclusiveMinimum": 0,
+          "title": "Grid Mm",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "grid_mm",
+        "align"
+      ],
+      "title": "Snap",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "allowed_room_types": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Room Types",
+      "type": "array"
+    },
+    "category": {
+      "enum": [
+        "rack",
+        "cooling",
+        "power",
+        "battery",
+        "network",
+        "fire",
+        "security",
+        "furniture",
+        "structure",
+        "other"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "clearance": {
+      "$ref": "#/$defs/Clearance",
+      "default": {
+        "back": 0,
+        "front": 0,
+        "left": 0,
+        "right": 0
+      }
+    },
+    "dims": {
+      "$ref": "#/$defs/Dims"
+    },
+    "front": {
+      "const": "+y",
+      "title": "Front",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Metadata",
+      "type": "object"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "pivot": {
+      "const": "bottom_center",
+      "title": "Pivot",
+      "type": "string"
+    },
+    "resizable": {
+      "$ref": "#/$defs/Resizable"
+    },
+    "scale_mode": {
+      "enum": [
+        "stretch",
+        "fixed"
+      ],
+      "title": "Scale Mode",
+      "type": "string"
+    },
+    "snap": {
+      "$ref": "#/$defs/Snap"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source"
+    },
+    "stackable": {
+      "default": false,
+      "title": "Stackable",
+      "type": "boolean"
+    },
+    "stats": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stats"
+    },
+    "tags": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "name",
+    "category",
+    "dims",
+    "pivot",
+    "front",
+    "resizable",
+    "scale_mode",
+    "snap"
+  ],
+  "title": "TemplateMeta",
+  "type": "object"
+}
