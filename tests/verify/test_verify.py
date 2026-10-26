@@ -54,3 +54,43 @@ def test_verify_without_image_skips_iou(built_fixture_dir):
     assert v["iou"] is None and "no input image: IoU skipped" in v["warnings"] and v["status"] == "succeeded"
     assert json.loads((built_fixture_dir / "verify.json").read_text()) == v
     assert v["grid_check"] == {"status": "skipped"} and v["iou_threshold"] == 0.85
+
+
+def fake_render(tmp_path, monkeypatch):
+    """verify_top.png with a black wall band, a plan image of the same size; glb check stubbed (no Blender)."""
+    import core.verify.run as run_mod
+
+    monkeypatch.setattr(run_mod, "glb_check", lambda path, doc: {"pass": True, "max_err_mm": 0, "checked": 0})
+    render = np.full((200, 300), 255, np.uint8)
+    render[90:110, 20:280] = 0
+    cv2.imwrite(str(tmp_path / "verify_top.png"), render)
+    plan = tmp_path / "plan.png"
+    cv2.imwrite(str(plan), np.full((200, 300, 3), 255, np.uint8))
+    mask = tmp_path / "wall_mask.png"
+    cv2.imwrite(str(mask), np.where(render < 128, 255, 0).astype(np.uint8))
+    return plan, mask
+
+
+def test_verify_uses_candidate_mask(tmp_path, monkeypatch):
+    plan, mask = fake_render(tmp_path, monkeypatch)
+    v = run_verify(tmp_path, spec_with_rooms(), {}, plan, plan_mask_path=mask)
+    assert v["iou"] == 1.0 and v["mask_source"] == "candidate"
+
+
+def test_imported_spec_falls_back_to_m2_mask(tmp_path, monkeypatch):
+    plan, _ = fake_render(tmp_path, monkeypatch)
+    v = run_verify(tmp_path, spec_with_rooms(), {}, plan)
+    assert v["mask_source"] == "m2" and any("mask M2" in w for w in v["warnings"])
+
+
+def test_verify_uses_mask_of_spec_run(tmp_path):
+    from core.pipeline import plan_mask_for
+
+    spec = spec_with_rooms()
+    assert plan_mask_for(tmp_path, spec) is None  # imported spec: no run
+    spec.meta.run_id = "r1"
+    mask = tmp_path / "runs" / "r1" / "stages" / "05_validate" / "wall_mask.png"
+    assert plan_mask_for(tmp_path, spec) is None  # the run left no mask
+    mask.parent.mkdir(parents=True)
+    mask.write_bytes(b"png")
+    assert plan_mask_for(tmp_path, spec) == mask

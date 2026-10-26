@@ -37,12 +37,16 @@ def verify_status(glb_pass: bool, iou_value: float | None) -> tuple[str, list[st
 
 
 def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None,
-               extra_warnings: list[str] | None = None) -> dict:
-    """extra_warnings: build-time warnings (e.g. skipped objects) persisted with the verification result."""
+               extra_warnings: list[str] | None = None, plan_mask_path: Path | None = None) -> dict:
+    """extra_warnings: build-time warnings (e.g. skipped objects) persisted with the verification result.
+
+    plan_mask_path: the chosen extraction candidate's wall mask in original pixels (PRD/06 §6.2). Without it the
+    M2 heuristic mask is used and the result says so."""
     out_dir = Path(out_dir)
     glb = glb_check(out_dir / "shell.glb", doc)
     warnings: list[str] = list(extra_warnings or [])
     iou_value = None
+    mask_source = "candidate" if plan_mask_path is not None and Path(plan_mask_path).exists() else "m2"
     render_path = out_dir / "verify_top.png"
     if image_path is None:
         warnings.append("no input image: IoU skipped")
@@ -51,7 +55,11 @@ def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None,
     else:
         render = cv2.imread(str(render_path), cv2.IMREAD_GRAYSCALE)
         render_mask = np.where(render < 128, 255, 0).astype(np.uint8)
-        plan_mask = plan_wall_mask(cv2.imread(str(image_path)))
+        if mask_source == "candidate":
+            plan_mask = np.where(cv2.imread(str(plan_mask_path), cv2.IMREAD_GRAYSCALE) > 0, 255, 0).astype(np.uint8)
+        else:
+            plan_mask = plan_wall_mask(cv2.imread(str(image_path)))
+            warnings.append("IoU memakai mask M2 (tanpa mask kandidat ekstraksi)")
         if plan_mask.shape != render_mask.shape:
             warnings.append(f"render {render_mask.shape} and plan {plan_mask.shape} sizes differ: IoU skipped")
         else:
@@ -59,6 +67,6 @@ def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None,
             cv2.imwrite(str(out_dir / "iou_mask.png"), diff_image(render_mask, plan_mask))
     status, status_warnings = verify_status(glb["pass"], iou_value)
     result = {"iou": iou_value, "iou_threshold": IOU_OK, "grid_check": grid_check(spec, None), "glb_check": glb,
-              "status": status, "warnings": warnings + status_warnings}
+              "status": status, "warnings": warnings + status_warnings, "mask_source": mask_source}
     (out_dir / "verify.json").write_text(json.dumps(result, indent=2) + "\n")
     return result

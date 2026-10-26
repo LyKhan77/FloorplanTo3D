@@ -52,9 +52,18 @@ def stage_build(spec: Spec, work: Path, image: Path | None, templates: Path | No
     return doc, warnings
 
 
-def stage_verify(spec: Spec, work: Path, doc: dict, image: Path | None, warnings: list[str]) -> dict:
+def plan_mask_for(project_dir: Path, spec: Spec) -> Path | None:
+    """Wall mask saved by the stage 5 that produced this spec (its run id), if that run left one."""
+    if not spec.meta.run_id:
+        return None
+    path = project_dir / "runs" / spec.meta.run_id / "stages" / "05_validate" / "wall_mask.png"
+    return path if path.exists() else None
+
+
+def stage_verify(spec: Spec, work: Path, doc: dict, image: Path | None, warnings: list[str],
+                 plan_mask: Path | None = None) -> dict:
     """Stage 8: glb 1:1, grid, IoU -> verify.json (build warnings are persisted with it)."""
-    return run_verify(work, spec, doc, image, extra_warnings=warnings)
+    return run_verify(work, spec, doc, image, extra_warnings=warnings, plan_mask_path=plan_mask)
 
 
 def blender_version(work: Path) -> str:

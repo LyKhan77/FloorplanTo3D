@@ -25,7 +25,7 @@ from core.extraction.stages import (
     stage_rooms,
     stage_validate,
 )
-from core.pipeline import publish, stage_build, stage_report, stage_verify
+from core.pipeline import plan_mask_for, publish, stage_build, stage_report, stage_verify
 from core.spec.store import SpecStore
 from server.errors import ApiError
 from server.events import EventBus
@@ -142,7 +142,8 @@ def _build(ctx: StageContext) -> dict:
 
 def _verify(ctx: StageContext) -> dict:
     s = ctx.state
-    v = stage_verify(s["spec"], ctx.work_dir, s["doc"], s["image"], s["warnings"])
+    v = stage_verify(s["spec"], ctx.work_dir, s["doc"], s["image"], s["warnings"],
+                     plan_mask_for(ctx.project_dir, s["spec"]))
     s["verify"] = v
     status = {"needs_attention": "needs_attention", "failed": "failed"}.get(v["status"], "succeeded")
     return {"status": status, "warnings": v["warnings"],

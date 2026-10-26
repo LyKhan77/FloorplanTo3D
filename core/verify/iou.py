@@ -9,7 +9,8 @@ MIN_COMPONENT_PX = 40
 def plan_wall_mask(image: np.ndarray, ocr: bool = True) -> np.ndarray:
     """Simple wall mask: ink pixels (Otsu threshold), text removed, double lines closed, thin lines opened away.
 
-    ponytail: M2 heuristic; M5 replaces it with the chosen extraction candidate's wall mask.
+    ponytail: M2 heuristic, only for specs without an extraction run (imported); stage 8 otherwise uses
+    the chosen candidate's wall mask (05_validate/wall_mask.png).
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
     # Otsu adapts to the drawing's ink tone (JPEG wall lines are often grey, not black)
