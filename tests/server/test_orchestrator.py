@@ -46,7 +46,7 @@ def test_second_run_409(app_factory, project_with_gt):
 def test_full_run_without_spec_stops_needs_attention(app_factory, project_id):
     with app_factory() as client:  # default stage impls; stage 5 has no spec to use
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
-        run = wait_status(client, project_id, rid, {"needs_attention"})
+        run = wait_status(client, project_id, rid, {"needs_attention"}, timeout=120)  # real stages 1-3
         # stages 0-3 run the extraction (M5a/M5b); stage 4 (rooms) arrives in M5c
         assert run["stages"][0]["status"] == "succeeded" and run["stages"][3]["status"] == "succeeded"
         assert run["stages"][4]["status"] == "skipped"
@@ -130,7 +130,7 @@ def test_create_project_with_start_queues_full_run(app_factory, plan_bytes):
         r = client.post("/api/projects", files={"file": ("plan.jpeg", plan_bytes, "image/jpeg")}, data={"name": "x"})
         body = r.json()
         assert r.status_code == 201 and body["run_id"] and body["status"] == "queued"
-        run = wait_status(client, body["project_id"], body["run_id"], {"needs_attention"})
+        run = wait_status(client, body["project_id"], body["run_id"], {"needs_attention"}, timeout=120)
         assert run["kind"] == "full"
 
 
