@@ -17,7 +17,7 @@ Versi skema: `schema_version: "1.0"`. Perubahan yang tidak kompatibel menaikkan 
 | Lantai | z = 0 adalah permukaan lantai jadi |
 | Konversi ke Blender | 1 unit Blender = 1 m. `X_bl = x/1000`, `Y_bl = y/1000`, `Z_bl = z/1000` |
 | Konversi ke glTF | Y-up. `X_gl = x/1000`, `Y_gl = z/1000`, `Z_gl = -y/1000` (dilakukan otomatis oleh exporter Blender) |
-| ID | Prefiks tipe + nomor urut: `W` dinding, `C` kolom, `D` pintu, `N` jendela, `R` ruang, `O` objek, `G` grid. ID **stabil antar-versi**: elemen yang tidak berubah mempertahankan ID-nya. ID yang dihapus tidak dipakai ulang. |
+| ID | Prefiks tipe + nomor urut: `W` dinding, `C` kolom, `D` pintu, `N` jendela, `R` ruang, `S` tangga, `O` objek, `G` grid. ID **stabil antar-versi**: elemen yang tidak berubah mempertahankan ID-nya. ID yang dihapus tidak dipakai ulang. |
 | Poligon | Daftar titik `[x, y]` berlawanan arah jarum jam, tanpa titik penutup duplikat |
 
 ## 2. Struktur Tingkat Atas
@@ -57,6 +57,7 @@ Versi skema: `schema_version: "1.0"`. Perubahan yang tidak kompatibel menaikkan 
 | `defaults` | object | `{ "wall_height": 3000, "wall_thickness": 150, "door_height": 2100, "window_sill": 900, "window_height": 1200, "floor_to_floor": 4000 }`. `floor_to_floor` = tinggi lantai ke lantai di atasnya, dipakai sebagai tinggi total tangga. |
 | `building_outline` | polygon[] | Kontur **terluar** bangunan, termasuk pita luar, blok sirip/pilaster, dan bangunan terpisah (mis. Capasitor Room). Satu poligon per massa bangunan. Dipakai untuk slab dan luas kotor. |
 | `gross_area_m2` | number | **Turunan**: luas total `building_outline`. Sesuai keputusan Gatsu, pita luar ikut dihitung. |
+| `id_seq` | object | Nomor terakhir yang pernah dipakai per prefiks ID (`{"W": 41, ...}`), agar ID yang dihapus tidak dipakai ulang. Dikelola core. |
 
 ## 4. `grid`
 
