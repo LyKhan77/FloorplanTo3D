@@ -42,7 +42,9 @@ export function pushOp(base: Spec, ops: EditorOp[], op: EditorOp): { ops: Editor
   if (op.op === 'update_object' && op.locked != null) return { error: 'Save dulu sebelum mengunci objek baru' }
   if (!rule.fields) return { ops: ops.filter((_, i) => i !== k) }
   const patch = Object.fromEntries(Object.entries(op).filter(([f, v]) => rule.fields!.includes(f) && v !== undefined))
-  return { ops: ops.map((o, i) => (i === k ? ({ ...o, ...patch } as EditorOp) : o)) }
+  // a creation op takes "absent" for cleared fields: the server refuses explicit nulls on add_* ops
+  const merge = (o: EditorOp) => Object.fromEntries(Object.entries({ ...o, ...patch }).filter(([, v]) => v !== null)) as EditorOp
+  return { ops: ops.map((o, i) => (i === k ? merge(o) : o)) }
 }
 
 /** What fails if the local ops are replayed on `head` (another tab saved first). */

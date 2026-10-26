@@ -25,6 +25,9 @@ describe('pushOp', () => {
     ops = push(gt, ops, { op: 'update_object', id: 'O1', position: [1000, 2000, 0], rotation: 90 })
     expect(ops).toEqual([{ ...addAt(0), position: [1000, 2000, 0], rotation: 90 }])
     expect(push(gt, ops, { op: 'delete_object', id: 'O1' })).toEqual([])
+    // label: null clears the label; add_object must then omit it (the server refuses null there)
+    const labelled = push(gt, push(gt, [addAt(0)], { op: 'update_object', id: 'O1', label: 'A' }), { op: 'update_object', id: 'O1', label: null })
+    expect(labelled).toEqual([addAt(0)])
 
     const addDoor: EditorOp = { op: 'add_opening', wall_id: 'W1', category: 'door', offset: 1000, width: 900 }
     ops = push(gt, [addDoor], { op: 'set_door', id: 'D20', width: 1000 })

@@ -1,5 +1,5 @@
 import { ActionableNotification, Button, InlineNotification, Loading, ToastNotification } from '@carbon/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRegenerate } from '../api/hooks'
 import type { Run } from '../api/types'
 import { RebaseDialog } from './RebaseDialog'
@@ -14,6 +14,7 @@ import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
 import { useRegenerateFlow } from './useRegenerateFlow'
 import { useSave } from './useSave'
+import { useShortcuts } from './useShortcuts'
 import { useValidate } from './useValidate'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
@@ -25,12 +26,16 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const regenerate = useRegenerate(projectId)
   const flow = useRegenerateFlow(projectId, run)
   const saver = useSave(projectId, flow.regenerate)
+  const { save } = saver
+  const onSave = useCallback(() => void save(), [save])
+  useShortcuts(data.templates, onSave)
   const [left, setLeft] = useState(true)
   const [right, setRight] = useState(true)
   const notice = useEditorStore((s) => s.notice)
   const setNotice = useEditorStore((s) => s.setNotice)
   const previewBanner = useEditorStore((s) => s.previewBanner)
   const tool = useEditorStore((s) => s.tool)
+  const mode = useEditorStore((s) => s.mode)
   const ops = useEditorStore((s) => s.ops)
   const baseVersion = useEditorStore((s) => s.baseVersion)
   const base = useEditorStore((s) => s.base)
@@ -63,7 +68,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   return (
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
-        onSave={() => void saver.save()} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
+        onSave={onSave} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
       <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />
       {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
       <div className="editor__viewport">
@@ -75,6 +80,10 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
         {previewBanner && (
           <InlineNotification kind="warning" lowContrast hideCloseButton title=""
             subtitle="Pratinjau: bukaan pintu belum akurat sampai regenerate" />
+        )}
+        {mode === 'walk' && (
+          <InlineNotification kind="info" lowContrast hideCloseButton title=""
+            subtitle="Walk: klik viewport untuk mulai, WASD/panah untuk jalan, Shift lari, Esc keluar" />
         )}
         {geometryChanged && (
           <InlineNotification kind="warning" lowContrast hideCloseButton title=""

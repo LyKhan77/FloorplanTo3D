@@ -39,6 +39,8 @@ describe('transform', () => {
   it('duplicateOps offsets by one snap step', () => {
     expect(duplicateOps([obj('O1', 100, 200, { label: 'A' })], 600)).toEqual([{ op: 'add_object', template_id: 'rack',
       template_version: '1', position: [700, 200, 0], rotation: 0, dims: [600, 1200, 2000], label: 'A' }])
+    // the server rejects an explicit null on add_object fields
+    expect(duplicateOps([obj('O1', 100, 200, { label: null })], 600)[0]).not.toHaveProperty('label')
   })
 
   it('locked objects are excluded', () => {

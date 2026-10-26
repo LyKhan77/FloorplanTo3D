@@ -1,7 +1,7 @@
 import { MapControls, OrbitControls, OrthographicCamera, PerspectiveCamera } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
-import { MOUSE, type Camera } from 'three'
+import { MOUSE, type Camera, type Vector3 } from 'three'
 import { toThree } from '../lib/coords'
 import { useEditorStore } from '../store'
 import { specBounds, type Bounds } from './bounds'
@@ -10,9 +10,11 @@ import { AddWallTool } from './AddWallTool'
 import { DropGhost } from './DropGhost'
 import { GeometryPreview } from './GeometryPreview'
 import { justDragged } from './gizmoState'
+import { Clearance } from './Clearance'
 import { Marquee } from './Marquee'
 import { MeasureLayer } from './MeasureLayer'
 import { TransformGizmo } from './TransformGizmo'
+import { EYE, WalkControls } from './WalkControls'
 import { ObjectsLayer } from './ObjectsLayer'
 import { SceneHelpers } from './SceneHelpers'
 import { Shell } from './Shell'
@@ -35,6 +37,16 @@ function CameraRig({ bounds }: { bounds: Bounds }) {
       </>
     )
   }
+  if (mode === 'walk') {
+    const [x, y] = useEditorStore.getState().focus ?? [cx, cy]
+    const eye = toThree([x, y, EYE * 1000])
+    return (
+      <>
+        <PerspectiveCamera makeDefault position={eye} fov={70} near={0.05} far={500} />
+        <WalkControls />
+      </>
+    )
+  }
   const r = Math.max(w, d)
   return (
     <>
@@ -47,6 +59,26 @@ function CameraRig({ bounds }: { bounds: Bounds }) {
 function CameraBridge({ onCamera }: { onCamera(c: Camera): void }) {
   const current = useThree((s) => s.camera)
   useEffect(() => onCamera(current), [onCamera, current])
+  return null
+}
+
+/** Rooms list: walk mode teleports to the room, other modes move the camera target onto it. */
+function Focus() {
+  const focus = useEditorStore((s) => s.focus)
+  const { camera, controls } = useThree()
+  useEffect(() => {
+    if (!focus) return
+    const [x, , z] = toThree([focus[0], focus[1], 0])
+    const target = (controls as unknown as { target?: Vector3; update?: () => void } | null)?.target
+    if (useEditorStore.getState().mode === 'walk' || !target) {
+      camera.position.set(x, EYE, z)
+      return
+    }
+    const dx = x - target.x, dz = z - target.z
+    target.set(x, target.y, z)
+    camera.position.set(camera.position.x + dx, camera.position.y, camera.position.z + dz)
+    ;(controls as unknown as { update?: () => void }).update?.()
+  }, [focus, camera, controls])
   return null
 }
 
@@ -90,6 +122,8 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
       <TransformGizmo templates={templates} />
       <MeasureLayer key={tool} />
       <GeometryPreview />
+      <Clearance templates={templates} />
+      <Focus />
       {tool === 'add-wall' && mode === 'top' && <AddWallTool />}
       <CameraBridge onCamera={setCamera} />
       <SceneHelpers />

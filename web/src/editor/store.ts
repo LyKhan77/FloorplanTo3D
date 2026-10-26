@@ -48,6 +48,7 @@ interface EditorState {
   dragging: Template | null
   gizmo: Gizmo
   wallDraft: { a?: [number, number]; b?: [number, number] }
+  focus: [number, number] | null
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -73,6 +74,7 @@ interface EditorState {
   setDragging(t: Template | null): void
   setGizmo(g: Gizmo): void
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
+  setFocus(p: [number, number] | null): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -108,7 +110,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {},
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, focus: null,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {} }),
     apply: (op) => get().applyMany([op]),
@@ -160,5 +162,6 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setDragging: (dragging) => set({ dragging }),
     setGizmo: (gizmo) => set({ gizmo }),
     setWallDraft: (wallDraft) => set({ wallDraft }),
+    setFocus: (focus) => set({ focus }),
   }
 })

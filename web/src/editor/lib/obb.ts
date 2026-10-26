@@ -47,3 +47,11 @@ export function collisions(spec: Spec): { a: string; b: string }[] {
   })
   return hits
 }
+
+const cache = new WeakMap<Spec, { a: string; b: string }[]>()
+
+/** collisions() memoised per view object (the store hands out a new view on every ops change). */
+export function collisionsOf(spec: Spec): { a: string; b: string }[] {
+  // ponytail: O(n²) SAT over all objects; a grid bucket index if 500+ objects make edits lag
+  return cache.get(spec) ?? cache.set(spec, collisions(spec)).get(spec)!
+}

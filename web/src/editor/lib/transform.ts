@@ -50,7 +50,7 @@ export function duplicateOps(objs: PlacedObject[], stepMm: number): EditorOp[] {
   return unlocked(objs).map((o) => ({
     op: 'add_object', template_id: o.template_id, template_version: o.template_version,
     position: [o.position[0] + stepMm, o.position[1], o.position[2]], rotation: o.rotation ?? 0, dims: o.dims,
-    label: o.label ?? null,
+    ...(o.label != null ? { label: o.label } : {}), // add_object refuses an explicit null
   }))
 }
 

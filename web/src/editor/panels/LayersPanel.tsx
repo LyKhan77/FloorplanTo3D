@@ -8,7 +8,7 @@ const LABELS: [Layer, string][] = [
 const CUT_DEFAULT = 3000
 
 export function LayersPanel() {
-  const { layers, toggleLayer, cutaway, setCutaway, view, select, selection } = useEditorStore()
+  const { layers, toggleLayer, cutaway, setCutaway, view, select, selection, setFocus, mode } = useEditorStore()
   return (
     <section className="editor-panel" aria-label="Layers">
       <h4 className="editor-panel__title">Layer</h4>
@@ -25,7 +25,8 @@ export function LayersPanel() {
       <ul className="editor-rooms">
         {(view?.rooms ?? []).map((r) => (
           <li key={r.id}>
-            <Button kind={selection.includes(r.id) ? 'secondary' : 'ghost'} size="sm" onClick={() => select([r.id])}>
+            <Button kind={selection.includes(r.id) ? 'secondary' : 'ghost'} size="sm" onClick={() => { select([r.id]); if (r.label_pos) setFocus([r.label_pos[0], r.label_pos[1]]) }}
+              title={mode === 'walk' ? 'Teleport ke ruang ini' : 'Fokus kamera ke ruang ini'}>
               {r.name ? `${r.name} · ${r.id}` : r.id}
             </Button>
           </li>

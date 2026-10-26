@@ -4,6 +4,7 @@ import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { InstancedMesh, Matrix4, Mesh, type Object3D } from 'three'
 import type { Template } from '../../api/types'
 import type { PlacedObject } from '../../types/spec'
+import { collisionsOf } from '../lib/obb'
 import { useEditorStore } from '../store'
 import { justDragged } from './gizmoState'
 import { boxEdges, objectMatrix, shouldInstance, unitBox } from './objectMatrix'
@@ -78,7 +79,9 @@ export function ObjectsLayer({ templates }: { templates: Template[] }) {
     useEditorStore.getState().setMissingTemplates(missingKey ? missingKey.split(',') : [])
   }, [missingKey])
 
-  const selected = (objects ?? []).filter((o) => selection.includes(o.id))
+  const view = useEditorStore((s) => s.view)
+  const clashing = useMemo(() => new Set(view ? collisionsOf(view).map((c) => c.a) : []), [view])
+  const selected = (objects ?? []).filter((o) => selection.includes(o.id) || clashing.has(o.id))
   return (
     <group visible={visible}>
       {groups.map(([k, objs]) => registry.has(k) && (
@@ -91,7 +94,7 @@ export function ObjectsLayer({ templates }: { templates: Template[] }) {
       ))}
       {selected.map((o) => (
         <lineSegments key={o.id} geometry={boxEdges} matrix={objectMatrix(o, undefined)} matrixAutoUpdate={false} renderOrder={10}>
-          <lineBasicMaterial color="#0f62fe" depthTest={false} transparent />
+          <lineBasicMaterial color={clashing.has(o.id) ? '#fa4d56' : '#0f62fe'} depthTest={false} transparent />
         </lineSegments>
       ))}
     </group>
