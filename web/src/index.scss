@@ -466,6 +466,7 @@ body {
 .editor__toolbar {
   grid-area: toolbar;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
@@ -722,6 +723,15 @@ body {
 .editor-issue__ids .cds--btn {
   min-height: 1.5rem;
   padding: 0 0.25rem;
+}
+
+.editor__progress {
+  width: 9rem;
+}
+
+.editor-rebase {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
 }
 
 .editor-room-label,

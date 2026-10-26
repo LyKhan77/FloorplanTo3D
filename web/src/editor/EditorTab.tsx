@@ -1,7 +1,8 @@
-import { Button, InlineNotification, Loading, ToastNotification } from '@carbon/react'
+import { ActionableNotification, Button, InlineNotification, Loading, ToastNotification } from '@carbon/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRegenerate } from '../api/hooks'
 import type { Run } from '../api/types'
+import { RebaseDialog } from './RebaseDialog'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
 import { geometryDiff, isEmptyDiff } from './lib/geometryDiff'
@@ -11,6 +12,8 @@ import { LibraryPanel } from './panels/LibraryPanel'
 import { MeasurePanel } from './panels/MeasurePanel'
 import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
+import { useRegenerateFlow } from './useRegenerateFlow'
+import { useSave } from './useSave'
 import { useValidate } from './useValidate'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
@@ -20,6 +23,8 @@ if (import.meta.env.DEV) (window as unknown as { __editor: typeof useEditorStore
 export function EditorTab({ projectId, run }: { projectId: string; run: Run | null }) {
   const data = useEditorData(projectId)
   const regenerate = useRegenerate(projectId)
+  const flow = useRegenerateFlow(projectId, run)
+  const saver = useSave(projectId, flow.regenerate)
   const [left, setLeft] = useState(true)
   const [right, setRight] = useState(true)
   const notice = useEditorStore((s) => s.notice)
@@ -32,7 +37,6 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const view = useEditorStore((s) => s.view)
   const validation = useValidate(projectId, baseVersion, ops)
   const geometryChanged = useMemo(() => !!base && !!view && !isEmptyDiff(geometryDiff(base, view)), [base, view])
-  void run // consumed by Save/Regenerate (Task 13)
 
   // Load HEAD once per project; a refetch never discards local ops (a newer HEAD is handled by Save's rebase).
   useEffect(() => {
@@ -58,7 +62,9 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const cls = ['editor', left ? '' : 'editor--no-left', right ? '' : 'editor--no-right'].filter(Boolean).join(' ')
   return (
     <div className={cls}>
-      <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)} />
+      <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
+        onSave={() => void saver.save()} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
+      <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />
       {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
       <div className="editor__viewport">
         <div className="editor__banners">
@@ -75,7 +81,12 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
             subtitle="Geometri berubah: Save + Regenerate untuk melihat hasil 3D" />
         )}
         </div>
-        {notice && (
+        {notice?.action && (
+          <ActionableNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast inline
+            title={notice.text} actionButtonLabel={notice.action.label}
+            onActionButtonClick={() => { notice.action!.onClick(); setNotice(null) }} onClose={() => { setNotice(null); return false }} />
+        )}
+        {notice && !notice.action && (
           <ToastNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast title={notice.text}
             timeout={notice.kind === 'error' ? 0 : 5000} onClose={() => { setNotice(null); return false }} />
         )}

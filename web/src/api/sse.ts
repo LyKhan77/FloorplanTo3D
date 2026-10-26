@@ -31,6 +31,7 @@ export function useProjectEvents(id: string | undefined, onEvent: (e: ApiEvent) 
       if (e.type === 'spec.created') {
         qc.invalidateQueries({ queryKey: ['specs', id] })
         qc.invalidateQueries({ queryKey: ['project', id] })
+        qc.invalidateQueries({ queryKey: ['spec', id] })
       }
       if (e.type === 'output.ready') qc.invalidateQueries({ queryKey: ['outputs', id] })
     }

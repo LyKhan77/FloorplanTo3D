@@ -59,4 +59,5 @@ test('spec.created refreshes the project header (HEAD version) as well as the ve
   const keys = spy.mock.calls.map(([f]) => f?.queryKey)
   expect(keys).toContainEqual(['specs', 'p1'])
   expect(keys).toContainEqual(['project', 'p1'])
+  expect(keys).toContainEqual(['spec', 'p1']) // editor HEAD: reloads when it has no local ops
 })

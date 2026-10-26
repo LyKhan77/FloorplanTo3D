@@ -18,7 +18,7 @@ export interface Measurement {
   label: string
 }
 export interface Issue { code: string; severity: 'error' | 'warning' | 'info'; element_ids: string[]; message: string }
-export interface Notice { kind: 'error' | 'warning' | 'info'; text: string }
+export interface Notice { kind: 'error' | 'warning' | 'info'; text: string; action?: { label: string; onClick(): void } }
 
 const UNDO_CAP = 100
 

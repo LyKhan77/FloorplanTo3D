@@ -7,3 +7,10 @@ afterEach(cleanup)
 
 // jsdom has no layout; Carbon's Dropdown scrolls the highlighted option into view
 Element.prototype.scrollIntoView ??= () => {}
+
+// Carbon's Modal observes its body size; jsdom has no ResizeObserver
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
