@@ -189,7 +189,7 @@ def _erase_axes(work: np.ndarray, axes, w: float, bbox) -> list[str]:
     return erased
 
 
-def _erase_dimension_lines(work: np.ndarray, texts: list[dict], w: float) -> None:
+def _erase_dimension_lines(work: np.ndarray, texts: list[dict], w: float, pair_px: float) -> None:
     """Dimension lines: thin straight lines parallel to a dimension text, within 1.5 text heights of it."""
     dims = [t for t in texts if t.get("cls") == "dimension"]
     if not dims:
@@ -200,7 +200,10 @@ def _erase_dimension_lines(work: np.ndarray, texts: list[dict], w: float) -> Non
         horizontal = bx1 - bx0 >= by1 - by0
         length, height = (bx1 - bx0, by1 - by0) if horizontal else (by1 - by0, bx1 - bx0)
         cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
-        for sx0, sy0, sx1, sy1 in segs:
+        for seg in segs:
+            sx0, sy0, sx1, sy1 = seg
+            if _has_partner(seg, segs, pair_px):
+                continue  # one line of a double-line wall, not a dimension line
             if horizontal and abs(sy1 - sy0) <= 1 and abs(sx1 - sx0) >= length and abs((sy0 + sy1) / 2 - cy) <= 1.5 * height \
                     and min(sx0, sx1) <= cx <= max(sx0, sx1):
                 y = round((sy0 + sy1) / 2)
@@ -211,7 +214,7 @@ def _erase_dimension_lines(work: np.ndarray, texts: list[dict], w: float) -> Non
                 runs = _thin_runs(work, [(x, y) for y in range(round(min(sy0, sy1)), round(max(sy0, sy1)) + 1)], True)
             else:
                 continue
-            _erase(work, runs, not horizontal, THIN_FRAC * w + 1)
+            _erase(work, runs, not horizontal, THIN_FRAC * w)
 
 
 def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], drawing_bbox, s: float,
@@ -227,7 +230,7 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     texts = sorted((t for t in ocr_items if t.get("cls") != "grid_label"), key=lambda t: (t["bbox"][1], t["bbox"][0]))
     w0 = stroke_width(work)
     erased_axes = _erase_axes(work, axes, w0, drawing_bbox)
-    _erase_dimension_lines(work, texts, w0)
+    _erase_dimension_lines(work, texts, w0, PAIR_MAX_MM / s)
     leader_segs, pointers = _leaders(work, texts, s)
     clean = work.copy()
     for t in texts:

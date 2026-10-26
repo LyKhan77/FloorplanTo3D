@@ -163,3 +163,13 @@ def test_gatsu_axes_not_erased():
     g = gatsu()
     m = build_masks(g["binary"], g["colour"], g["ocr"], g["meta"]["drawing_bbox"], g["s"], g["grid"]["axes"])
     assert m["erased_axes"] == []  # Gatsu's grid is drawn in colour and already removed
+
+
+def test_dimension_text_next_to_a_wall_keeps_the_wall_line():
+    img = canvas()
+    for y in (190, 210):  # thin double-line wall (stroke width measures 3 px, as on Gatsu)
+        line(img, (50, y), (550, y), 2)
+    img[218:228, 280:320] = 255  # glyphs of a dimension text just inside the room
+    dim = text_item("3000", (280, 216, 320, 228), "dimension")
+    m = build_masks(img, no_colour(img), [dim], FULL, S)
+    assert m["clean"][210, 100] and m["clean"][210, 500] and m["clean"][190, 100]
