@@ -213,23 +213,23 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** editor interaktif lengkap di atas shell Gatsu. Referensi: `07-web-editor.md`.
 
 ### Tugas
-- [ ] Viewport R3F: muat `shell.glb` (cache ETag), pemetaan `userData.spec_id`, pencahayaan, grid 600 mm, toggle layer, cutaway.
-- [ ] Mode Orbit dan Top. Mode Walk (P1).
-- [ ] Seleksi (raycast) + outline + panel Properties per tipe.
-- [ ] **Tool ukur:** jarak (snap vertex/edge, kunci sumbu), luas ruang (dari spec), luas bebas (shoelace), tinggi.
-- [ ] **Tinggi dinding:** global + per dinding, pratinjau skala Z + banner.
-- [ ] **Library template:** panel kiri, pencarian, kategori, thumbnail.
-- [ ] **Drag & drop:** ghost, raycast lantai, snap edge/center, tolak di luar ruang.
-- [ ] **Transform:** pindah, rotasi (90°/15°/bebas), resize per sumbu dengan batas `resizable`, input numerik, duplikat, hapus, kunci, multi-seleksi.
-- [ ] **Store ops lokal** (Zustand) + reducer TS. Unit test Vitest untuk reducer dan util ukur.
-- [ ] **Panel koreksi geometri** (`07-web-editor.md` §6b, FR-WE-15), 2 hari:
+- [x] Viewport R3F: muat `shell.glb` (cache ETag), pemetaan `userData.spec_id`, pencahayaan, grid 600 mm, toggle layer, cutaway.
+- [x] Mode Orbit dan Top. Mode Walk (P1).
+- [x] Seleksi (raycast) + outline + panel Properties per tipe.
+- [x] **Tool ukur:** jarak (snap vertex/edge, kunci sumbu), luas ruang (dari spec), luas bebas (shoelace), tinggi.
+- [x] **Tinggi dinding:** global + per dinding, pratinjau skala Z + banner.
+- [x] **Library template:** panel kiri, pencarian, kategori, thumbnail.
+- [x] **Drag & drop:** ghost, raycast lantai, snap edge/center, tolak di luar ruang.
+- [x] **Transform:** pindah, rotasi (90°/15°/bebas), resize per sumbu dengan batas `resizable`, input numerik, duplikat, hapus, kunci, multi-seleksi.
+- [x] **Store ops lokal** (Zustand) + reducer TS. Unit test Vitest untuk reducer dan util ukur.
+- [x] **Panel koreksi geometri** (`07-web-editor.md` §6b, FR-WE-15), 2 hari:
   - form dinding (ubah/tambah/pisah/gabung/hapus), tambah dinding dengan dua klik di mode Top;
   - form pintu/jendela (ubah/tambah/hapus) dan tangga (ubah/balik arah/hapus);
   - pratinjau 2D oranye, validasi langsung via `/specs/validate`, banner regenerate.
-- [ ] **Save:** `POST /specs`, tangani 201/409 (rebase sederhana)/422.
-- [ ] **Regenerate:** progress via SSE, reload shell dengan kamera dan seleksi dipertahankan.
-- [ ] InstancedMesh untuk template dengan > 20 instance.
-- [ ] Undo/redo (P1), tabrakan OBB + clearance (P1), pintasan keyboard.
+- [x] **Save:** `POST /specs`, tangani 201/409 (rebase sederhana)/422.
+- [x] **Regenerate:** progress via SSE, reload shell dengan kamera dan seleksi dipertahankan.
+- [x] InstancedMesh untuk template dengan > 20 instance.
+- [x] Undo/redo (P1), tabrakan OBB + clearance (P1), pintasan keyboard.
 
 ### Kriteria selesai
 - Kriteria sukses MVP #3 terpenuhi pada GT Gatsu:
@@ -243,6 +243,33 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Konflik versi (dua tab mengedit) ditangani tanpa kehilangan ops lokal.
 
 **FR:** FR-WE-01…13, FR-WE-15.
+
+**Status M4 (2026-10-26), branch `m4-editor`:**
+- Alur kriteria selesai dijalankan di browser (Playwright, project baru `gatsu-editor`, GT diimpor lalu regenerate v1):
+  - luas R. MEETING lewat tool "Luas ruang" = 67.48 m² (sama dengan `area_m2`); "Ukur tinggi" pada dinding menampilkan tinggi spec (W2: 3.000 m);
+  - GALERY (R29) diubah tipenya menjadi `data_hall`, lalu "Tinggi dinding ruang ini" = 4500 mm (27 dinding pembatas, banner pratinjau tampil);
+  - rack-42u, crac-unit, dan ups-cabinet di-drop ke R29 dan di-resize lewat input dimensi (nilai di-clamp ke `step` template);
+  - panel Koreksi: W56 dihapus (alasan "duplikat"), satu dinding ditambah dengan dua klik di mode Top, lebar D3 830 → 930 mm. Garis oranye dan banner "Geometri berubah" tampil, panel Masalah menampilkan validasi live;
+  - Save → v2, Regenerate dari toolbar (progress build → verify → report → publish, 14.8 s). Shell v2 dimuat ulang di canvas yang sama, seleksi tetap.
+  - Hasil di `outputs/v2`: `layout_full.glb` berisi `obj_O1`–`obj_O3`, `report.html` mencantumkan ketiga template, `layout.blend` ditulis ulang, W56 tidak ada lagi di `shell.glb`.
+  - Catatan: dinding tambahan kebetulan tepat menumpuk W70 (kedua klik ter-snap ke ujung W70), sehingga builder membuangnya sebagai duplikat (V007 overlap 620 mm).
+- Presisi ukur: jarak antar-persimpangan sumbu grid di mode Top = 6000, 6000, dan 6000 mm (spec 6000), galat 0 mm.
+- Performa: 500 `rack-42u-600x1200` (satu InstancedMesh) di Chromium dengan GPU (ANGLE Metal, Apple M4): **60 fps** rata-rata dan minimum selama orbit 5 s (dibatasi vsync).
+  - Hanya ~190 rack muat di dalam ruang GT tanpa tumpang tindih, sehingga 310 sisanya sengaja ditumpuk (tabrakan hanya peringatan). Ini juga menjadi kasus terburuk untuk deteksi tabrakan: satu edit memakan ~85–100 ms termasuk dua frame.
+- Konflik dua tab: B mengubah lebar D2 dan menambah rack, sementara A menghapus D2, memindah O1, lalu Save (v9). Save B → 409 → dialog rebase mendaftar `set_door D2` sebagai gagal. "Terapkan ke v9" membuang op itu saja, lalu Save → v10: rack B (O504) ada, posisi O1 milik A tidak berubah. Tab yang belum punya ops lokal otomatis mengikuti HEAD baru lewat SSE.
+- Bug yang ditemukan saat E2E dan sudah diperbaiki dengan test:
+  - op `add_object` dengan `label: null` ditolak server;
+  - loop dropdown tipe ruang (Downshift + Modal yang selalu ter-mount);
+  - tampilan Top miring setelah fokus ruang;
+  - progress regenerate ditampilkan sebagai "750%".
+- Suite: pytest 203 passed, 2 xfailed (termasuk fixture paritas reducer klien ↔ `core.spec.ops`); Vitest 131 passed; oxlint dan build bersih.
+- **Penyimpangan dari PRD/07:**
+  - toggle "kualitas tinggi" (SSAO, §9) tidak dibuat, karena butuh dependensi `postprocessing`;
+  - snap objek ke dinding (P1) tidak dibuat;
+  - origin grid per ruang (P2) tidak dibuat;
+  - "perbarui template ke versi terbaru" (P2) tidak dibuat;
+  - di mode Top, klik kiri dipakai untuk marquee, sehingga pan memakai klik kanan.
+- Edit pada elemen yang belum disimpan digabung ke op pembuatnya. Aksi yang tidak bisa digabung (memisah atau mengunci elemen baru, dsb.) ditolak dengan "Save dulu".
 
 ---
 
