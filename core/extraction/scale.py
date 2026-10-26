@@ -169,16 +169,17 @@ def _public(e: dict) -> dict:
     return {k: v for k, v in e.items() if not k.startswith("_")}
 
 
-def scale_from(grid: dict, dims: list[OcrItem], manual_mm_per_px: float | None) -> dict:
+def scale_from(grid: dict, dims: list[OcrItem], manual_mm_per_px: float | None, unit: float = 1.0) -> dict:
+    """unit: factor from working-pixel mm/px to the user's mm/px (original pixels), for messages only."""
     solved = solve_scale(dimension_equations(grid, dims), grid)
     warnings = list(grid.get("warnings", []))
     sx, sy = solved["sx"], solved["sy"]
     computed = (sx * sy) ** 0.5 if sx else None
     if manual_mm_per_px:
         if computed and abs(computed - manual_mm_per_px) / manual_mm_per_px > MAX_RESIDUAL:
-            warnings.append(f"skala manual {manual_mm_per_px:.3f} berbeda "
+            warnings.append(f"skala manual {manual_mm_per_px * unit:.3f} berbeda "
                             f"{abs(computed - manual_mm_per_px) / manual_mm_per_px:.1%} dari skala hasil hitung "
-                            f"{computed:.3f} mm/px")
+                            f"{computed * unit:.3f} mm/px")
         sx = sy = float(manual_mm_per_px)
         source = "manual"
     elif sx is None:

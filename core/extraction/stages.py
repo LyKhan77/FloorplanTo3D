@@ -104,7 +104,7 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
     a, b, _, d, e, _ = meta["work_from_original"]
     work_per_original = abs(a * e - b * d) ** 0.5
     manual = params.get("mm_per_px")
-    doc = scale_from(grid, dims, manual / work_per_original if manual else None)
+    doc = scale_from(grid, dims, manual / work_per_original if manual else None, unit=work_per_original)
     if progress:
         progress(90, "skala")
     if doc["status"] == "succeeded":

@@ -72,7 +72,8 @@ def test_manual_scale_param_wins(tmp_path):
     stages, results = run_0_2(project)
     grid = json.loads((stages / "02_grid/grid.json").read_text())
     assert grid["scale_source"] == "manual" and grid["mm_per_px"] == pytest.approx(26.5)
-    assert any("berbeda" in w for w in results[2]["warnings"])
+    # reported in the user's unit: mm per original pixel, as typed in the form
+    assert any("skala manual 26.500 berbeda" in w for w in results[2]["warnings"]), results[2]["warnings"]
 
 
 def test_input_image_falls_back_to_raster(tmp_path):
