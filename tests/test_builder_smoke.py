@@ -19,7 +19,7 @@ def run_build(inp: Path, out: Path):
     return subprocess.run(
         [BLENDER, "-b", "--factory-startup", "--python-exit-code", "1",
          "-P", "builder/build.py", "--", str(inp), str(out)],
-        capture_output=True, text=True, timeout=300,
+        capture_output=True, text=True, timeout=300, check=False,
     )
 
 

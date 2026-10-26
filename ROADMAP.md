@@ -49,14 +49,14 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** memastikan semua komponen dasar bisa jalan di Mac M4, dan mengukur kemampuan nyata Strata sedini mungkin.
 
 ### Tugas
-- [ ] Inisialisasi git repo. Isi `.gitignore`: `data/`, `.env`, **`server-info.txt`**, `.venv/`, `node_modules/`, `web/dist/`.
+- [x] Inisialisasi git repo. Isi `.gitignore`: `data/`, `.env`, **`server-info.txt`**, `.venv/`, `node_modules/`, `web/dist/`.
 - [ ] **Keamanan:** pindahkan kredensial di `server-info.txt` ke password manager, dan pertimbangkan mengganti password yang sudah tersebar (R-15).
-- [ ] `uv python install 3.12`, `pyproject.toml`, struktur folder sesuai `11-tech-stack.md` §3, ruff, pytest.
-- [ ] `.env.example` dengan semua variabel dari `02-architecture.md` §7.
-- [ ] **Smoke test Blender:** `builder/build.py` versi minimal (satu kubus + custom property), lalu export `.glb` dengan extras. Cek extras terbaca dengan pygltflib.
-- [ ] **Smoke test OCR:** RapidOCR pada `floorplan/plan.jpeg`. Harus terbaca: label grid A–F dan 1–3, angka 6000/4000/28000/12000, serta label ruang (R. MEETING, GUDANG, BATTERY ROOM, …).
-- [ ] **Smoke test WeasyPrint** (`brew install pango` bila perlu).
-- [ ] Inisialisasi `web/` (Vite + React + TS + `@carbon/react` g100 + R3F): halaman kosong dengan tema gelap dan satu kubus three.js.
+- [x] `uv python install 3.12`, `pyproject.toml`, struktur folder sesuai `11-tech-stack.md` §3, ruff, pytest.
+- [x] `.env.example` dengan semua variabel dari `02-architecture.md` §7.
+- [x] **Smoke test Blender:** `builder/build.py` versi minimal (satu kubus + custom property), lalu export `.glb` dengan extras. Cek extras terbaca dengan pygltflib.
+- [x] **Smoke test OCR:** RapidOCR pada `floorplan/plan.jpeg`. Harus terbaca: label grid A–F dan 1–3, angka 6000/4000/28000/12000, serta label ruang (R. MEETING, GUDANG, BATTERY ROOM, …).
+- [x] **Smoke test WeasyPrint** (`brew install pango` bila perlu).
+- [x] Inisialisasi `web/` (Vite + React + TS + `@carbon/react` g100 + R3F): halaman kosong dengan tema gelap dan satu kubus three.js.
 - [ ] **Spike Strata** (`05-llm-review.md` §8), dengan syarat Strata dinyalakan:
   - [ ] Siapkan 20 crop Gatsu berlabel manual.
   - [ ] Uji T1/T2 dalam 4 varian: ± bukti teks, ± few-shot.
@@ -68,6 +68,14 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Blender headless menghasilkan `.glb` dengan extras yang terbaca.
 - OCR membaca ≥ 90% label grid dan angka dimensi Gatsu.
 - Laporan spike Strata ada. Bila Strata belum bisa dinyalakan, spike dipindah ke awal M6 dan dicatat.
+
+**Status M0 (2026-10-26), branch `m0-foundation`:**
+- `uv run --env-file .env pytest` → 10 passed. Ruff dan `npm run lint` (oxlint) bersih.
+- Blender: `.glb` dengan extras `spec_id`/`spec_type`, sumbu dan ukuran 1:1 terverifikasi. `BLENDER_BIN` wajib path asli `/Applications/Blender.app/Contents/MacOS/Blender`; symlink Homebrew crash.
+- OCR Gatsu: 17/18 label grid + angka dimensi (hilang: label grid "1"), 9/9 label ruang, upscale 2× tanpa tuning.
+- Web: halaman g100 + kubus R3F (React 18, Carbon, font Plex dibundel). Lint memakai oxlint bawaan Vite, bukan ESLint.
+- Spike Strata **ditunda ke M6**: Strata tidak aktif (`benchmarks/reports/spike-strata.md`).
+- Belum: pemindahan kredensial `server-info.txt` (tindakan pengguna, R-15).
 
 ---
 

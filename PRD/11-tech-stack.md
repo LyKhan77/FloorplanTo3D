@@ -102,11 +102,11 @@ floorplan3d_blender/
 
 | Kebutuhan | Status saat ini | Tindakan |
 |---|---|---|
-| Blender 5.2.2 LTS | Terpasang (`/opt/homebrew/bin/blender`) | — |
+| Blender 5.2.2 LTS | Terpasang | `BLENDER_BIN=/Applications/Blender.app/Contents/MacOS/Blender`. Symlink `/opt/homebrew/bin/blender` crash ("Bundled Python not found"); `core/config.py` me-resolve symlink otomatis. |
 | uv | Terpasang | `uv python install 3.12` |
 | Node 24 + npm | Terpasang | — |
 | Docker | Terpasang | Untuk uji image deploy |
-| WeasyPrint deps (pango, cairo) | Belum dicek | `brew install pango` |
+| WeasyPrint deps (pango, cairo) | Terpasang (M0) | `brew install pango` + `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` di `.env` |
 | Akses ke Strata | Server terjangkau (SSH ok); Strata belum dinyalakan | Nyalakan saat spike (M0) / M6 |
 
 ## 5. Prasyarat Server (gspe-ai2)
