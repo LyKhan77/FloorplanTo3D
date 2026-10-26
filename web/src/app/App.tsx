@@ -1,36 +1,28 @@
-import { useRef } from 'react';
-import { Header, HeaderName, Theme } from '@carbon/react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import type { Mesh } from 'three';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Shell } from './Shell'
 
-function SpinningCube() {
-  const ref = useRef<Mesh>(null);
-  useFrame((_, dt) => {
-    if (ref.current) ref.current.rotation.y += dt * 0.6;
-  });
-  return (
-    <mesh ref={ref}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#0f62fe" />
-    </mesh>
-  );
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } })
+
+function Placeholder({ title }: { title: string }) {
+  return <h1 className="page-title">{title}</h1>
 }
 
 export default function App() {
   return (
-    <Theme theme="g100" style={{ height: '100%' }}>
-      <Header aria-label="Floorplan3D">
-        <HeaderName prefix="">Floorplan3D</HeaderName>
-      </Header>
-      <main style={{ position: 'fixed', inset: '48px 0 0 0' }}>
-        <Canvas camera={{ position: [2.5, 2, 2.5] }}>
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[3, 5, 2]} />
-          <SpinningCube />
-          <OrbitControls />
-        </Canvas>
-      </main>
-    </Theme>
-  );
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Shell>
+          <Routes>
+            <Route path="/" element={<Navigate to="/projects" replace />} />
+            <Route path="/projects" element={<Placeholder title="Projects" />} />
+            <Route path="/projects/new" element={<Placeholder title="Project baru" />} />
+            <Route path="/projects/:id" element={<Placeholder title="Project" />} />
+            <Route path="/templates" element={<Placeholder title="Templates" />} />
+            <Route path="/system" element={<Placeholder title="System" />} />
+          </Routes>
+        </Shell>
+      </BrowserRouter>
+    </QueryClientProvider>
+  )
 }

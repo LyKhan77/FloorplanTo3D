@@ -8,3 +8,79 @@ body,
   margin: 0;
   background: #161616;
 }
+
+body {
+  letter-spacing: 0.16px;
+}
+
+.app-theme {
+  min-height: 100%;
+  background: #161616;
+}
+
+.app-content {
+  margin-left: 16rem; // fixed SideNav width
+  padding: 2rem;
+  min-height: calc(100vh - 3rem);
+  background: #161616;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1.25;
+  margin-bottom: 1.5rem;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', 'Menlo', monospace;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.status-tag--running svg {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-tag--running svg {
+    animation: none;
+  }
+}
+
+.health-indicator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  color: #c6c6c6;
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.health-indicator:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+.health-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.health-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
