@@ -46,7 +46,7 @@ export function useImportSpec(id: string) {
 export function useStartRun(id: string) {
   const invalidate = useInvalidate(id)
   return useMutation({
-    mutationFn: (body: { kind: string; from_stage?: number }) => api.post<{ run_id: string }>(`${P(id)}/runs`, body),
+    mutationFn: (body: { kind: string; from_stage?: number; params_override?: Record<string, unknown> }) => api.post<{ run_id: string }>(`${P(id)}/runs`, body),
     onSuccess: invalidate,
   })
 }

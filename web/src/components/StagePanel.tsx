@@ -7,6 +7,7 @@ import type { ApiEvent, Run } from '../api/types'
 import { formatBytes, formatDuration } from '../lib/format'
 import { formatLogLine } from '../lib/logs'
 import { stageLabel } from '../lib/runState'
+import { ExtractionStage } from './ExtractionStage'
 import { StatusTag } from './StatusTag'
 
 interface Props {
@@ -47,8 +48,9 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
           <span className="mono">{formatDuration(stage.duration_ms)}</span></span>
       </div>
 
-      {n <= 6 && (
-        <p className="helper">{messages.at(-1)?.msg ?? (n === 6 ? 'Review Strata tersedia di M6.' : 'Ekstraksi otomatis tersedia di M5.')}</p>
+      {n <= 2 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
+      {n >= 3 && n <= 6 && (
+        <p className="helper">{messages.at(-1)?.msg ?? (n === 6 ? 'Review Strata tersedia di M6.' : 'Tersedia di M5b/M5c.')}</p>
       )}
 
       {n === 7 && (
