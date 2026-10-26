@@ -23,6 +23,9 @@ def test_confidence_penalises_hatch_and_dangling():
     assert wall_confidence(lone, np.zeros_like(hatch), [], axes, box + [lone], S) < clean
     near_text = wall_confidence(box[0], np.zeros_like(hatch), [{"bbox": [200, 112, 260, 124], "cls": "annotation"}], axes, box, S)
     assert near_text == pytest.approx(clean - 0.15)
+    # a pair 3x thicker than the plan's typical wall (Gatsu: the unhatched cable trench, ~400 mm) is suspicious
+    thick = dict(box[0], thickness_mm=450)
+    assert wall_confidence(thick, np.zeros_like(hatch), [], axes, [thick, *box[1:]], S) == pytest.approx(clean - 0.25)
 
 
 @pytest.mark.slow

@@ -12,7 +12,7 @@ import numpy as np
 from shapely.geometry import LineString, box
 
 SIDE_MM = (150, 800)
-PILASTER_SIDE_MM = (150, 1400)
+PILASTER_SIDE_MM = (300, 1400)  # fins are ~500 x 1300; 150-300 mm holes are the inside of double-line walls
 NEAR_CROSSING_MM = 300
 FILL_MIN = 0.75
 
@@ -123,3 +123,29 @@ def find_pilasters(clean: np.ndarray, walls: list[dict], axes: list[dict], s: fl
             continue
         out.append(_col(cx, cy, (w_mm, h_mm), "rect", "pilaster", 0.7, None))
     return out
+
+
+def _col_box(c: dict, s: float, margin_mm: float = 100) -> tuple[float, float, float, float]:
+    hw, hh = (c["size_mm"][0] / 2 + margin_mm) / s, (c["size_mm"][1] / 2 + margin_mm) / s
+    x, y = c["center_px"]
+    return x - hw, y - hh, x + hw, y + hh
+
+
+def drop_at_columns(walls: list[dict], doors: list[dict], columns: list[dict], s: float) -> tuple[list[dict], list[dict]]:
+    """Walls lying inside a column box (its outline read as wall lines) are dropped, and arc-less gap openings
+    that touch a column or pilaster are a wall ending at a column, not a doorway. Door wall indices are remapped."""
+    boxes = [box(*_col_box(c, s)) for c in columns]
+    keep_idx = [i for i, w in enumerate(walls) if not any(b.contains(LineString([w["p0"], w["p1"]])) for b in boxes)]
+    remap = {old: new for new, old in enumerate(keep_idx)}
+    kept_doors = []
+    for d in doors:
+        if d["wall"] not in remap:
+            continue
+        w = walls[d["wall"]]
+        if d["door_type"] in ("opening", "sliding"):
+            lo, hi = w["a"] + d["offset"] / s, w["a"] + (d["offset"] + d["width"]) / s
+            seg = LineString([(lo, w["c"]), (hi, w["c"])] if w["orient"] == "h" else [(w["c"], lo), (w["c"], hi)])
+            if any(b.distance(seg) <= 100 / s for b in boxes):
+                continue
+        kept_doors.append({**d, "wall": remap[d["wall"]]})
+    return [walls[i] for i in keep_idx], kept_doors

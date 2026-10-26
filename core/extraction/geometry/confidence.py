@@ -27,4 +27,7 @@ def wall_confidence(w: dict, hatch: np.ndarray, ocr_items: list[dict], axes_px: 
     conf -= 0.3 * in_hatch
     if any(t.get("cls") == "annotation" and line.distance(box(*t["bbox"])) * s <= 300 for t in ocr_items):
         conf -= 0.15
+    typical = float(np.median([x["thickness_mm"] for x in walls])) if walls else w["thickness_mm"]
+    if w["thickness_mm"] > 2 * typical:  # far thicker than the plan's walls (V005 territory): e.g. a cable trench
+        conf -= 0.25
     return round(float(np.clip(conf, 0, 1)), 3)

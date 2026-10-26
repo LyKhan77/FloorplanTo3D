@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from core.extraction.geometry.columns import find_columns, find_pilasters
+from core.extraction.geometry.columns import drop_at_columns, find_columns, find_pilasters
 from core.extraction.geometry.walls_s2 import _wall
 from tests.extraction.geometry.synth import canvas, line
 
@@ -68,3 +68,18 @@ def test_gatsu_structural_columns():
     structural = [c for c in gt.columns if c.kind == "structural"]
     hit = sum(any(math.dist(c.center, f) <= 300 for f in found) for c in structural)
     assert hit >= 16, (hit, len(cols))
+
+
+def test_walls_inside_column_boxes_and_gap_doors_at_columns_are_dropped():
+    col = {"center_px": [200.0, 150.0], "size_mm": [520, 520], "shape": "h_section", "rotation": 0, "kind": "structural",
+           "confidence": 0.9, "grid_ref": ["A", "1"]}
+    inside = _wall("h", 150, 185, 215, 100, {})  # the box outline read as a short wall
+    real = _wall("h", 150, 230, 500, 150, {})
+    doors = [{"wall": 1, "category": "door", "offset": 0, "width": 900, "door_type": "opening", "hinge": None,
+              "swing": None, "confidence": 0.4, "evidence": {}},
+             {"wall": 1, "category": "door", "offset": 2000, "width": 900, "door_type": "opening", "hinge": None,
+              "swing": None, "confidence": 0.4, "evidence": {}}]
+    walls, kept = drop_at_columns([inside, real], doors, [col], S)
+    assert walls == [real]
+    # door 0 starts at the column (x 230 px = 0 mm offset) -> a gap between a wall end and a column, not a doorway
+    assert [d["offset"] for d in kept] == [2000] and kept[0]["wall"] == 0

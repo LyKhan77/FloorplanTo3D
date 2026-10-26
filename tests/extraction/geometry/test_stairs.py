@@ -26,6 +26,17 @@ def test_treads_become_a_flight_not_walls():
     assert not [x for x in extract_strokes(left, 0, S) if 180 < x["p0"][0] < 320 and 60 < x["p0"][1] < 400]
 
 
+def test_stair_mask_keeps_the_side_walls():
+    img = canvas(600, 500)
+    treads(img, 200, 296, 80, 14, 22.4)
+    line(img, (194, 70), (194, 400))  # stair side wall (double line) touching the tread ends
+    line(img, (182, 70), (182, 400))
+    fl = find_flights(extract_strokes(img, 0, S), S)
+    left = np.where(stair_mask(fl, img.shape, S) > 0, 0, img).astype(np.uint8)
+    side = [x for x in extract_strokes(left, 0, S) if x["orient"] == "v" and abs(x["c"] - 194) <= 2]
+    assert side and side[0]["b"] - side[0]["a"] >= 300
+
+
 def test_direction_from_nk_text_and_landing_fallback():
     img = canvas(600, 600)
     treads(img, 200, 296, 150, 14, 22.4)  # flight from y=150 (north) to y=441 (south)

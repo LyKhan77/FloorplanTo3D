@@ -3,7 +3,7 @@ confidence, converted to spec mm (elements.json)."""
 
 import numpy as np
 
-from core.extraction.geometry.columns import find_columns, find_pilasters
+from core.extraction.geometry.columns import drop_at_columns, find_columns, find_pilasters
 from core.extraction.geometry.confidence import wall_confidence
 from core.extraction.geometry.doors import find_doors
 from core.extraction.geometry.elements import to_mm
@@ -46,6 +46,7 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
     columns = find_columns(clean, m["symbol"], grid_doc.get("axes", []), walls, s) + \
         find_pilasters(clean, walls, grid_doc.get("axes", []), s)
     doors = find_doors(clean, strokes, walls, gaps, s)
+    walls, doors = drop_at_columns(walls, doors, columns, s)
 
     def mm_pt(p) -> list[int]:
         return list(to_mm(A, p[0], p[1]))

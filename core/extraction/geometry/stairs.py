@@ -79,15 +79,13 @@ def find_flights(strokes: list[dict], s: float) -> list[dict]:
 
 
 def stair_mask(flights: list[dict], shape: tuple[int, int], s: float) -> np.ndarray:
+    """The tread lines themselves (not the flight rectangle): the stair's side walls and a lift shaft next to it
+    must survive for wall detection."""
     mask = np.zeros(shape, np.uint8)
     for f in flights:
-        d = round(f["spacing_px"])
-        u0, c0, u1, c1 = f["rect"]
-        if f["tread_axis"] == "h":
-            x0, y0, x1, y1 = u0, c0, u1, c1
-        else:
-            x0, y0, x1, y1 = c0, u0, c1, u1
-        cv2.rectangle(mask, (round(x0) - d, round(y0) - d), (round(x1) + d, round(y1) + d), 255, -1)
+        for ln in f["lines"]:
+            w = max(3, round(ln["width"]) + 3)
+            cv2.line(mask, (round(ln["p0"][0]), round(ln["p0"][1])), (round(ln["p1"][0]), round(ln["p1"][1])), 255, w)
     return mask
 
 
