@@ -38,6 +38,9 @@ interface EditorState {
   measurements: Measurement[]
   notice: Notice | null
   saveIssues: Issue[]
+  cursor: [number, number] | null
+  hoverRoom: string | null
+  fps: number | null
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -56,6 +59,8 @@ interface EditorState {
   acceptRebase(head: Spec, drop: number[]): void
   setNotice(n: Notice | null): void
   setSaveIssues(issues: Issue[]): void
+  setCursor(cursor: [number, number] | null, hoverRoom: string | null): void
+  setFps(fps: number): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -90,7 +95,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
   return {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
-    measurements: [], notice: null, saveIssues: [],
+    measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null }),
     apply: (op) => get().applyMany([op]),
@@ -135,5 +140,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     },
     setNotice: (notice) => set({ notice }),
     setSaveIssues: (saveIssues) => set({ saveIssues }),
+    setCursor: (cursor, hoverRoom) => set({ cursor, hoverRoom }),
+    setFps: (fps) => set({ fps }),
   }
 })

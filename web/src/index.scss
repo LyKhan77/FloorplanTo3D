@@ -434,6 +434,114 @@ body {
   left: 0;
 }
 
+/* Web editor (PRD/07 §2) */
+.editor {
+  display: grid;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'library viewport props'
+    'status status status';
+  grid-template-columns: 16rem minmax(0, 1fr) 20rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 1056px;
+  height: calc(100vh - 13rem);
+  min-height: 32rem;
+  margin-top: 1rem;
+  background: #161616;
+  border: 1px solid #393939;
+}
+
+.editor--no-left {
+  grid-template-columns: 0 minmax(0, 1fr) 20rem;
+}
+
+.editor--no-right {
+  grid-template-columns: 16rem minmax(0, 1fr) 0;
+}
+
+.editor--no-left.editor--no-right {
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+}
+
+.editor__toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #262626;
+  border-bottom: 1px solid #393939;
+
+  .cds--form-item.cds--checkbox-wrapper {
+    flex: none;
+  }
+}
+
+.editor__group {
+  display: inline-flex;
+  padding-left: 0.5rem;
+  border-left: 1px solid #393939;
+}
+
+.editor__spacer {
+  flex: 1;
+}
+
+.editor__version {
+  white-space: nowrap;
+}
+
+.editor__library {
+  grid-area: library;
+  overflow: auto;
+  border-right: 1px solid #393939;
+}
+
+.editor__props {
+  grid-area: props;
+  overflow: auto;
+  border-left: 1px solid #393939;
+}
+
+.editor__viewport {
+  grid-area: viewport;
+  position: relative;
+  min-height: 0;
+
+  > .cds--inline-notification {
+    position: absolute;
+    z-index: 2;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: none;
+  }
+}
+
+.editor__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.editor__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  height: 100%;
+}
+
+.editor__status {
+  grid-area: status;
+  display: flex;
+  gap: 2rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  background: #262626;
+  border-top: 1px solid #393939;
+}
+
 @media (max-width: 1055px) {
   .app-content {
     margin-left: 0;

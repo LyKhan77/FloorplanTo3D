@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
+import type { Spec } from '../types/spec'
 import type { AppConfig, Health, OutputVersion, ProjectDetail, ProjectSummary, Run, SpecDiff, SpecVersion, Template } from './types'
 
 const P = (id: string) => `/api/projects/${id}`
@@ -15,6 +16,7 @@ export const useSpecDiff = (id: string, from: number | null, to: number | null) 
     queryFn: () => api.get<SpecDiff>(`${P(id)}/specs/diff?from=${from}&to=${to}`),
     enabled: from !== null && to !== null && from !== to,
   })
+export const useSpecHead = (id: string) => useQuery({ queryKey: ['spec', id, 'HEAD'], queryFn: () => api.get<Spec>(`${P(id)}/specs/HEAD`) })
 export const useOutputs = (id: string) => useQuery({ queryKey: ['outputs', id], queryFn: () => api.get<OutputVersion[]>(`${P(id)}/outputs`) })
 export const useTemplates = () => useQuery({ queryKey: ['templates'], queryFn: () => api.get<Template[]>('/api/templates') })
 export const useHealth = () => useQuery({ queryKey: ['health'], queryFn: () => api.get<Health>('/api/health'), refetchInterval: 10000 })
@@ -24,7 +26,7 @@ function useInvalidate(id?: string) {
   const qc = useQueryClient()
   return () => {
     qc.invalidateQueries({ queryKey: ['projects'] })
-    if (id) for (const k of ['project', 'runs', 'specs', 'outputs']) qc.invalidateQueries({ queryKey: [k, id] })
+    if (id) for (const k of ['project', 'runs', 'specs', 'outputs', 'spec']) qc.invalidateQueries({ queryKey: [k, id] })
   }
 }
 

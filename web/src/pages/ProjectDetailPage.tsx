@@ -15,6 +15,7 @@ import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
 import { StatusTag } from '../components/StatusTag'
 import { VersionsTab } from '../components/VersionsTab'
+import { EditorTab } from '../editor/EditorTab'
 import { stageLabel, withEvents } from '../lib/runState'
 
 const TABS = ['pipeline', 'logs', 'review', 'editor', 'outputs', 'versions']
@@ -88,7 +89,7 @@ export function ProjectDetailPage() {
           </TabPanel>
           <TabPanel><LogViewer projectId={id} runs={runs} events={events} /></TabPanel>
           <TabPanel><p className="helper">Overlay bernomor dan keputusan Strata tersedia di M5/M6.</p></TabPanel>
-          <TabPanel><p className="helper">Web editor tersedia di M4.</p></TabPanel>
+          <TabPanel>{tab === TABS.indexOf('editor') && <EditorTab projectId={id} run={run} />}</TabPanel>
           <TabPanel><OutputsTab projectId={id} /></TabPanel>
           <TabPanel><VersionsTab projectId={id} /></TabPanel>
         </TabPanels>
