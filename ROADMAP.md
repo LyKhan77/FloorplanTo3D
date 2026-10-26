@@ -437,7 +437,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - penutupan leher ruang dengan dinding sintetis (§6b) tidak dibuat; yang ada hanya peringatan `ROOM_LEAK`;
   - elemen tidak disorot di overlay dan tooltip hover ID di tab Review belum ada (perlu geometri elemen di klien);
   - mask IoU tahap 8 memuat kolom.
-- **Suite:** pytest 359 passed, 3 xfailed; Vitest 152 passed; ruff, oxlint, dan build bersih.
+- **Suite:** pytest 370 passed, 3 xfailed; Vitest 153 passed; ruff, oxlint, dan build bersih (sesudah fix review akhir).
 
 ---
 
