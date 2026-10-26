@@ -28,6 +28,26 @@ def test_confidence_penalises_hatch_and_dangling():
     assert wall_confidence(thick, np.zeros_like(hatch), [], axes, [thick, *box[1:]], S) == pytest.approx(clean - 0.25)
 
 
+
+def test_treads_paired_as_walls_are_not_confident():
+    """Treads the flight test missed (railing-split, too few) pair as ~300 mm 'walls' (Gatsu east stair)."""
+    from core.extraction.geometry.strokes import extract_strokes
+    from core.extraction.geometry.walls_s2 import s2_walls
+    from tests.extraction.geometry.synth import canvas, line
+
+    img = canvas()
+    for k in range(4):  # four treads, 280 mm apart, 1000 mm wide: below MIN_TREADS
+        line(img, (200, 100 + round(k * 22.4)), (280, 100 + round(k * 22.4)), 2)
+    strokes = extract_strokes(img, 0, S)
+    walls = s2_walls(strokes, S, 80, 450)
+    assert walls
+    hatch, axes = np.zeros_like(img), {"vertical": [], "horizontal": []}
+    assert all(wall_confidence(w, hatch, [], axes, walls, S, strokes) < 0.6 for w in walls)
+    # a plain double-line wall next to them keeps its confidence
+    real = [_wall("h", 300, 100, 400, 280, {"pair_overlap": 1.0, "partial_mm": 0})]
+    assert wall_confidence(real[0], hatch, [], axes, real, S, strokes) == wall_confidence(real[0], hatch, [], axes, real, S)
+
+
 @pytest.mark.slow
 def test_gatsu_candidate_runs_and_is_plausible():
     from core.extraction.geometry.candidate import extract_candidate

@@ -4,11 +4,13 @@ import numpy as np
 from shapely.geometry import LineString, box
 
 from core.extraction.geometry.postprocess import _touches
+from core.extraction.geometry.stairs import in_tread_stack
 
 REVIEW_BELOW = 0.6
 
 
-def wall_confidence(w: dict, hatch: np.ndarray, ocr_items: list[dict], axes_px: dict, walls: list[dict], s: float) -> float:
+def wall_confidence(w: dict, hatch: np.ndarray, ocr_items: list[dict], axes_px: dict, walls: list[dict], s: float,
+                    strokes: list[dict] = ()) -> float:
     ev = w.get("evidence", {})
     if w.get("strategy") == "S1":
         pair = float(ev.get("mask_density", 1.0))
@@ -30,4 +32,6 @@ def wall_confidence(w: dict, hatch: np.ndarray, ocr_items: list[dict], axes_px: 
     typical = float(np.median([x["thickness_mm"] for x in walls])) if walls else w["thickness_mm"]
     if w["thickness_mm"] > 2 * typical:  # far thicker than the plan's walls (V005 territory): e.g. a cable trench
         conf -= 0.25
+    if strokes and in_tread_stack(w, strokes, s):  # stair treads paired into a wall
+        conf -= 0.3
     return round(float(np.clip(conf, 0, 1)), 3)

@@ -58,7 +58,8 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
         ev = {k: v for k, v in w["evidence"].items() if k != "from"}
         el_walls.append({"a": mm_pt(w["p0"]), "b": mm_pt(w["p1"]), "thickness": max(10, round(w["thickness_mm"])),
                          "kind": w.get("kind", "interior"), "strategy": w["strategy"],
-                         "confidence": wall_confidence(w, m["hatch"], ocr_items, axes_px, walls, s), "evidence": ev})
+                         "confidence": wall_confidence(w, m["hatch"], ocr_items, axes_px, walls, s, strokes),
+                         "evidence": ev})
     el_cols = [{"center": mm_pt(c["center_px"]), "size": c["size_mm"], "shape": c["shape"], "rotation": 0,
                 "kind": c["kind"], "confidence": c["confidence"], "grid_ref": c["grid_ref"]} for c in columns]
     el_stairs = [{"flights": [{"start": mm_pt(f["start"]), "end": mm_pt(f["end"]), "width": round(f["width_px"] * s),

@@ -235,3 +235,23 @@ def lift_boxes(strokes: list[dict], s: float) -> list[list[float]]:
             if not any(abs(box[0] - o[0]) < 5 and abs(box[1] - o[1]) < 5 for o in boxes):
                 boxes.append(box)
     return sorted(boxes)
+
+
+def in_tread_stack(w: dict, strokes: list[dict], s: float, min_lines: int = 4) -> bool:
+    """Does the wall stand inside >= min_lines equally spaced (SPACING_MM) parallel strokes of its own length?
+    Treads the flight test missed (a railing splits them, too few) pair into such walls."""
+    if w["orient"] not in ("h", "v"):
+        return False
+    length, reach = w["b"] - w["a"], min_lines * SPACING_MM[1] / s
+    cs: list[float] = []
+    for x in sorted((x for x in strokes if x["orient"] == w["orient"] and abs(x["c"] - w["c"]) <= reach), key=lambda x: x["c"]):
+        span = x["b"] - x["a"]
+        if 0.6 * length <= span <= 1.6 * length and min(x["b"], w["b"]) - max(x["a"], w["a"]) >= 0.6 * min(length, span) \
+                and (not cs or x["c"] - cs[-1] > 2):
+            cs.append(x["c"])
+    run = cs[:1]
+    for prev, c in itertools.pairwise(cs):
+        run = run + [c] if SPACING_MM[0] <= (c - prev) * s <= SPACING_MM[1] else [c]
+        if len(run) >= min_lines and run[0] <= w["c"] <= run[-1]:
+            return True
+    return False
