@@ -22,6 +22,8 @@ SYMBOL_MAX_MM = 3000
 SYMBOL_FILL_MIN = 0.5  # compact blob (Gatsu panels 0.58+); a connected wall network fills <= 0.25 of its bbox
 HATCH_CELL_MM = 600
 HATCH_MIN_SEGMENTS = 6
+AXIS_INKED = 0.3  # share of samples with ink for an axis to count as drawn
+THIN_FRAC = 0.75  # axis and dimension lines are erased only when thinner than this share of the wall stroke
 
 
 def _skeleton(binary: np.ndarray) -> np.ndarray:
@@ -127,7 +129,93 @@ def _hatch(clean: np.ndarray, s: float) -> np.ndarray:
     return cv2.resize(grid, (gw * cell, gh * cell), interpolation=cv2.INTER_NEAREST)[:h, :w]
 
 
-def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], drawing_bbox, s: float) -> dict:
+def _run(work: np.ndarray, x: int, y: int, across_x: bool) -> tuple[int, int] | None:
+    """Ink run through (x, y) measured across the line: along x for a vertical line, along y for a horizontal one."""
+    h, w = work.shape
+    if not (0 <= x < w and 0 <= y < h) or not work[y, x]:
+        return None
+    lo = hi = x if across_x else y
+    get = (lambda v: work[y, v]) if across_x else (lambda v: work[v, x])
+    n = w if across_x else h
+    while lo > 0 and get(lo - 1):
+        lo -= 1
+    while hi < n - 1 and get(hi + 1):
+        hi += 1
+    return lo, hi
+
+
+def _thin_runs(work: np.ndarray, samples: list[tuple[int, int]], across_x: bool) -> list[tuple[int, int, int, int]]:
+    """(x, y, lo, hi) of the ink run nearest to each sample (within 1 px across the line)."""
+    out = []
+    for x, y in samples:
+        for d in (0, -1, 1):
+            r = _run(work, x + d, y, True) if across_x else _run(work, x, y + d, False)
+            if r:
+                out.append((x, y, *r))
+                break
+    return out
+
+
+def _erase(work: np.ndarray, runs, across_x: bool, max_len: float) -> None:
+    for x, y, lo, hi in runs:
+        if hi - lo + 1 <= max_len:
+            if across_x:
+                work[y, lo:hi + 1] = 0
+            else:
+                work[lo:hi + 1, x] = 0
+
+
+def _erase_axes(work: np.ndarray, axes, w: float, bbox) -> list[str]:
+    """Grid axes drawn as thin lines (§3.1.2). An axis as thick as the walls is left alone: it cannot be told
+    from a wall line by width, and erasing it would cut real walls."""
+    x0, y0, x1, y1 = (int(v) for v in bbox)
+    h, wd = work.shape
+    erased = []
+    for a in sorted(axes, key=lambda a: a["id"]):
+        vertical = a["orientation"] == "vertical"
+        c = round(a["px"])
+        span = range(max(0, y0), min(h, y1)) if vertical else range(max(0, x0), min(wd, x1))
+        samples = [(c, v) if vertical else (v, c) for v in span]
+        if not samples or not (0 <= c < (wd if vertical else h)):
+            continue
+        runs = _thin_runs(work, samples, vertical)
+        if len(runs) < AXIS_INKED * len(samples):
+            continue
+        thick = float(np.median([hi - lo + 1 for *_, lo, hi in runs]))
+        if thick > THIN_FRAC * w:
+            continue
+        _erase(work, runs, vertical, thick + 1)
+        erased.append(a["id"])
+    return erased
+
+
+def _erase_dimension_lines(work: np.ndarray, texts: list[dict], w: float) -> None:
+    """Dimension lines: thin straight lines parallel to a dimension text, within 1.5 text heights of it."""
+    dims = [t for t in texts if t.get("cls") == "dimension"]
+    if not dims:
+        return
+    segs = _segments(work, min(min(t["bbox"][2] - t["bbox"][0], t["bbox"][3] - t["bbox"][1]) for t in dims) * 2)
+    for t in dims:
+        bx0, by0, bx1, by1 = t["bbox"]
+        horizontal = bx1 - bx0 >= by1 - by0
+        length, height = (bx1 - bx0, by1 - by0) if horizontal else (by1 - by0, bx1 - bx0)
+        cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
+        for sx0, sy0, sx1, sy1 in segs:
+            if horizontal and abs(sy1 - sy0) <= 1 and abs(sx1 - sx0) >= length and abs((sy0 + sy1) / 2 - cy) <= 1.5 * height \
+                    and min(sx0, sx1) <= cx <= max(sx0, sx1):
+                y = round((sy0 + sy1) / 2)
+                runs = _thin_runs(work, [(x, y) for x in range(round(min(sx0, sx1)), round(max(sx0, sx1)) + 1)], False)
+            elif not horizontal and abs(sx1 - sx0) <= 1 and abs(sy1 - sy0) >= length \
+                    and abs((sx0 + sx1) / 2 - cx) <= 1.5 * height and min(sy0, sy1) <= cy <= max(sy0, sy1):
+                x = round((sx0 + sx1) / 2)
+                runs = _thin_runs(work, [(x, y) for y in range(round(min(sy0, sy1)), round(max(sy0, sy1)) + 1)], True)
+            else:
+                continue
+            _erase(work, runs, not horizontal, THIN_FRAC * w + 1)
+
+
+def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], drawing_bbox, s: float,
+                axes=()) -> dict:
     work = binary.copy()
     if colour is not None and colour.any():
         work[cv2.dilate(colour, np.ones((3, 3), np.uint8)) > 0] = 0
@@ -137,6 +225,9 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     outside[max(0, y0 - margin):y1 + margin, max(0, x0 - margin):x1 + margin] = False
     work[outside] = 0
     texts = sorted((t for t in ocr_items if t.get("cls") != "grid_label"), key=lambda t: (t["bbox"][1], t["bbox"][0]))
+    w0 = stroke_width(work)
+    erased_axes = _erase_axes(work, axes, w0, drawing_bbox)
+    _erase_dimension_lines(work, texts, w0)
     leader_segs, pointers = _leaders(work, texts, s)
     clean = work.copy()
     for t in texts:
@@ -149,4 +240,4 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     clean[symbol > 0] = 0
     thin = np.where(thick > 0, 0, clean).astype(np.uint8)
     return {"clean": clean, "thin": thin, "symbol": symbol, "hatch": _hatch(clean, s), "pointers": pointers,
-            "stroke_width": w}
+            "stroke_width": w, "erased_axes": erased_axes}

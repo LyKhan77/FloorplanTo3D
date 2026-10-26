@@ -107,3 +107,59 @@ def test_poche_wall_network_is_not_a_symbol():
     assert not m["symbol"][y0 + 4, 300] and not m["symbol"][600, 704]  # wall pixels stay in clean
     assert m["symbol"][520, 1020]
     assert len(solid_walls(m["clean"], m["symbol"], s, 80)) >= 5
+
+
+AXIS_V = [{"id": "GA", "label": "A", "orientation": "vertical", "px": 300.0}]
+
+
+def axis_plan(axis_width=1):
+    img = canvas()
+    double_wall(img, (300, 80), (300, 320), gap_px=20)  # 250 mm wall, lines at x 290 / 310
+    double_wall(img, (100, 80), (500, 80), gap_px=20)
+    line(img, (300, 0), (300, 399), axis_width)  # grid axis through the wall centre
+    return img
+
+
+def test_thin_axis_between_wall_lines_is_erased():
+    from core.extraction.geometry.strokes import extract_strokes
+    from core.extraction.geometry.walls_s2 import s2_walls
+
+    m = build_masks(axis_plan(), no_colour(canvas()), [], FULL, S, AXIS_V)
+    assert m["erased_axes"] == ["GA"]
+    assert not m["clean"][10, 299:302].any() and not m["clean"][200, 297:304].any()
+    walls = [w for w in s2_walls(extract_strokes(m["clean"], 0, S), S, 80, 450) if w["orient"] == "v"]
+    assert len(walls) == 1 and abs(walls[0]["c"] - 300) <= 1 and abs(walls[0]["thickness_mm"] - 250) <= 15
+
+
+def test_axis_as_thick_as_walls_is_kept():
+    m = build_masks(axis_plan(4), no_colour(canvas()), [], FULL, S, AXIS_V)
+    assert m["erased_axes"] == [] and m["clean"][10, 300]
+
+
+def test_axis_crossing_wall_keeps_the_wall():
+    img = axis_plan()
+    line(img, (0, 200), (599, 200), 1)
+    axes = AXIS_V + [{"id": "G1", "label": "1", "orientation": "horizontal", "px": 200.0}]
+    m = build_masks(img, no_colour(img), [], FULL, S, axes)
+    assert "G1" in m["erased_axes"]
+    assert m["clean"][200, 290] and m["clean"][200, 310]  # wall lines survive at the crossing
+    assert not m["clean"][200, 100]
+
+
+def test_dimension_line_under_dimension_text_is_erased():
+    img = canvas()
+    double_wall(img, (50, 110), (450, 110), gap_px=20)
+    line(img, (50, 60), (450, 60), 1)  # dimension line 8 px below the text
+    dim = text_item("6000", (200, 40, 240, 52), "dimension")
+    m = build_masks(img, no_colour(img), [dim], FULL, S)
+    assert not m["clean"][60, 100] and not m["clean"][60, 400]
+    assert m["clean"][100, 100] and m["clean"][120, 100]  # the wall lines stay
+
+
+@pytest.mark.slow
+def test_gatsu_axes_not_erased():
+    from tests.extraction.geometry.gatsu import gatsu
+
+    g = gatsu()
+    m = build_masks(g["binary"], g["colour"], g["ocr"], g["meta"]["drawing_bbox"], g["s"], g["grid"]["axes"])
+    assert m["erased_axes"] == []  # Gatsu's grid is drawn in colour and already removed

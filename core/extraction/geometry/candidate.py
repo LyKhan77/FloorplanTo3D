@@ -28,7 +28,7 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
     A = grid_doc["px_to_mm"]
     k = params.get("sauvola_k", 0.2)
     bin_ = binary if k == 0.2 else binarize(page_gray, k=k, window=25 * meta["upscale"])
-    m = build_masks(bin_, colour, ocr_items, meta["drawing_bbox"], s)
+    m = build_masks(bin_, colour, ocr_items, meta["drawing_bbox"], s, grid_doc.get("axes", []))
     l_fix = params.get("l_fix", 0) * meta["upscale"]
     strokes0 = extract_strokes(m["thin"], l_fix, s)  # treads are thin lines; thick stair walls and rails cut them
     stair_texts = [t for t in ocr_items if t.get("cls") == "stair_dir"]
