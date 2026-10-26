@@ -13,7 +13,7 @@ export function compareIds(a: string, b: string): number {
   return pa < pb ? -1 : pa > pb ? 1 : na - nb
 }
 
-function allIds(spec: Spec): string[] {
+export function allIds(spec: Spec): string[] {
   const groups = [spec.grid?.axes, spec.walls, spec.columns, spec.openings, spec.rooms, spec.stairs, spec.objects]
   return groups.flatMap((g) => (g ?? []).map((e) => e.id))
 }
