@@ -127,25 +127,25 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 ### Tugas
 - [x] `core/build_prep/`: spec → `build_input.json`.
-  - [x] Tapak dinding per ID, dengan sambungan dibagi di garis bagi sudut, tanpa overlap.
+  - [x] Tapak dinding per ID, tanpa overlap. *Menyimpang: sudut menjadi milik dinding ber-ID terkecil, tidak dibagi di garis bagi sudut.*
   - [x] Cutter bukaan.
   - [x] Transform kusen dan daun pintu (single/double/sliding/opening/rolling).
   - [x] Poligon lantai per ruang (termasuk lubang kolom), slab per `building_outline`, kolom dan pilaster.
   - [x] Tangga: balok anak tangga pejal per flight + bordes (`06-builder-outputs.md` §4.5b).
   - [x] Objek dengan path template + skala per sumbu.
   - [x] Daftar kamera (top, iso ×4, per ruang).
-- [x] `builder/scene/*`: walls (ekstrusi + Boolean EXACT), doors, windows, floors, columns, stairs, objects (linked duplicates), materials, cameras, annotations.
+- [x] `builder/scene/*`: walls (ekstrusi + Boolean EXACT), doors, windows, floors, columns, stairs, objects (linked duplicates), materials, cameras, annotations. *Belum: simbol busur pintu di Annotations dan tint lantai per tipe ruang di render dokumen (kosmetik, ditunda).*
 - [x] Konvensi nama + custom properties + `export_extras`.
 - [x] Export: `shell.glb`, `layout_full.glb`, `layout.blend`, `layout.fbx`, `layout.obj`.
 - [x] Protokol progres `@@PROGRESS` dan exit code.
 - [x] `core/templates/make_placeholders.py`: 7 template placeholder (`10-template-contract.md` §6) + `validate.py`.
 - [x] `core/verify/`:
   - [x] Cek glb 1:1 (pygltflib).
-  - [x] Cek grid.
+  - [ ] Cek grid. *Kerangka ada, statusnya `skipped` sampai OCR dimensi tersedia (M5).*
   - [x] IoU top-down dengan mask dinding sederhana dari binarisasi. Mask ini disempurnakan di M5.
 - [x] `core/report/`: template Jinja2 (Carbon light untuk cetak), seluruh 12 bagian dokumen, PDF via WeasyPrint.
 - [x] CLI: `uv run python -m core.cli build <spec.json> <out_dir>` untuk menjalankan tahap 7–9 tanpa server.
-- [x] Test builder (`blender -b -P builder/tests/run.py`): jumlah objek, nama, extras, dimensi.
+- [x] Test builder: jumlah objek, nama, extras, dimensi. *Dijalankan lewat pytest (subprocess Blender), bukan `builder/tests/run.py`.*
 
 ### Kriteria selesai
 - GT Gatsu (+ 10 objek placeholder) menghasilkan semua output dalam ≤ 90 detik di M4.

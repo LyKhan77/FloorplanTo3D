@@ -159,7 +159,14 @@ def make_instances(instances: list[dict], cols: Collections) -> None:
     for inst in instances:
         key = inst["template_key"]
         if key not in cache:
-            cache[key] = _import_template(inst["asset"], key, cols)
+            try:
+                cache[key] = _import_template(inst["asset"], key, cols)
+            except Exception as e:  # noqa: BLE001 - a broken asset must not abort the whole build
+                print(f"WARN template import failed {key}: {e}", flush=True)
+                cache[key] = None
+        if cache[key] is None:
+            print(f"WARN object skipped {inst['props'].get('spec_id')}: template {key} unavailable", flush=True)
+            continue
         root = make_empty({"name": inst["name"], "collection": "Objects", "location": inst["location"],
                            "rot_z": inst["rot_z"], "props": inst["props"]}, cols)
         root.scale = inst["scale"]

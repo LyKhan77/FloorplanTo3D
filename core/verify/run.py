@@ -36,10 +36,12 @@ def verify_status(glb_pass: bool, iou_value: float | None) -> tuple[str, list[st
     return "succeeded", []
 
 
-def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None) -> dict:
+def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None,
+               extra_warnings: list[str] | None = None) -> dict:
+    """extra_warnings: build-time warnings (e.g. skipped objects) persisted with the verification result."""
     out_dir = Path(out_dir)
     glb = glb_check(out_dir / "shell.glb", doc)
-    warnings: list[str] = []
+    warnings: list[str] = list(extra_warnings or [])
     iou_value = None
     render_path = out_dir / "verify_top.png"
     if image_path is None:

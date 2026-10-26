@@ -9,7 +9,10 @@ TOLERANCE_MM = 1.0
 
 
 def glb_check(glb: Path, doc: dict) -> dict:
-    g = GLTF2().load(str(glb))
+    try:
+        g = GLTF2().load(str(glb))
+    except Exception as e:  # noqa: BLE001 - an unreadable export is a failed check, not a crash
+        return {"max_err_mm": None, "pass": False, "checked": 0, "error": f"cannot read {glb.name}: {e}"}
     nodes = {n.name: n for n in g.nodes if n.name and n.mesh is not None}
     errors = []
     for item in doc["meshes"]:

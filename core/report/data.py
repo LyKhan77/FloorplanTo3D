@@ -23,7 +23,9 @@ def _compass(dx: float, dy: float) -> str:
     return COMPASS[int((angle + 22.5) // 45) % 8]
 
 
-def report_data(spec: Spec, verify: dict | None, run: dict) -> dict:
+def report_data(spec: Spec, verify: dict | None, run: dict, missing_objects: list[str] | None = None) -> dict:
+    """missing_objects: object IDs that were not placed in the model (template missing or invalid)."""
+    missing = set(missing_objects or [])
     rooms = [r for r in sorted(spec.rooms, key=lambda r: id_key(r.id)) if r.type != "outdoor"]
     label = {r.id: r.name or r.id for r in spec.rooms}
     walls = {w.id: w for w in spec.walls}
@@ -56,11 +58,13 @@ def report_data(spec: Spec, verify: dict | None, run: dict) -> dict:
         length = math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]) / 1000
         by_kind[w.kind] += length
         by_t[w.thickness] += length
-    obj_by_tpl = Counter((o.template_id, o.template_version, tuple(o.dims)) for o in spec.objects)
-    obj_by_room = Counter(label.get(o.room_id, "—") if o.room_id else "—" for o in spec.objects)
+    placed = [o for o in spec.objects if o.id not in missing]
+    obj_by_tpl = Counter((o.template_id, o.template_version, tuple(o.dims)) for o in placed)
+    obj_by_room = Counter(label.get(o.room_id, "—") if o.room_id else "—" for o in placed)
 
     issues = [f"{i.severity} {i.code} {', '.join(i.element_ids)}: {i.message}" for i in validate(spec).issues]
     issues += [f"verify: {w}" for w in (verify or {}).get("warnings", [])]
+    issues += [f"objek {oid} tidak dimodelkan (template hilang atau tidak valid)" for oid in sorted(missing, key=id_key)]
     elements = [*spec.walls, *spec.columns, *spec.openings, *spec.rooms, *spec.stairs, *spec.objects]
     provenance = Counter(e.provenance.source for e in elements if e.provenance.source in ("editor", "manual", "llm"))
 

@@ -10,6 +10,7 @@ from core.build_prep.schema import BUILD_INPUT_VERSION, MATERIALS, ExportItem, I
 from core.build_prep.shell import column_items, floor_items, stair_items, wall_items
 from core.spec.models import Spec
 from core.templates.registry import load_template
+from core.templates.validate import validate_template
 
 EXPORTS: list[ExportItem] = [
     {"file": "shell.glb", "collections": ["Shell"]},
@@ -24,12 +25,19 @@ GRID_OVERHANG = 2000
 
 def _instances(spec: Spec, templates_root: Path | None) -> tuple[list[InstanceItem], list[str]]:
     out, warnings = [], []
+    problems_by_key: dict[str, list[str]] = {}
     for o in spec.objects:
+        key = f"{o.template_id}@{o.template_version}"
         found = load_template(templates_root, o.template_id, o.template_version) if templates_root else None
         if found is None:
-            warnings.append(f"object {o.id}: template {o.template_id}@{o.template_version} not found")
+            warnings.append(f"object {o.id}: template {key} not found")
             continue
         meta, glb = found
+        if key not in problems_by_key:
+            problems_by_key[key] = validate_template(glb.parent)
+        if problems_by_key[key]:
+            warnings.append(f"object {o.id}: template {key} invalid: {problems_by_key[key][0]}")
+            continue
         out.append({"name": f"obj_{o.id}", "asset": str(glb.resolve()),
                     "template_key": f"{o.template_id}@{o.template_version}",
                     "location": list(o.position), "rot_z": o.rotation,

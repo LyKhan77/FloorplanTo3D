@@ -12,12 +12,13 @@ def _select(objs: list) -> None:
         o.select_set(True)
 
 
-def export_all(exports: list[dict], out_dir: Path, cols) -> None:
+def export_all(exports: list[dict], out_dir: Path, cols) -> Path | None:
+    """Write glb/fbx/obj now; return the .blend path, which is saved last (after renders add the cameras)."""
     blend = None
     for item in exports:
         path = out_dir / item["file"]
         if path.suffix == ".blend":
-            blend = path  # saved last, after the other exports changed nothing in the scene
+            blend = path
             continue
         _select(cols.objects(item["collections"]))
         if path.suffix == ".glb":
@@ -30,6 +31,9 @@ def export_all(exports: list[dict], out_dir: Path, cols) -> None:
             bpy.ops.wm.obj_export(filepath=str(path), export_selected_objects=True, export_materials=True)
         else:
             raise SystemExit(f"unsupported export {item['file']}")
-    if blend:
-        bpy.ops.file.pack_all()
-        bpy.ops.wm.save_as_mainfile(filepath=str(blend), relative_remap=True)
+    return blend
+
+
+def save_blend(path: Path) -> None:
+    bpy.ops.file.pack_all()
+    bpy.ops.wm.save_as_mainfile(filepath=str(path), relative_remap=True)

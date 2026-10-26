@@ -41,8 +41,23 @@ def _on_line(line: str) -> None:
         print(f"  {line}", flush=True)
 
 
-def build(spec_path: Path, out_dir: Path, image: Path | None, templates: Path | None, engine: str) -> int:
+def _out_dir_problem(out_dir: Path, force: bool) -> str | None:
+    """Refuse targets the final rename would destroy: '.', the home folder, or a folder that is not a build output."""
+    resolved = out_dir.resolve()
+    if not out_dir.name or resolved in (Path.cwd().resolve(), Path.home().resolve()) or resolved.parent == resolved:
+        return f"refusing to use {out_dir} as the output folder"
+    if resolved.exists() and any(resolved.iterdir()) and not (resolved / "build_input.json").exists() and not force:
+        return f"{out_dir} is not empty and is not a previous build output (use --force to replace it)"
+    return None
+
+
+def build(spec_path: Path, out_dir: Path, image: Path | None, templates: Path | None, engine: str,
+          force: bool = False) -> int:
     t0 = time.monotonic()
+    problem = _out_dir_problem(out_dir, force)
+    if problem:
+        print(problem, file=sys.stderr)
+        return 2
     spec = Spec.model_validate_json(spec_path.read_text())
     result = validate(spec)
     if not result.passed:
@@ -67,14 +82,17 @@ def build(spec_path: Path, out_dir: Path, image: Path | None, templates: Path | 
             shutil.copy(tmp / "blender.log", failed_log)
             print(f"blender failed (exit {rc}); log: {failed_log}", file=sys.stderr)
             return 1
-        verify = run_verify(tmp, spec, doc, image)
+        verify = run_verify(tmp, spec, doc, image, extra_warnings=warnings)
         renders_dir = tmp / "renders"
         renders_dir.mkdir(exist_ok=True)
         if image:
             shutil.copy(image, renders_dir / "plan.png" if image.suffix == ".png" else renders_dir / f"plan{image.suffix}")
             render_overlay(spec, image, renders_dir / "overlay.png")
         renders = {p.stem: f"renders/{p.name}" for p in sorted(renders_dir.iterdir())}
-        data = report_data(spec, verify, {"run_id": spec.meta.run_id, "blender_version": _blender_version(tmp / "blender.log")})
+        placed = {i["props"]["spec_id"] for i in doc["instances"]}
+        missing = [o.id for o in spec.objects if o.id not in placed]
+        run = {"run_id": spec.meta.run_id, "blender_version": _blender_version(tmp / "blender.log")}
+        data = report_data(spec, verify, run, missing_objects=missing)
         write_report(tmp, data, renders)
         if out_dir.exists():
             shutil.rmtree(out_dir)
@@ -84,7 +102,7 @@ def build(spec_path: Path, out_dir: Path, image: Path | None, templates: Path | 
         return 1
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    for w in [*warnings, *verify["warnings"]]:
+    for w in verify["warnings"]:  # includes the build warnings
         print(f"warning: {w}")
     print(f"done in {time.monotonic() - t0:.1f}s: status {verify['status']}, IoU {verify['iou']}, "
           f"glb max err {verify['glb_check']['max_err_mm']} mm -> {out_dir}")
@@ -100,8 +118,9 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--image", type=Path)
     b.add_argument("--templates", type=Path)
     b.add_argument("--engine", default="BLENDER_WORKBENCH", choices=["BLENDER_WORKBENCH", "BLENDER_EEVEE"])
+    b.add_argument("--force", action="store_true", help="replace a non-empty out_dir that is not a previous build")
     args = ap.parse_args(argv)
-    return build(args.spec, args.out_dir, args.image, args.templates, args.engine)
+    return build(args.spec, args.out_dir, args.image, args.templates, args.engine, args.force)
 
 
 if __name__ == "__main__":

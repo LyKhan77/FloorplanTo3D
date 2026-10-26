@@ -51,7 +51,7 @@ def main(argv: list[str]) -> None:
     progress(60, "instances and annotations")
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    export.export_all(data["exports"], out_dir, collections)
+    blend = export.export_all(data["exports"], out_dir, collections)
     progress(70, "exported")
 
     cameras = data.get("cameras", [])
@@ -59,6 +59,8 @@ def main(argv: list[str]) -> None:
         import render
 
         render.render_all(cameras, data.get("render", {}), out_dir, collections, progress)
+    if blend:  # last: the whole scene including cameras and annotations (PRD/06 §5)
+        export.save_blend(blend)
     progress(100, "done")
 
 
