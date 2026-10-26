@@ -90,6 +90,9 @@ export interface OutputVersion {
   renders: string[]
 }
 
+export type ResizeAxis = false | { min: number; max: number; step: number }
+
+/** template.json contract (PRD/10 §2). */
 export interface Template {
   id: string
   version: string
@@ -98,6 +101,13 @@ export interface Template {
   dims: { w: number; d: number; h: number }
   thumbnail_url: string
   asset_url: string
+  resizable?: { w: ResizeAxis; d: ResizeAxis; h: ResizeAxis }
+  scale_mode?: 'stretch' | 'fixed'
+  snap?: { grid_mm: number; align: 'edge' | 'center' }
+  clearance?: { front?: number; back?: number; left?: number; right?: number }
+  allowed_room_types?: string[]
+  tags?: string[]
+  metadata?: Record<string, unknown>
   [key: string]: unknown
 }
 
