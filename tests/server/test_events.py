@@ -54,3 +54,48 @@ def test_sse_heartbeat(storage_with_project):
         return chunk
 
     assert asyncio.run(main()) == ": ping\n\n"
+
+
+def test_sse_stream_ends_when_bus_closes(storage_with_project):
+    """Open SSE streams must end on shutdown, or uvicorn waits for them forever (old process keeps running)."""
+    st, pid = storage_with_project
+
+    async def main():
+        bus = EventBus(st)
+        bus.bind_loop(asyncio.get_running_loop())
+        gen = sse_stream(bus, pid, since=0, heartbeat_s=60)
+        pending = asyncio.ensure_future(anext(gen))
+        await asyncio.sleep(0.05)
+        bus.close()
+        try:
+            await asyncio.wait_for(pending, 2)
+        except StopAsyncIteration:
+            return "ended"
+        return "still open"
+
+    assert asyncio.run(main()) == "ended"
+
+
+def test_emit_after_close_writes_nothing(storage_with_project):
+    st, pid = storage_with_project
+    bus = EventBus(st)
+    bus.emit(pid, "r1", 7, "stage.log", msg="before")
+    bus.close()
+    bus.emit(pid, "r1", 7, "stage.log", msg="after")  # a stage thread outliving shutdown
+    assert [e["msg"] for e in bus.history(pid)] == ["before"]
+
+
+def test_exit_signal_closes_bus_then_calls_previous_handler(storage_with_project):
+    import signal
+
+    from server.app import close_bus_on_exit_signal
+
+    st, _ = storage_with_project
+    bus, calls = EventBus(st), []
+    original = signal.signal(signal.SIGTERM, lambda s, f: calls.append(s))
+    try:
+        close_bus_on_exit_signal(bus)
+        signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+        assert bus.closed and calls == [signal.SIGTERM]
+    finally:
+        signal.signal(signal.SIGTERM, original)

@@ -161,10 +161,16 @@ class Orchestrator:
         self._workers = [asyncio.create_task(self._worker(name)) for name in self._queues]
 
     async def stop(self) -> None:
+        for event in self._cancel.values():
+            event.set()
         for t in self._workers:
             t.cancel()
         for proc in list(self._procs.values()):
             proc.terminate()
+            try:
+                await asyncio.to_thread(proc.wait, 5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
 
     # run files
     def _run_path(self, pid: str, rid: str) -> Path:

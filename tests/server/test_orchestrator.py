@@ -127,3 +127,24 @@ def test_create_project_with_start_queues_full_run(app_factory, plan_bytes):
         assert r.status_code == 201 and body["run_id"] and body["status"] == "queued"
         run = wait_status(client, body["project_id"], body["run_id"], {"needs_attention"})
         assert run["kind"] == "full"
+
+
+def test_shutdown_kills_blender_and_stops_the_run(app_factory, project_with_gt):
+    """Stopping the server must not leave the stage subprocess or later stages running."""
+    import subprocess
+
+    procs, calls = [], []
+
+    def slow_build(ctx):
+        p = subprocess.Popen(["sleep", "30"])
+        procs.append(p)
+        ctx.register_process(p)
+        p.wait()
+        return {"status": "failed" if p.returncode else "succeeded"}
+
+    impls = fake_impls(calls) | {7: slow_build}
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_with_gt}/regenerate", json={}).json()["run_id"]
+        wait_stage_running(client, project_with_gt, rid, 7)
+    assert procs and procs[0].wait(timeout=5) is not None
+    assert not [n for n in calls if n > 7]

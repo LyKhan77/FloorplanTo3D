@@ -1,6 +1,8 @@
 """FastAPI application (PRD/02 §2, PRD/09). Run: uv run --env-file .env uvicorn server.app:app --port 8000"""
 
 import asyncio
+import signal
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -16,6 +18,23 @@ from server.routes import events, outputs, projects, runs, specs, system, templa
 from server.storage import Storage
 
 
+def close_bus_on_exit_signal(bus: EventBus) -> None:
+    """Chain onto the server's SIGINT/SIGTERM handlers: close SSE streams first so graceful shutdown can finish
+    (same idea as sse-starlette). Signals can only be set from the main thread; TestClient runs elsewhere."""
+    if threading.current_thread() is not threading.main_thread():
+        return
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        previous = signal.getsignal(sig)
+        if not callable(previous):
+            continue
+
+        def handler(s, frame, previous=previous):
+            bus.close()
+            previous(s, frame)
+
+        signal.signal(sig, handler)
+
+
 def create_app(settings: Settings | None = None, stage_impls: dict | None = None) -> FastAPI:
     settings = settings or load_settings()
 
@@ -23,8 +42,10 @@ def create_app(settings: Settings | None = None, stage_impls: dict | None = None
     async def lifespan(app: FastAPI):
         app.state.bus.bind_loop(asyncio.get_running_loop())
         await app.state.orchestrator.start()
+        close_bus_on_exit_signal(app.state.bus)
         yield
         await app.state.orchestrator.stop()
+        app.state.bus.close()
 
     app = FastAPI(title="Floorplan3D", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
     app.state.settings = settings
