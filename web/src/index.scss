@@ -1,0 +1,10 @@
+// Vite resolves node_modules without the default '~' prefix
+@use '@carbon/react' with ($font-path: '@ibm/plex');
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #161616;
+}
