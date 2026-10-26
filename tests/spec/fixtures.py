@@ -40,3 +40,17 @@ def two_room_spec() -> Spec:
                     door_type="double_swing", hinge="both", swing="left"),
         ],
     )
+
+
+def spec_with_rooms() -> Spec:
+    """Valid baseline: two_room_spec + the two rooms, with derived fields filled."""
+    from core.spec.derive import derive
+    from core.spec.models import Room
+
+    rooms = [
+        Room(id="R1", name="KIRI", type="office",
+             polygon=[(100, 100), (4950, 100), (4950, 5900), (100, 5900)]),
+        Room(id="R2", name="KANAN", type="storage",
+             polygon=[(5050, 100), (9900, 100), (9900, 5900), (5050, 5900)]),
+    ]
+    return derive(two_room_spec().model_copy(update={"rooms": rooms}))
