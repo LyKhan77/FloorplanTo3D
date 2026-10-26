@@ -1,0 +1,10 @@
+{
+ "axes_expected": 9,
+ "axes_found": 9,
+ "label_ok": true,
+ "offset_max_err_mm": 0,
+ "passed": {
+  "scale_err": true
+ },
+ "scale_err": 0.001276983240907618
+}

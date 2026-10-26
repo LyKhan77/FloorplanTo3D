@@ -290,12 +290,12 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** upload `plan.jpeg` menghasilkan spec otomatis yang memenuhi target akurasi. Referensi: `04-extraction.md`.
 
 ### Tugas
-- [ ] **Benchmark ekstraksi dulu** (`benchmarks/run_extraction_bench.py`):
+- [x] **Benchmark ekstraksi dulu** (`benchmarks/run_extraction_bench.py`):
   - membandingkan spec dengan GT: skala, galat dinding (median/p95), recall/presisi dinding, recall/lebar/arah pintu, kecocokan ruang dan luas, IoU;
   - output laporan Markdown + JSON.
-- [ ] Tahap 0: validasi input, parse prompt aturan (regex).
-- [ ] Tahap 1: rasterisasi PDF, CLAHE, deskew, area gambar, binarisasi.
-- [ ] Tahap 2: OCR global + klasifikasi teks, deteksi bulatan dan garis grid, skala least squares + RANSAC + cek total, fallback.
+- [x] Tahap 0: validasi input, parse prompt aturan (regex).
+- [x] Tahap 1: rasterisasi PDF, CLAHE, deskew, area gambar, binarisasi.
+- [x] Tahap 2: OCR global + klasifikasi teks, deteksi bulatan dan garis grid, skala least squares + RANSAC + cek total, fallback.
 - [ ] Tahap 3:
   - [ ] Masking anotasi (teks, dimensi, sumbu, hatch, leader, **simbol MEP terisi**).
   - [ ] Kondisi existing: kelas teks `proposed`/`dismantle`, titik tunjuk leader, pengecualian elemen PROPOSED.
@@ -321,6 +321,31 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Upload `plan.jpeg` dari dashboard berjalan end-to-end sampai editor.
 
 **FR:** FR-IN-04 (aturan), FR-EX-01…14.
+
+**Status M5a (2026-10-26), branch `m5-cv`.** Plan: `docs/superpowers/plans/2026-10-26-m5a-benchmark-input-grid.md`. M5 dipecah menjadi M5a (benchmark + tahap 0–2), M5b (tahap 3), dan M5c (tahap 4–5 + integrasi).
+- **Benchmark:**
+  - `benchmarks/extraction_metrics.py` + `run_extraction_bench.py` mengukur semua metrik NFR-AC-01…08, 10, dan 11 terhadap GT;
+  - GT terhadap dirinya sendiri: semua lulus;
+  - mode `--grid` dipakai sampai tahap 3–5 ada;
+  - laporan `benchmarks/reports/m5a-grid.md`.
+- **Tahap 0–2 berjalan otomatis dari upload `plan.jpeg` di dashboard:**
+  - tahap 1 butuh 1.8 s, tahap 2 butuh 4.0 s;
+  - **skala 25.846 mm/px, galat 0.13%** (NFR-AC-01 ≤ 0.5%);
+  - sumbu A–F / 1–3 lengkap, offset tepat (galat 0 mm);
+  - "C" dan "1" terbaca lewat OCR per crop bulatan, sehingga kriteria OCR M0 kini 18/18;
+  - residu persamaan maks 0.8%.
+- **Skala manual** dari panel tahap 2 menjalankan ulang dari tahap 2 (artefak tahap 0–1 disalin dari run sebelumnya). Hasilnya `scale_source manual`, dengan peringatan bila beda > 1% dari hitungan.
+- **Ketahanan:**
+  - denah diputar 2° diluruskan dengan skala tetap ≤ 0.5%; miring > 5° berakhir `needs_attention`;
+  - input PDF dirender 300 dpi ke `input/raster.png`, dan editor/laporan memakainya;
+  - `grid.json` identik pada run ulang.
+- **Dependensi baru:** `scikit-image` dan `pymupdf`. PyMuPDF berlisensi AGPL; aman untuk pemakaian internal, tetapi perlu dicek sebelum distribusi (R-14).
+- **Penyimpangan:**
+  - title block tidak dideteksi (tidak ada data uji); hanya border kertas yang dikenali, dan area gambar mengabaikan piksel berwarna anotasi;
+  - parser prompt Strata (T0) dipindah ke M6;
+  - pemilihan halaman PDF di form (P1) belum dibuat; field `page` sudah dihormati bila dikirim lewat API;
+  - ambang keliling bulatan 90% (spec: 60%), karena lingkaran palsu di Gatsu mencapai 81%.
+- **Suite:** pytest 236 passed, 1 xfailed (runtime naik ke ~2 menit karena dua test server kini menjalankan tahap 1–2 asli); Vitest 144 passed; ruff, oxlint, dan build bersih.
 
 ---
 
