@@ -1,0 +1,11 @@
+data/
+.env
+server-info.txt
+.venv/
+node_modules/
+web/dist/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+benchmarks/spike/crops/
+.superpowers/

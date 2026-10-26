@@ -1,0 +1,33 @@
+[project]
+name = "floorplan3d"
+version = "0.1.0"
+description = "Floorplan 2D to 3D pipeline (spec-centric)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "opencv-python-headless",
+    "rapidocr-onnxruntime",
+    "pygltflib",
+    "jinja2",
+    "weasyprint",
+    "openai",
+]
+
+[dependency-groups]
+dev = ["pytest", "ruff"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "blender: needs Blender",
+    "slow: takes more than 10 seconds",
+    "strata: needs Strata running",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["web"]
