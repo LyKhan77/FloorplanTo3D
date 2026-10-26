@@ -88,7 +88,7 @@ def find_columns(clean: np.ndarray, symbol_mask: np.ndarray, axes: list[dict], w
         if inside.size and (inside > 0).mean() > 0.03 and _on_wall((x0, y0, x1, y1), walls, s) \
                 and not _nearest_crossing((x0 + x1) / 2, (y0 + y1) / 2, crossings, s):
             cands.append(_col((x0 + x1) / 2, (y0 + y1) / 2, (w_mm, h_mm), "h_section", "structural", 0.6, None))
-    n, labels, stats, _ = cv2.connectedComponentsWithStats(symbol_mask, connectivity=8)
+    n, _, stats, _ = cv2.connectedComponentsWithStats(symbol_mask, connectivity=8)
     for i in range(1, n):  # (a) filled blob
         x, y, w, h, area = (float(v) for v in stats[i])
         side = math.sqrt(area) * s
