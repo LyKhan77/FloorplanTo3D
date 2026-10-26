@@ -5,6 +5,7 @@ import { EdgesGeometry, Mesh, Plane, Vector3, type Material, type Object3D } fro
 import { fromThree } from '../lib/coords'
 import { roomAt } from '../lib/geom'
 import { useEditorStore } from '../store'
+import { justDragged } from './gizmoState'
 import { applyShellState, buildShellIndex, specIdOf, specTypeOf } from './shellIndex'
 
 const SELECTABLE = new Set(['wall', 'door', 'window', 'column', 'room', 'stair'])
@@ -57,7 +58,7 @@ export function Shell({ url }: { url: string }) {
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     const s = useEditorStore.getState()
-    if (s.tool !== 'select' || s.mode === 'walk') return
+    if (s.tool !== 'select' || s.mode === 'walk' || justDragged()) return
     e.stopPropagation()
     const id = specIdOf(e.object)
     if (id && SELECTABLE.has(specTypeOf(e.object) ?? '')) s.select([id], e.shiftKey)

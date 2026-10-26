@@ -3,7 +3,10 @@ import { useState, type ReactNode } from 'react'
 import type { Column, Opening, PlacedObject, Room, Spec, Stair, Wall } from '../../types/spec'
 import { distance, formatM, formatM2 } from '../lib/measure'
 import { useEditorStore } from '../store'
+import type { Template } from '../../api/types'
+import { templateOf } from '../lib/transform'
 import { MmInput } from './MmInput'
+import { ObjectProps } from './ObjectProps'
 
 /** RoomType enum (PRD/03 §6, core/spec/models.py). */
 const ROOM_TYPES = [
@@ -96,7 +99,7 @@ function RoomProps({ room }: { room: Room }) {
   )
 }
 
-function Body({ picked, view }: { picked: Picked; view: Spec }) {
+function Body({ picked, view, templates }: { picked: Picked; view: Spec; templates: Template[] }) {
   switch (picked.kind) {
     case 'wall': return <WallProps items={picked.items} view={view} />
     case 'room': return <RoomProps key={`${picked.item.id}:${picked.item.name}`} room={picked.item} />
@@ -133,19 +136,12 @@ function Body({ picked, view }: { picked: Picked; view: Spec }) {
     }
     case 'object': {
       const o = picked.item
-      return (
-        <>
-          <h4 className="editor-panel__title">Objek {o.id}</h4>
-          <Info rows={[['Template', `${o.template_id}@${o.template_version}`], ['Label', o.label],
-            ['Posisi', `${o.position.map((v) => formatM(v)).join(', ')}`], ['Rotasi', `${o.rotation ?? 0}°`],
-            ['Dimensi', `${o.dims.join(' × ')} mm`], ['Ruang', o.room_id], ['Terkunci', o.locked ? 'ya' : 'tidak']]} />
-        </>
-      )
+      return <ObjectProps key={`${o.id}:${o.label}`} o={o} t={templateOf(o, templates)} />
     }
   }
 }
 
-export function PropertiesPanel() {
+export function PropertiesPanel({ templates = [] }: { templates?: Template[] }) {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
   if (!view) return null
@@ -154,7 +150,7 @@ export function PropertiesPanel() {
     <section className="editor-panel" aria-label="Properties">
       {!selection.length && <DefaultHeight view={view} />}
       {selection.length > 0 && !picked && <p className="helper">{selection.length} elemen terseleksi</p>}
-      {picked && <Body picked={picked} view={view} />}
+      {picked && <Body picked={picked} view={view} templates={templates} />}
     </section>
   )
 }

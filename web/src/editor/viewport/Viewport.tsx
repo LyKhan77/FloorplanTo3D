@@ -1,11 +1,15 @@
 import { MapControls, OrbitControls, OrthographicCamera, PerspectiveCamera } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Suspense, useMemo, useRef } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { MOUSE, type Camera } from 'three'
 import { toThree } from '../lib/coords'
 import { useEditorStore } from '../store'
 import { specBounds, type Bounds } from './bounds'
 import type { Template } from '../../api/types'
 import { DropGhost } from './DropGhost'
+import { justDragged } from './gizmoState'
+import { Marquee } from './Marquee'
+import { TransformGizmo } from './TransformGizmo'
 import { ObjectsLayer } from './ObjectsLayer'
 import { SceneHelpers } from './SceneHelpers'
 import { Shell } from './Shell'
@@ -22,7 +26,9 @@ function CameraRig({ bounds }: { bounds: Bounds }) {
       <>
         {/* a hair south of straight down keeps north (-Z) at the top of the screen */}
         <OrthographicCamera makeDefault position={[center[0], 200, center[2] + 0.001]} zoom={zoom} near={0.1} far={1000} />
-        <MapControls makeDefault target={center} enableRotate={false} screenSpacePanning zoomToCursor />
+        {/* left button is the marquee in Top; pan with the right button */}
+        <MapControls makeDefault target={center} enableRotate={false} screenSpacePanning zoomToCursor
+          mouseButtons={{ MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }} />
       </>
     )
   }
@@ -33,6 +39,12 @@ function CameraRig({ bounds }: { bounds: Bounds }) {
       <OrbitControls makeDefault target={center} maxPolarAngle={Math.PI / 2 - 0.05} />
     </>
   )
+}
+
+function CameraBridge({ onCamera }: { onCamera(c: Camera): void }) {
+  const current = useThree((s) => s.camera)
+  useEffect(() => onCamera(current), [onCamera, current])
+  return null
 }
 
 function FpsMeter() {
@@ -56,19 +68,27 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
   const base = useEditorStore((s) => s.base)
   const outline = base?.meta.building_outline
   const bounds = useMemo(() => (base ? specBounds(base) : null), [outline]) // eslint-disable-line react-hooks/exhaustive-deps
+  const wrap = useRef<HTMLDivElement>(null)
+  const camera = useRef<Camera | null>(null)
+  const setCamera = useCallback((c: Camera) => { camera.current = c }, [])
   if (!bounds) return null
   return (
+    <div ref={wrap} className="editor__canvas-wrap">
     <Canvas dpr={[1, 2]} onCreated={({ gl }) => { gl.localClippingEnabled = true }}
-      onPointerMissed={(e) => { if (e.type === 'click' && useEditorStore.getState().tool === 'select') useEditorStore.getState().select([]) }}>
+      onPointerMissed={(e) => { if (e.type === 'click' && useEditorStore.getState().tool === 'select' && !justDragged()) useEditorStore.getState().select([]) }}>
       <color attach="background" args={['#161616']} />
       <hemisphereLight intensity={0.9} groundColor="#3d3d3d" />
       <directionalLight position={[30, 60, 20]} intensity={1.4} />
       <Suspense fallback={null}><Shell url={shellUrl} /></Suspense>
       <ObjectsLayer templates={templates} />
       <DropGhost templates={templates} />
+      <TransformGizmo templates={templates} />
+      <CameraBridge onCamera={setCamera} />
       <SceneHelpers />
       <CameraRig bounds={bounds} />
       <FpsMeter />
     </Canvas>
+    <Marquee wrap={wrap} camera={camera} />
+    </div>
   )
 }

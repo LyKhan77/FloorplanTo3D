@@ -7,6 +7,8 @@ interface Props {
   value: number | null | undefined
   min?: number
   max?: number
+  disabled?: boolean
+  unit?: string
   onCommit(mm: number): void
 }
 
@@ -16,7 +18,7 @@ export function MmInput(props: Props) {
   return <MmField key={String(props.value)} {...props} />
 }
 
-function MmField({ id, label, value, min = 1000, max = 12000, onCommit }: Props) {
+function MmField({ id, label, value, min = 1000, max = 12000, disabled, unit = 'mm', onCommit }: Props) {
   const [text, setText] = useState(value == null ? '' : String(value))
   const [touched, setTouched] = useState(false)
   const n = Number(text)
@@ -26,8 +28,8 @@ function MmField({ id, label, value, min = 1000, max = 12000, onCommit }: Props)
     if (valid && Math.round(n) !== value) onCommit(Math.round(n))
   }
   return (
-    <TextInput id={id} labelText={label} size="sm" inputMode="numeric" value={text} onChange={(e) => setText(e.target.value)}
+    <TextInput id={id} labelText={label} size="sm" inputMode="numeric" disabled={disabled} value={text} onChange={(e) => setText(e.target.value)}
       onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit() }}
-      invalid={touched && !valid} invalidText={`Isi ${min}–${max} mm`} />
+      invalid={touched && !valid} invalidText={`Isi ${min}–${max} ${unit}`} />
   )
 }

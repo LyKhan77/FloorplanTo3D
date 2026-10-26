@@ -7,6 +7,7 @@ import { applyOps, type EditorOp, type OpFailure } from './ops/reducer'
 
 export type Tool = 'select' | 'distance' | 'room-area' | 'area' | 'height' | 'add-wall'
 export type Mode = 'orbit' | 'top' | 'walk'
+export type Gizmo = 'translate' | 'rotate' | 'scale'
 export type Layer = 'walls' | 'columns' | 'doors' | 'objects' | 'labels' | 'grid' | 'axes'
 export type Point3 = [number, number, number]
 export interface Measurement {
@@ -45,6 +46,7 @@ interface EditorState {
   previewBanner: boolean
   missingTemplates: string[]
   dragging: Template | null
+  gizmo: Gizmo
   load(projectId: string, spec: Spec): void
   apply(op: EditorOp): boolean
   applyMany(ops: EditorOp[]): boolean
@@ -68,6 +70,7 @@ interface EditorState {
   setPreviewBanner(on: boolean): void
   setMissingTemplates(objectIds: string[]): void
   setDragging(t: Template | null): void
+  setGizmo(g: Gizmo): void
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -103,7 +106,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null,
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate',
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null }),
     apply: (op) => get().applyMany([op]),
@@ -153,5 +156,6 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setPreviewBanner: (previewBanner) => set({ previewBanner }),
     setMissingTemplates: (missingTemplates) => set({ missingTemplates }),
     setDragging: (dragging) => set({ dragging }),
+    setGizmo: (gizmo) => set({ gizmo }),
   }
 })

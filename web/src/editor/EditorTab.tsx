@@ -69,7 +69,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
-      {right && <aside className="editor__props" aria-label="Properti"><PropertiesPanel /><LayersPanel /></aside>}
+      {right && <aside className="editor__props" aria-label="Properti"><PropertiesPanel templates={data.templates} /><LayersPanel /></aside>}
       <StatusBar />
     </div>
   )

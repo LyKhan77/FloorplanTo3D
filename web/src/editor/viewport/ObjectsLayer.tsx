@@ -1,17 +1,16 @@
 import { useGLTF } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { EdgesGeometry, InstancedMesh, Matrix4, Mesh, type Object3D } from 'three'
+import { InstancedMesh, Matrix4, Mesh, type Object3D } from 'three'
 import type { Template } from '../../api/types'
 import type { PlacedObject } from '../../types/spec'
 import { useEditorStore } from '../store'
-import { objectMatrix, shouldInstance, unitBox } from './objectMatrix'
-
-const boxEdges = new EdgesGeometry(unitBox)
+import { justDragged } from './gizmoState'
+import { boxEdges, objectMatrix, shouldInstance, unitBox } from './objectMatrix'
 
 function pick(e: ThreeEvent<MouseEvent>, id: string | undefined) {
   const s = useEditorStore.getState()
-  if (!id || s.tool !== 'select' || s.mode === 'walk') return
+  if (!id || s.tool !== 'select' || s.mode === 'walk' || justDragged()) return
   e.stopPropagation()
   s.select([id], e.shiftKey)
 }
