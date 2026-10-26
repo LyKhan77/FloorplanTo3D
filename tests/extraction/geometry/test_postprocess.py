@@ -73,3 +73,12 @@ def test_postprocess_reports_gap_openings_in_mm():
     walls, gaps, _ = postprocess([W("h", 100, 0, 200), W("h", 100, 272, 400)], {"vertical": [], "horizontal": []}, [], [], S)
     assert len(walls) == 1
     assert gaps == [{"wall_index": 0, "offset_mm": 2500, "width_mm": 900}]
+
+
+def test_kind_with_open_doorways():
+    """Doorways not bridged (an exterior entrance, a room door) must not turn the walls behind them exterior."""
+    box = [W("h", 0, 0, 160), W("h", 0, 240, 400), W("h", 300, 0, 400), W("v", 0, 0, 300), W("v", 400, 0, 300)]
+    room = [W("v", 200, 150, 300, t=100), W("h", 150, 200, 340), W("h", 150, 360, 400)]  # 250 mm gap: a room door
+    kinds = {(w["orient"], w["c"], w["a"]): w["kind"] for w in classify_kind(box + room, S)}
+    assert kinds[("h", 0, 0)] == kinds[("h", 0, 240)] == kinds[("v", 400, 0)] == "exterior"
+    assert kinds[("v", 200, 150)] == "partition" and kinds[("h", 150, 200)] == "interior"

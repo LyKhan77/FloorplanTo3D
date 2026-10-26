@@ -16,6 +16,7 @@ OPENING_GAP_MM = 3000
 SNAP_MM = 150
 MIN_MM = 300
 INTERIOR_MIN_MM = 120
+FOOTPRINT_CLOSE_MM = 1500  # bridges doorways (<= 3 m) so the outer ring does not run into the rooms
 POINTER_TOL_MM = 100
 PROPOSED_NEAR_MM = 1000
 
@@ -133,7 +134,9 @@ def classify_kind(walls: list[dict], s: float) -> list[dict]:
     if not walls:
         return []
     union = unary_union([_line(w).buffer(_t(w, s) / 2, cap_style="flat") for w in walls])
-    rings = [p.exterior for p in getattr(union, "geoms", [union])]
+    d = FOOTPRINT_CLOSE_MM / s
+    footprint = union.buffer(d).buffer(-d)
+    rings = [p.exterior for p in getattr(footprint, "geoms", [footprint])]
     out = []
     for w in walls:
         mid = _line(w).interpolate(0.5, normalized=True)
