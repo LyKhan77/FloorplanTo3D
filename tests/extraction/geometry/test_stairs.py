@@ -87,7 +87,7 @@ def test_gatsu_stair_s1():
 
     g = gatsu()
     m = build_masks(g["binary"], g["colour"], g["ocr"], g["meta"]["drawing_bbox"], g["s"])
-    strokes = extract_strokes(m["clean"], 0, g["s"])
+    strokes = extract_strokes(m["thin"], 0, g["s"])
     texts = [i for i in g["ocr"] if i["cls"] == "stair_dir"]
     st, _ = detect_stairs(strokes, texts, m["clean"], g["s"])
     s1 = [f for s in st for f in s["flights"] if 410 <= f["start"][0] <= 840 and 360 <= f["start"][1] <= 760]

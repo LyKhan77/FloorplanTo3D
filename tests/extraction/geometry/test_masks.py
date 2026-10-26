@@ -88,3 +88,22 @@ def test_gatsu_masks():
     # wall lines ending next to a text are not leaders: the south band line (y≈690, x 103..1184) survives
     x, y = work(600, 690)
     assert m["clean"][y - 4:y + 5, x].any()
+
+
+def test_poche_wall_network_is_not_a_symbol():
+    """Solid (S1) walls form one connected network with a square-ish bbox; only compact filled blobs are symbols."""
+    from core.extraction.geometry.walls_s1 import solid_walls
+
+    s, t = 12.5, 16  # 200 mm poche walls
+    img = canvas(1600, 1200)
+    x0, y0, x1, y1 = 200, 200, 1400, 1000
+    for a, b, c, d in ((x0, y0, x1, y0 + t), (x0, y1 - t, x1, y1), (x0, y0, x0 + t, y1), (x1 - t, y0, x1, y1),
+                       (700, y0, 700 + t, y1)):
+        img[b:d, a:c] = 255
+    for k in range(40):  # thin lines (furniture, hatch) so that the thin stroke width dominates
+        line(img, (250 + k * 10, 300), (250 + k * 10, 900), 2)
+    img[500:540, 1000:1040] = 255  # a 500 mm filled MEP symbol inside the room
+    m = build_masks(img, None, [], [0, 0, 1600, 1200], s)
+    assert not m["symbol"][y0 + 4, 300] and not m["symbol"][600, 704]  # wall pixels stay in clean
+    assert m["symbol"][520, 1020]
+    assert len(solid_walls(m["clean"], m["symbol"], s, 80)) >= 5

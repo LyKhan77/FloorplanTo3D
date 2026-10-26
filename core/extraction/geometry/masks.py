@@ -1,7 +1,8 @@
 """Annotation masking before any detection (PRD/04 §3.1).
 
-`clean` is the binary used by the detectors; `symbol` and `hatch` are kept as masks (symbols are removed from
-`clean`, hatch only lowers confidence later); `pointers` are the far ends of leader lines from annotation texts.
+`clean` is the binary used by the detectors (`thin` also drops every thick blob, for stair detection); `symbol` and
+`hatch` are kept as masks (symbols are removed from `clean`, hatch only lowers confidence later); `pointers` are the
+far ends of leader lines from annotation texts.
 """
 
 import math
@@ -17,6 +18,8 @@ LEADER_MIN_MM = 300
 LEADER_MAX_MM = 6000
 PAIR_MAX_MM = 450  # a line with a parallel partner this close is one side of a double-line wall, not a leader
 SYMBOL_MIN_MM = 300
+SYMBOL_MAX_MM = 3000
+SYMBOL_FILL_MIN = 0.5  # compact blob (Gatsu panels 0.58+); a connected wall network fills <= 0.25 of its bbox
 HATCH_CELL_MM = 600
 HATCH_MIN_SEGMENTS = 6
 
@@ -85,18 +88,23 @@ def _leaders(work: np.ndarray, texts: list[dict], s: float) -> tuple[list[tuple]
     return segs, pointers
 
 
-def _symbols(clean: np.ndarray, w: float, s: float) -> np.ndarray:
+def _symbols(clean: np.ndarray, w: float, s: float) -> tuple[np.ndarray, np.ndarray]:
+    """(symbol mask, thick mask). Symbols are compact filled blobs; `thick` is every non-elongated thick blob,
+    compact or not (a poche wall network, stair walls and rails), removed only from the stair-detection input."""
     k = 2 * round(w) + 1
     opened = cv2.morphologyEx(clean, cv2.MORPH_OPEN, np.ones((k, k), np.uint8))
     n, labels, stats, _ = cv2.connectedComponentsWithStats(opened, connectivity=8)
-    mask = np.zeros_like(clean)
-    min_area = (SYMBOL_MIN_MM / s) ** 2
+    symbol, thick = np.zeros_like(clean), np.zeros_like(clean)
+    min_area, max_side = (SYMBOL_MIN_MM / s) ** 2, SYMBOL_MAX_MM / s
     for i in range(1, n):
         _, _, bw, bh, area = stats[i]
         if area >= min_area and max(bw, bh) / max(1, min(bw, bh)) < 4:
-            mask[labels == i] = 255
+            thick[labels == i] = 255
+            if max(bw, bh) <= max_side and area / (bw * bh) >= SYMBOL_FILL_MIN:
+                symbol[labels == i] = 255
     # cover the blob outline that the opening shaved off
-    return cv2.dilate(mask, np.ones((k, k), np.uint8)) if mask.any() else mask
+    ker = np.ones((k, k), np.uint8)
+    return tuple(cv2.dilate(m, ker) if m.any() else m for m in (symbol, thick))
 
 
 def _hatch(clean: np.ndarray, s: float) -> np.ndarray:
@@ -137,6 +145,8 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     for x1_, y1_, x2_, y2_ in leader_segs:
         cv2.line(clean, (round(x1_), round(y1_)), (round(x2_), round(y2_)), 0, 3)
     w = stroke_width(clean)
-    symbol = _symbols(clean, w, s)
+    symbol, thick = _symbols(clean, w, s)
     clean[symbol > 0] = 0
-    return {"clean": clean, "symbol": symbol, "hatch": _hatch(clean, s), "pointers": pointers, "stroke_width": w}
+    thin = np.where(thick > 0, 0, clean).astype(np.uint8)
+    return {"clean": clean, "thin": thin, "symbol": symbol, "hatch": _hatch(clean, s), "pointers": pointers,
+            "stroke_width": w}
