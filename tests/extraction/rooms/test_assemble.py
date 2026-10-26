@@ -142,3 +142,30 @@ def test_reextraction_takes_new_labels_and_types_without_false_lost_edits():
     types = sorted((r.name, r.type) for r in out.rooms)
     assert types == [("", "stair"), ("PANTRY", "pantry")]
     assert rep["lost_edits"] == []
+
+
+def test_wall_ending_on_a_thicker_wall_face_is_not_pushed_through():
+    from core.extraction.rooms.assemble import close_ends
+
+    el = box_elements()
+    el["walls"][2] = wall((8000, 5000), (0, 5000), 300)  # thick north wall: face at y = 4850
+    el["walls"][4] = wall((4000, 0), (4000, 4850), 100, "partition")  # ends on that face (> t/2 from its centreline)
+    el["columns"] = [{"center": [4000, 5650], "size": [400, 400], "shape": "rect", "rotation": 0, "kind": "structural",
+                      "confidence": 0.9, "grid_ref": None}]
+    from core.extraction.geometry.elements import elements_to_spec
+
+    s = close_ends(elements_to_spec(el, GRID))
+    w = next(w for w in s.walls if w.a[0] == 4000 == w.b[0])
+    assert max(w.a[1], w.b[1]) == 4850  # already closed: not extended through the host towards the column
+
+
+def test_collinear_gap_is_closed_from_both_sides_to_the_middle():
+    from core.extraction.geometry.elements import elements_to_spec
+    from core.extraction.rooms.assemble import close_ends
+
+    el = box_elements()
+    el["walls"][4:] = [wall((0, 2500), (3000, 2500), 100, "partition"), wall((3900, 2500), (8000, 2500), 100, "partition")]
+    s = close_ends(elements_to_spec(el, GRID))
+    west = next(w for w in s.walls if w.a == (0, 2500))
+    east = next(w for w in s.walls if w.b == (8000, 2500))
+    assert west.b == (3450, 2500) and east.a == (3450, 2500)  # they meet halfway, no overlap

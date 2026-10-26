@@ -33,6 +33,14 @@ def _with_meta(spec: Spec, meta_info: dict) -> Spec:
     return s
 
 
+def _parallel(a, b) -> bool:
+    la, lb = math.dist(a.a, a.b), math.dist(b.a, b.b)
+    if not la or not lb:
+        return False
+    cross = ((a.b[0] - a.a[0]) * (b.b[1] - b.a[1]) - (a.b[1] - a.a[1]) * (b.b[0] - b.a[0])) / (la * lb)
+    return abs(cross) <= math.sin(math.radians(3))
+
+
 def close_ends(spec: Spec, reach_mm: float = CLOSE_REACH_MM) -> Spec:
     """Extend every dangling wall end along the wall, up to `reach_mm`, onto the first wall or column it meets.
 
@@ -41,6 +49,7 @@ def close_ends(spec: Spec, reach_mm: float = CLOSE_REACH_MM) -> Spec:
     centreline, so the footprint closes the L/T. Door offsets follow a moved `a` end.
     """
     s = spec.model_copy(deep=True)
+    walls = {w.id: w for w in spec.walls}
     solids = [(w.id, wall_footprint(w, s), w.thickness / 2) for w in s.walls]
     solids += [(None, column_footprint(c), 0.0) for c in s.columns]
     moved: dict[str, float] = {}
@@ -54,13 +63,18 @@ def close_ends(spec: Spec, reach_mm: float = CLOSE_REACH_MM) -> Spec:
                 continue
             p = w.a if end == "a" else w.b
             ray = LineString([p, (p[0] + sign * ux * reach_mm, p[1] + sign * uy * reach_mm)])
-            hits = [(Point(p).distance(ray.intersection(fp)), half) for oid, fp, half in solids
+            hits = [(Point(p).distance(ray.intersection(fp)), half, oid) for oid, fp, half in solids
                     if oid != w.id and ray.intersects(fp)]
-            hits = [(d, half) for d, half in hits if d > 1]
-            if not hits:
-                continue
-            d, half = min(hits)
-            ext = min(reach_mm, d + half)
+            if not hits or any(d <= 1 for d, _, _ in hits):
+                continue  # nothing within reach, or the end already sits on a wall face (a thin wall on a thick one)
+            d, half, oid = min(hits, key=lambda h: (h[0], h[2] or ""))
+            host = walls.get(oid)
+            if host is not None and _parallel(w, host):
+                # a collinear gap: both dangling ends move, so each goes halfway; a closed partner end is met in full
+                facing = min(("a", "b"), key=lambda e: math.dist(p, host.a if e == "a" else host.b))
+                ext = d / 2 if not endpoint_connected(spec, host, facing) else d
+            else:
+                ext = min(reach_mm, d + half)
             q = (round(p[0] + sign * ux * ext), round(p[1] + sign * uy * ext))
             if end == "a":
                 w.a = q
