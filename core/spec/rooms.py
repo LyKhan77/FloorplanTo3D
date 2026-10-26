@@ -106,7 +106,8 @@ def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None,
         inside = [lb for lb in labels or [] if p.covers(SPoint(lb.at))]
         label = pick(inside) if pick else next(iter(inside), None)
         if label:
-            room = room.model_copy(update={"name": label.name, "type": label.type, "label_pos": label.at})
+            rtype = label.type if label.type != "other" else room.type  # an unknown word does not undo stair/lift
+            room = room.model_copy(update={"name": label.name, "type": rtype, "label_pos": label.at})
             room = Room.model_validate(room.model_dump())  # re-validate the literal room type
         new_rooms.append(room)
 

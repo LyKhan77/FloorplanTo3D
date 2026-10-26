@@ -149,3 +149,28 @@ def test_coverage_uses_one_estimate_for_the_drawing(tmp_path):
     write_json(work.parent / "03_extract" / "candidates.json", rows)
     stage_validate(project, work, "r")
     assert json.loads((work / "scores.json").read_text())[0]["coverage"] == pytest.approx(0.31, abs=0.01)
+
+
+def test_crop_ocr_keeps_only_room_labels_and_skips_typed_rooms():
+    el = box_elements()
+    el["stairs"] = [{"flights": [{"start": [1000, 1000], "end": [1000, 3500], "width": 1000, "risers": 14}],
+                     "landings": [], "confidence": 0.9, "direction_source": "text"}]
+    spec, _ = assemble_spec(el, GRID, [], META)  # west room: stair, east room: other
+    page = np.full((1000, 1000), 255, np.uint8)
+    to_px = px_from_mm(GRID["px_to_mm_original"])
+    for text, at in (("NAIK", (1800, 2500)), ("ROUTE CABLE", (5500, 2500))):
+        u, v = (round(t) for t in to_px(*at))
+        cv2.putText(page, text, (u, v), cv2.FONT_HERSHEY_SIMPLEX, 0.6, 0, 2, cv2.LINE_AA)
+    assert crop_labels(page, spec, GRID["px_to_mm_original"]) == []
+
+
+def test_label_of_unknown_type_keeps_the_geometric_room_type():
+    from core.spec.rooms import RoomLabel, rebuild_rooms
+
+    el = box_elements()
+    el["stairs"] = [{"flights": [{"start": [1000, 1000], "end": [1000, 3500], "width": 1000, "risers": 14}],
+                     "landings": [], "confidence": 0.9, "direction_source": "text"}]
+    spec, _ = assemble_spec(el, GRID, [], META)
+    out = rebuild_rooms(spec, [RoomLabel((2000, 2500), "ANEL", "other")])
+    room = next(r for r in out.rooms if r.name == "ANEL")
+    assert room.type == "stair"

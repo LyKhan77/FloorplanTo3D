@@ -9,6 +9,7 @@ from core.extraction.geometry.elements import to_mm
 from core.extraction.ocr import ocr_crop
 from core.extraction.rooms.labels import match_type
 from core.extraction.rooms.overlay import px_from_mm
+from core.extraction.textclass import classify_text
 from core.spec.models import Spec
 from core.spec.rooms import RoomLabel
 
@@ -16,6 +17,7 @@ TIE = 0.01  # scores this close are a tie, settled by wall coverage (V018)
 MIN_COVERAGE = 0.6  # V018: a candidate covering less of the drawn lines loses before scores are compared
 CROP_MIN_M2 = 4  # rooms that V015 counts
 CROP_SCALE = 3
+TYPED = ("stair", "lift", "outdoor")  # geometry already says what these rooms are
 
 
 def ocr_dimensions_from(grid_doc: dict) -> list[tuple[str, str, int]]:
@@ -42,17 +44,17 @@ def crop_labels(page_gray, spec: Spec, px_to_mm: list[float]) -> list[RoomLabel]
     to_px = px_from_mm(px_to_mm)
     out = []
     for r in spec.rooms:
-        if r.name or r.area_m2 < CROP_MIN_M2:
+        if r.name or r.area_m2 < CROP_MIN_M2 or r.type in TYPED:
             continue
         shape = SPolygon(r.polygon, r.holes)
         pts = [to_px(x, y) for x, y in r.polygon]
         us, vs = [p[0] for p in pts], [p[1] for p in pts]
         box = (min(us) + 2, min(vs) + 2, max(us) - 2, max(vs) - 2)
         for item in sorted(ocr_crop(page_gray, box, CROP_SCALE), key=lambda i: (i.bbox[1], i.bbox[0])):
+            if classify_text(item, in_circle=False, in_building=True) != "room_label":
+                continue  # stair arrows (NAIK/TURUN), cable annotations, PROPOSED notes are not room names
             name = " ".join(re.findall(r"[A-Z0-9]+", item.text.upper()))
             rtype, _ = match_type(name)
-            if rtype == "other" and len(re.sub(r"[^A-Z]", "", name)) < 3:
-                continue
             at = to_mm(px_to_mm, (item.bbox[0] + item.bbox[2]) / 2, (item.bbox[1] + item.bbox[3]) / 2)
             if shape.covers(Point(at)):
                 out.append(RoomLabel(at=at, name=name, type=rtype))
