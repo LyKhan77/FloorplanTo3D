@@ -1,6 +1,6 @@
 import pytest
 
-from core.spec.models import Column
+from core.spec.models import Column, Wall
 from core.spec.rooms import RoomLabel, form_rooms, rebuild_rooms
 from tests.spec.fixtures import two_room_spec
 
@@ -37,3 +37,14 @@ def test_reconcile_keeps_names_after_partition_removed():
                                          RoomLabel(at=(7500, 3000), name="B", type="storage")])
     s2 = rebuild_rooms(s.model_copy(update={"walls": [w for w in s.walls if w.id != "W5"]}))
     assert len(s2.rooms) == 1 and (s2.rooms[0].id, s2.rooms[0].name) == ("R1", "A")
+
+
+def test_island_inside_room_is_not_a_building_outline():
+    s = two_room_spec()
+    s.columns.append(Column(id="C2", center=(2500, 3000), shape="rect", size=(400, 400)))
+    ring = [((6000, 2000), (8000, 2000)), ((8000, 2000), (8000, 4000)), ((8000, 4000), (6000, 4000)),
+            ((6000, 4000), (6000, 2000))]  # 2 m x 2 m shaft, interior > 1 m²
+    s.walls += [Wall(id=f"W{9 + i}", a=a, b=b, thickness=100, kind="interior") for i, (a, b) in enumerate(ring)]
+    rooms, outlines = form_rooms(s)
+    assert len(outlines) == 1
+    assert len(rooms) == 3  # left (with column hole), right (with ring hole), inside the ring

@@ -73,10 +73,17 @@ def stair_metrics(stair: Stair, defaults: Defaults) -> list[FlightMetrics]:
 def derive(spec: Spec) -> Spec:
     s = spec.model_copy(deep=True)
     footprints = {w.id: wall_footprint(w, s) for w in s.walls}
-    doors_by_wall: dict[str, list[str]] = {}
+    walls = {w.id: w for w in s.walls}
+    door_segments = {}  # door id -> (opening segment on the centerline, half wall thickness)
     for o in s.openings:
-        if o.category == "door":
-            doors_by_wall.setdefault(o.wall_id, []).append(o.id)
+        w = walls.get(o.wall_id)
+        if o.category == "door" and w:
+            (ax, ay), (bx, by) = w.a, w.b
+            length = math.hypot(bx - ax, by - ay) or 1.0
+            ux, uy = (bx - ax) / length, (by - ay) / length
+            seg = LineString([(ax + ux * o.offset, ay + uy * o.offset),
+                              (ax + ux * (o.offset + o.width), ay + uy * (o.offset + o.width))])
+            door_segments[o.id] = (seg, w.thickness / 2)
 
     room_shapes = []
     for r in s.rooms:
@@ -86,7 +93,9 @@ def derive(spec: Spec) -> Spec:
         r.area_m2 = round(shape.area / 1e6, 2)
         r.perimeter_m = round(outer.length / 1000, 2)
         r.bounding_walls = sorted((wid for wid, fp in footprints.items() if fp.distance(outer) <= 1), key=id_key)
-        r.doors = sorted((d for wid in r.bounding_walls for d in doors_by_wall.get(wid, [])), key=id_key)
+        # A door belongs to a room only if its opening (not just its wall) faces the room.
+        r.doors = sorted((d for d, (seg, half_t) in door_segments.items() if seg.distance(outer) <= half_t + 1),
+                         key=id_key)
 
     def room_at(x: float, y: float) -> str | None:
         pt = Point(x, y)

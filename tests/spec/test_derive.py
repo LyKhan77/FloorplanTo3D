@@ -30,6 +30,12 @@ def test_room_derived_fields():
     assert r1.doors == ["D1", "D2"]
 
 
+def test_door_counts_only_for_rooms_it_opens_into():
+    s = spec_with_rooms()
+    r2 = next(r for r in s.rooms if r.id == "R2")
+    assert "W1" in r2.bounding_walls and r2.doors == ["D1"]  # D2 sits on W1 but in front of R1 only
+
+
 def test_area_subtracts_holes():
     room = Room(id="R9", polygon=[(0, 0), (2000, 0), (2000, 2000), (0, 2000)],
                 holes=[[(500, 500), (500, 900), (900, 900), (900, 500)]])
