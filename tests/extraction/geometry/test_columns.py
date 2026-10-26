@@ -36,7 +36,7 @@ def test_filled_blob_off_grid_needs_a_wall_and_a_square_shape():
     sym[200:212, 450:480] = 255  # irregular/elongated blob
     walls = [_wall("h", 320, 380, 560, 150, {})]
     cols = find_columns(img, sym, AXES, walls, S)
-    assert [(round(c["center_px"][0]), c["shape"], c["confidence"]) for c in cols] == [(420, "rect", 0.6)]
+    assert [(round(c["center_px"][0]), c["shape"], c["confidence"]) for c in cols] == [(420, "rect", 0.5)]  # off the grid: review
 
 
 def test_pilaster_on_exterior_band():

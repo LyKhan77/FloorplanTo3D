@@ -15,6 +15,7 @@ SIDE_MM = (150, 800)
 PILASTER_SIDE_MM = (300, 1400)  # fins are ~500 x 1300; 150-300 mm holes are the inside of double-line walls
 NEAR_CROSSING_MM = 300
 FILL_MIN = 0.75
+OFF_GRID_CONF = 0.5  # off the grid only the shape speaks for a column: always reviewed (< 0.6)
 
 
 def _crossings(axes: list[dict]) -> list[tuple[float, float, str, str]]:
@@ -87,7 +88,7 @@ def find_columns(clean: np.ndarray, symbol_mask: np.ndarray, axes: list[dict], w
         inside = clean[int(y0) + 1:int(y1) - 1, int(x0) + 1:int(x1) - 1]
         if inside.size and (inside > 0).mean() > 0.03 and _on_wall((x0, y0, x1, y1), walls, s) \
                 and not _nearest_crossing((x0 + x1) / 2, (y0 + y1) / 2, crossings, s):
-            cands.append(_col((x0 + x1) / 2, (y0 + y1) / 2, (w_mm, h_mm), "h_section", "structural", 0.6, None))
+            cands.append(_col((x0 + x1) / 2, (y0 + y1) / 2, (w_mm, h_mm), "h_section", "structural", OFF_GRID_CONF, None))
     n, _, stats, _ = cv2.connectedComponentsWithStats(symbol_mask, connectivity=8)
     for i in range(1, n):  # (a) filled blob
         x, y, w, h, area = (float(v) for v in stats[i])
@@ -99,7 +100,7 @@ def find_columns(clean: np.ndarray, symbol_mask: np.ndarray, axes: list[dict], w
         if cr:
             cands.append(_col(cx, cy, (w * s, h * s), "rect", "structural", 0.9, cr[2:]))
         elif _on_wall((x, y, x + w, y + h), walls, s):  # free-standing filled squares are MEP symbols
-            cands.append(_col(cx, cy, (w * s, h * s), "rect", "structural", 0.6, None))
+            cands.append(_col(cx, cy, (w * s, h * s), "rect", "structural", OFF_GRID_CONF, None))
     out: list[dict] = []
     for c in sorted(cands, key=lambda c: (-c["confidence"], c["center_px"])):
         if all(math.dist(c["center_px"], o["center_px"]) * s > NEAR_CROSSING_MM for o in out):
