@@ -28,3 +28,13 @@ def client(data_dir):
 @pytest.fixture
 def plan_bytes():
     return Path("floorplan/plan.jpeg").read_bytes()
+
+
+@pytest.fixture
+def storage_with_project(data_dir):
+    from server.storage import Storage
+
+    st = Storage(data_dir)
+    (st.projects_dir / "p-0001").mkdir(parents=True)
+    (st.projects_dir / "p-0001" / "project.json").write_text("{}")
+    return st, "p-0001"
