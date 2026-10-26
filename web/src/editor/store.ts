@@ -75,6 +75,7 @@ interface EditorState {
   setGizmo(g: Gizmo): void
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
   setFocus(p: [number, number] | null): void
+  takeFocus(): [number, number] | null
 }
 
 const LAYERS: Record<Layer, boolean> = {
@@ -163,5 +164,10 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setGizmo: (gizmo) => set({ gizmo }),
     setWallDraft: (wallDraft) => set({ wallDraft }),
     setFocus: (focus) => set({ focus }),
+    takeFocus: () => {
+      const { focus } = get()
+      if (focus) set({ focus: null })
+      return focus
+    },
   }
 })

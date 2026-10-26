@@ -55,6 +55,12 @@ describe('useEditorStore', () => {
     expect(st().view).toBe(view)
   })
 
+  it('a camera focus request is taken once (a mode switch must not replay it)', () => {
+    st().setFocus([1000, 2000])
+    expect(st().takeFocus()).toEqual([1000, 2000])
+    expect(st().takeFocus()).toBeNull()
+  })
+
   it('drops selected ids that no longer exist', () => {
     st().applyMany([add(0), add(100)])
     st().select(['O2'])

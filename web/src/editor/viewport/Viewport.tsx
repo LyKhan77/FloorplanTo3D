@@ -38,8 +38,7 @@ function CameraRig({ bounds }: { bounds: Bounds }) {
     )
   }
   if (mode === 'walk') {
-    const [x, y] = useEditorStore.getState().focus ?? [cx, cy]
-    const eye = toThree([x, y, EYE * 1000])
+    const eye = toThree([cx, cy, EYE * 1000])
     return (
       <>
         <PerspectiveCamera makeDefault position={eye} fov={70} near={0.05} far={500} />
@@ -67,17 +66,19 @@ function Focus() {
   const focus = useEditorStore((s) => s.focus)
   const { camera, controls } = useThree()
   useEffect(() => {
-    if (!focus) return
-    const [x, , z] = toThree([focus[0], focus[1], 0])
-    const target = (controls as unknown as { target?: Vector3; update?: () => void } | null)?.target
-    if (useEditorStore.getState().mode === 'walk' || !target) {
+    // taken once: a later camera/controls swap (mode change) must not replay an old request
+    const f = useEditorStore.getState().takeFocus()
+    if (!f) return
+    const [x, , z] = toThree([f[0], f[1], 0])
+    const ctl = controls as unknown as { target?: Vector3; update?: () => void } | null
+    if (useEditorStore.getState().mode === 'walk' || !ctl?.target) {
       camera.position.set(x, EYE, z)
       return
     }
-    const dx = x - target.x, dz = z - target.z
-    target.set(x, target.y, z)
+    const dx = x - ctl.target.x, dz = z - ctl.target.z
+    ctl.target.set(x, ctl.target.y, z)
     camera.position.set(camera.position.x + dx, camera.position.y, camera.position.z + dz)
-    ;(controls as unknown as { update?: () => void }).update?.()
+    ctl.update?.()
   }, [focus, camera, controls])
   return null
 }

@@ -17,7 +17,8 @@ export function useRegenerateFlow(projectId: string, run: Run | null) {
       if (v !== null) mutation.mutate(v, { onError: (e) => useEditorStore.getState().setNotice({ kind: 'error', text: e.message }) })
     },
     running: running || mutation.isPending,
-    progress: running ? ((done + (current?.progress ?? 0)) / BLENDER.length) * 100 : null,
+    // stage.progress is a percent (stage.progress event "percent")
+    progress: running ? ((done + (current?.progress ?? 0) / 100) / BLENDER.length) * 100 : null,
     stage: current?.name ?? null,
   }
 }

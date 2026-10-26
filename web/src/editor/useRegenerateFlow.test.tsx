@@ -26,7 +26,7 @@ describe('useRegenerateFlow', () => {
     const skipped = [0, 1, 2, 3, 4, 5, 6].map((n) => stage(n, 'skipped'))
     const qc = new QueryClient()
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-    const r = run([...skipped, stage(7, 'succeeded'), stage(8, 'running', 0.5), stage(9, 'pending'), stage(10, 'pending')])
+    const r = run([...skipped, stage(7, 'succeeded'), stage(8, 'running', 50), stage(9, 'pending'), stage(10, 'pending')])
     const { result } = renderHook(() => useRegenerateFlow('p1', r), { wrapper })
     expect(result.current.progress).toBe(37.5)
     expect(result.current.stage).toBe('verify')
