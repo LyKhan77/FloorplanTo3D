@@ -194,12 +194,12 @@ def test_worker_survives_a_failing_error_handler(app_factory, project_with_gt, p
 
         async def run_part(queue, pid, rid):
             if pid == project_with_gt:
-                broken.add(rid)
+                broken.add((pid, rid))  # run ids are only unique per project (same second + 2 hex)
                 raise RuntimeError("boom")
             return await real_part(queue, pid, rid)
 
         def load_run(pid, rid):
-            if rid in broken:
+            if (pid, rid) in broken:
                 raise ValueError("torn run.json")
             return real_load(pid, rid)
 
