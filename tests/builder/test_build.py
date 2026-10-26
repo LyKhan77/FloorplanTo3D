@@ -1,7 +1,13 @@
 import pytest
 from pygltflib import GLTF2
 
-from tests.builder.helpers import build, minimal_doc, skip_without_blender, tri_count, two_walls_corner_with_cutter_doc
+from tests.builder.helpers import (
+    build,
+    minimal_doc,
+    skip_without_blender,
+    tri_count,
+    two_walls_corner_with_cutter_doc,
+)
 
 pytestmark = [pytest.mark.blender, skip_without_blender]
 

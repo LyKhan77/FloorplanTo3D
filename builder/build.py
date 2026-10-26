@@ -12,8 +12,8 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import export  # noqa: E402
-import scene  # noqa: E402
+import export
+import scene
 
 REQUIRED_VERSION = (5, 2)
 SUPPORTED_INPUT = 1
