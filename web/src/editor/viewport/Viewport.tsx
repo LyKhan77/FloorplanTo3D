@@ -6,7 +6,9 @@ import { toThree } from '../lib/coords'
 import { useEditorStore } from '../store'
 import { specBounds, type Bounds } from './bounds'
 import type { Template } from '../../api/types'
+import { AddWallTool } from './AddWallTool'
 import { DropGhost } from './DropGhost'
+import { GeometryPreview } from './GeometryPreview'
 import { justDragged } from './gizmoState'
 import { Marquee } from './Marquee'
 import { MeasureLayer } from './MeasureLayer'
@@ -70,6 +72,7 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
   const outline = base?.meta.building_outline
   const bounds = useMemo(() => (base ? specBounds(base) : null), [outline]) // eslint-disable-line react-hooks/exhaustive-deps
   const tool = useEditorStore((s) => s.tool)
+  const mode = useEditorStore((s) => s.mode)
   const wrap = useRef<HTMLDivElement>(null)
   const camera = useRef<Camera | null>(null)
   const setCamera = useCallback((c: Camera) => { camera.current = c }, [])
@@ -86,6 +89,8 @@ export function Viewport({ shellUrl, templates }: { shellUrl: string; templates:
       <DropGhost templates={templates} />
       <TransformGizmo templates={templates} />
       <MeasureLayer key={tool} />
+      <GeometryPreview />
+      {tool === 'add-wall' && mode === 'top' && <AddWallTool />}
       <CameraBridge onCamera={setCamera} />
       <SceneHelpers />
       <CameraRig bounds={bounds} />

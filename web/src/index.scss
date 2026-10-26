@@ -508,13 +508,23 @@ body {
   position: relative;
   min-height: 0;
 
-  > .cds--inline-notification {
+  .editor__banners {
     position: absolute;
     z-index: 2;
     top: 0.5rem;
     left: 0.5rem;
     right: 0.5rem;
-    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    pointer-events: none;
+
+    .cds--inline-notification {
+      max-width: none;
+      min-height: 2.5rem;
+      margin: 0;
+      pointer-events: auto;
+    }
   }
 }
 
@@ -655,6 +665,63 @@ body {
   white-space: nowrap;
   background: #f1c21b;
   pointer-events: none;
+}
+
+.editor-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.editor-panel__sub {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c6c6c6;
+}
+
+.editor-delete,
+.editor-correction .cds--accordion__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-inline: 0;
+}
+
+.editor-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.editor-issue {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 0.5rem;
+  font-size: 0.75rem;
+
+  p {
+    font-size: 0.75rem;
+  }
+}
+
+.editor-issue--error svg {
+  fill: #fa4d56;
+}
+
+.editor-issue--warning svg {
+  fill: #f1c21b;
+}
+
+.editor-issue--info svg {
+  fill: #4589ff;
+}
+
+.editor-issue__ids .cds--btn {
+  min-height: 1.5rem;
+  padding: 0 0.25rem;
 }
 
 .editor-room-label,

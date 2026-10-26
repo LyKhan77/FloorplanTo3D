@@ -1,10 +1,11 @@
-import { Button, Checkbox, Dropdown, TextInput } from '@carbon/react'
+import { Accordion, AccordionItem, Button, Checkbox, Dropdown, TextInput } from '@carbon/react'
 import { useState, type ReactNode } from 'react'
 import type { Column, Opening, PlacedObject, Room, Spec, Stair, Wall } from '../../types/spec'
 import { distance, formatM, formatM2 } from '../lib/measure'
 import { useEditorStore } from '../store'
 import type { Template } from '../../api/types'
 import { templateOf } from '../lib/transform'
+import { CorrectionPanel } from './CorrectionPanel'
 import { MmInput } from './MmInput'
 import { ObjectProps } from './ObjectProps'
 
@@ -144,6 +145,7 @@ function Body({ picked, view, templates }: { picked: Picked; view: Spec; templat
 export function PropertiesPanel({ templates = [] }: { templates?: Template[] }) {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
+  const tool = useEditorStore((s) => s.tool)
   if (!view) return null
   const picked = selection.length ? pick(view, selection) : null
   return (
@@ -151,6 +153,11 @@ export function PropertiesPanel({ templates = [] }: { templates?: Template[] }) 
       {!selection.length && <DefaultHeight view={view} />}
       {selection.length > 0 && !picked && <p className="helper">{selection.length} elemen terseleksi</p>}
       {picked && <Body picked={picked} view={view} templates={templates} />}
+      {(!selection.length || (picked && ['wall', 'door', 'stair'].includes(picked.kind))) && (
+        <Accordion size="sm" className="editor-correction">
+          <AccordionItem title="Koreksi" open={tool === 'add-wall' || undefined}><CorrectionPanel /></AccordionItem>
+        </Accordion>
+      )}
     </section>
   )
 }

@@ -1,14 +1,17 @@
 import { Button, InlineNotification, Loading, ToastNotification } from '@carbon/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRegenerate } from '../api/hooks'
 import type { Run } from '../api/types'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
+import { geometryDiff, isEmptyDiff } from './lib/geometryDiff'
+import { IssuesPanel } from './panels/IssuesPanel'
 import { LayersPanel } from './panels/LayersPanel'
 import { LibraryPanel } from './panels/LibraryPanel'
 import { MeasurePanel } from './panels/MeasurePanel'
 import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
+import { useValidate } from './useValidate'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
 
@@ -23,6 +26,12 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const setNotice = useEditorStore((s) => s.setNotice)
   const previewBanner = useEditorStore((s) => s.previewBanner)
   const tool = useEditorStore((s) => s.tool)
+  const ops = useEditorStore((s) => s.ops)
+  const baseVersion = useEditorStore((s) => s.baseVersion)
+  const base = useEditorStore((s) => s.base)
+  const view = useEditorStore((s) => s.view)
+  const validation = useValidate(projectId, baseVersion, ops)
+  const geometryChanged = useMemo(() => !!base && !!view && !isEmptyDiff(geometryDiff(base, view)), [base, view])
   void run // consumed by Save/Regenerate (Task 13)
 
   // Load HEAD once per project; a refetch never discards local ops (a newer HEAD is handled by Save's rebase).
@@ -52,6 +61,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)} />
       {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
       <div className="editor__viewport">
+        <div className="editor__banners">
         {data.stale && data.shellVersion !== null && (
           <InlineNotification kind="info" lowContrast hideCloseButton title=""
             subtitle={`Shell dari v${data.shellVersion}; regenerate untuk memperbarui`} />
@@ -60,6 +70,11 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           <InlineNotification kind="warning" lowContrast hideCloseButton title=""
             subtitle="Pratinjau: bukaan pintu belum akurat sampai regenerate" />
         )}
+        {geometryChanged && (
+          <InlineNotification kind="warning" lowContrast hideCloseButton title=""
+            subtitle="Geometri berubah: Save + Regenerate untuk melihat hasil 3D" />
+        )}
+        </div>
         {notice && (
           <ToastNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast title={notice.text}
             timeout={notice.kind === 'error' ? 0 : 5000} onClose={() => { setNotice(null); return false }} />
@@ -71,7 +86,10 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
-      {right && <aside className="editor__props" aria-label="Properti">{tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}<LayersPanel /></aside>}
+      {right && <aside className="editor__props" aria-label="Properti">{tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}
+        <IssuesPanel issues={validation.issues} newIssues={validation.newIssues}
+          extra={validation.error ? [{ code: 'bad_op', severity: 'error', element_ids: [], message: validation.error }] : []} />
+        <LayersPanel /></aside>}
       <StatusBar />
     </div>
   )

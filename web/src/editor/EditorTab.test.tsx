@@ -10,7 +10,7 @@ import { useEditorStore } from './store'
 const gt = gtJson as unknown as Spec
 const routes: Record<string, unknown> = {}
 vi.mock('../api/client', () => ({
-  api: { get: vi.fn((path: string) => Promise.resolve(routes[path])), post: vi.fn() },
+  api: { get: vi.fn((path: string) => Promise.resolve(routes[path])), post: vi.fn(() => Promise.resolve({ issues: [] })) },
   outputsBase: (id: string, v: number) => `/api/projects/${id}/outputs/${v}`,
 }))
 
