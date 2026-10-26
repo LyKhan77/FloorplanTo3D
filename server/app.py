@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from core.config import Settings, load_settings
 from server.errors import install_error_handlers
 from server.events import EventBus
-from server.routes import events, projects
+from server.routes import events, projects, specs
 from server.storage import Storage
 
 
@@ -27,6 +27,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_error_handlers(app)
     app.include_router(events.router)
     app.include_router(projects.router)
+    app.include_router(specs.router)
     return app
 
 

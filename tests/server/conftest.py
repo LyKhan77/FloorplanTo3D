@@ -38,3 +38,30 @@ def storage_with_project(data_dir):
     (st.projects_dir / "p-0001").mkdir(parents=True)
     (st.projects_dir / "p-0001" / "project.json").write_text("{}")
     return st, "p-0001"
+
+
+GT_PATH = Path("benchmarks/gatsu/gt_spec.json")
+
+
+def create_project(client, plan_bytes, **data) -> str:
+    r = client.post("/api/projects", files={"file": ("plan.jpeg", plan_bytes, "image/jpeg")},
+                    data={"start": "false", **data})
+    assert r.status_code == 201, r.text
+    return r.json()["project_id"]
+
+
+def import_gt(client, pid: str) -> None:
+    r = client.post(f"/api/projects/{pid}/specs/import", content=GT_PATH.read_bytes(),
+                    headers={"content-type": "application/json"})
+    assert r.status_code == 201, r.text
+
+
+@pytest.fixture
+def project_id(client, plan_bytes):
+    return create_project(client, plan_bytes)
+
+
+@pytest.fixture
+def project_with_gt(client, project_id):
+    import_gt(client, project_id)
+    return project_id
