@@ -102,7 +102,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - [x] `building_outline` per massa bangunan dan luas kotor.
   - [x] Semua pintu (tipe, engsel, arah) dan jendela.
   - [x] Semua ruang beserta nama dan tipe.
-- [x] Review GT oleh orang kedua menggunakan overlay (R-17).
+- [ ] Review GT oleh orang kedua menggunakan overlay (R-17).
 
 ### Kriteria selesai
 - GT Gatsu lolos validator **tanpa error**, dengan skor ≥ 0.95.
