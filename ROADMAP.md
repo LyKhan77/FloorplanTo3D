@@ -262,13 +262,25 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - loop dropdown tipe ruang (Downshift + Modal yang selalu ter-mount);
   - tampilan Top miring setelah fokus ruang;
   - progress regenerate ditampilkan sebagai "750%".
-- Suite: pytest 203 passed, 2 xfailed (termasuk fixture paritas reducer klien ↔ `core.spec.ops`); Vitest 131 passed; oxlint dan build bersih.
+- Review akhir (reviewer opus, satu putaran perbaikan): 1 Critical, 5 Important, dan 4 Minor yang dinaikkan ke Important diperbaiki dengan test. Daftarnya:
+  - hapus beberapa objek baru sekaligus menghapus objek yang salah;
+  - rotasi gizmo lewat ±90°;
+  - pintasan huruf di mode Walk dan di dalam dropdown;
+  - edit saat Save berjalan hilang;
+  - seleksi setelah rebase menunjuk objek tab lain;
+  - sumbu gizmo scale pada objek yang dirotasi;
+  - objek terkunci masih bisa diedit lewat input angka;
+  - "Balik arah naik" pada tangga dua flight;
+  - Save ganda.
+  10 Minor lain ditunda (lihat laporan akhir M4).
+- Suite: pytest 203 passed, 2 xfailed (termasuk fixture paritas reducer klien ↔ `core.spec.ops`); Vitest 140 passed; oxlint dan build bersih.
 - **Penyimpangan dari PRD/07:**
   - toggle "kualitas tinggi" (SSAO, §9) tidak dibuat, karena butuh dependensi `postprocessing`;
   - snap objek ke dinding (P1) tidak dibuat;
   - origin grid per ruang (P2) tidak dibuat;
   - "perbarui template ke versi terbaru" (P2) tidak dibuat;
-  - di mode Top, klik kiri dipakai untuk marquee, sehingga pan memakai klik kanan.
+  - di mode Top, klik kiri dipakai untuk marquee, sehingga pan memakai klik kanan;
+  - objek tidak bisa diseret langsung di lantai (§7.2); pindah lewat gizmo, input X/Y, atau pintasan.
 - Edit pada elemen yang belum disimpan digabung ke op pembuatnya. Aksi yang tidak bisa digabung (memisah atau mengunci elemen baru, dsb.) ditolak dengan "Save dulu".
 
 ---
