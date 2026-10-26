@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { NewProjectPage } from '../pages/NewProjectPage'
+import { ProjectDetailPage } from '../pages/ProjectDetailPage'
 import { ProjectsPage } from '../pages/ProjectsPage'
 import { Shell } from './Shell'
 
@@ -19,7 +20,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/projects" replace />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/new" element={<NewProjectPage />} />
-            <Route path="/projects/:id" element={<Placeholder title="Project" />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/templates" element={<Placeholder title="Templates" />} />
             <Route path="/system" element={<Placeholder title="System" />} />
           </Routes>
