@@ -1,0 +1,1193 @@
+{
+  "$defs": {
+    "Column": {
+      "additionalProperties": false,
+      "properties": {
+        "center": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Center",
+          "type": "array"
+        },
+        "grid_ref": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grid Ref"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "default": "structural",
+          "enum": [
+            "structural",
+            "pilaster"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "rotation": {
+          "default": 0,
+          "title": "Rotation",
+          "type": "number"
+        },
+        "shape": {
+          "enum": [
+            "rect",
+            "circle",
+            "h_section"
+          ],
+          "title": "Shape",
+          "type": "string"
+        },
+        "size": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Size",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "center",
+        "shape",
+        "size"
+      ],
+      "title": "Column",
+      "type": "object"
+    },
+    "Defaults": {
+      "additionalProperties": false,
+      "properties": {
+        "door_height": {
+          "default": 2100,
+          "title": "Door Height",
+          "type": "integer"
+        },
+        "floor_to_floor": {
+          "default": 4000,
+          "title": "Floor To Floor",
+          "type": "integer"
+        },
+        "wall_height": {
+          "default": 3000,
+          "title": "Wall Height",
+          "type": "integer"
+        },
+        "wall_thickness": {
+          "default": 150,
+          "title": "Wall Thickness",
+          "type": "integer"
+        },
+        "window_height": {
+          "default": 1200,
+          "title": "Window Height",
+          "type": "integer"
+        },
+        "window_sill": {
+          "default": 900,
+          "title": "Window Sill",
+          "type": "integer"
+        }
+      },
+      "title": "Defaults",
+      "type": "object"
+    },
+    "Flight": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "End",
+          "type": "array"
+        },
+        "risers": {
+          "minimum": 1,
+          "title": "Risers",
+          "type": "integer"
+        },
+        "start": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Start",
+          "type": "array"
+        },
+        "width": {
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "width",
+        "risers"
+      ],
+      "title": "Flight",
+      "type": "object"
+    },
+    "Grid": {
+      "additionalProperties": false,
+      "properties": {
+        "axes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/GridAxis"
+          },
+          "title": "Axes",
+          "type": "array"
+        }
+      },
+      "title": "Grid",
+      "type": "object"
+    },
+    "GridAxis": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "orientation": {
+          "enum": [
+            "vertical",
+            "horizontal"
+          ],
+          "title": "Orientation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "orientation",
+        "offset"
+      ],
+      "title": "GridAxis",
+      "type": "object"
+    },
+    "ImageInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "dpi": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dpi"
+        },
+        "height_px": {
+          "title": "Height Px",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "width_px": {
+          "title": "Width Px",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sha256",
+        "width_px",
+        "height_px"
+      ],
+      "title": "ImageInfo",
+      "type": "object"
+    },
+    "Meta": {
+      "additionalProperties": false,
+      "properties": {
+        "building_outline": {
+          "default": [],
+          "items": {
+            "items": {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Building Outline",
+          "type": "array"
+        },
+        "condition": {
+          "const": "existing",
+          "default": "existing",
+          "title": "Condition",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "defaults": {
+          "$ref": "#/$defs/Defaults",
+          "default": {
+            "door_height": 2100,
+            "floor_to_floor": 4000,
+            "wall_height": 3000,
+            "wall_thickness": 150,
+            "window_height": 1200,
+            "window_sill": 900
+          }
+        },
+        "floor_name": {
+          "default": "",
+          "title": "Floor Name",
+          "type": "string"
+        },
+        "gross_area_m2": {
+          "default": 0,
+          "title": "Gross Area M2",
+          "type": "number"
+        },
+        "id_seq": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "title": "Id Seq",
+          "type": "object"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mm_per_px": {
+          "title": "Mm Per Px",
+          "type": "number"
+        },
+        "parent_version": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Version"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "px_to_mm": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Px To Mm",
+          "type": "array"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "scale_source": {
+          "enum": [
+            "grid_dimensions",
+            "dimension_text",
+            "manual",
+            "total_length"
+          ],
+          "title": "Scale Source",
+          "type": "string"
+        },
+        "site_type": {
+          "default": "other",
+          "enum": [
+            "data_hall",
+            "data_center",
+            "office",
+            "mixed",
+            "other"
+          ],
+          "title": "Site Type",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "pipeline",
+            "llm",
+            "editor",
+            "manual",
+            "migration"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "created_at",
+        "source",
+        "px_to_mm",
+        "mm_per_px",
+        "scale_source"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Opening": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "door",
+            "window"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "door_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "single_swing",
+                "double_swing",
+                "sliding",
+                "opening",
+                "rolling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Door Type"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "hinge": {
+          "anyOf": [
+            {
+              "enum": [
+                "start",
+                "end",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hinge"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "leaf_split": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Leaf Split"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "sill": {
+          "default": 0,
+          "title": "Sill",
+          "type": "integer"
+        },
+        "swing": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swing"
+        },
+        "wall_id": {
+          "title": "Wall Id",
+          "type": "string"
+        },
+        "width": {
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "wall_id",
+        "offset",
+        "width"
+      ],
+      "title": "Opening",
+      "type": "object"
+    },
+    "PlacedObject": {
+      "additionalProperties": false,
+      "properties": {
+        "dims": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Dims",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "locked": {
+          "default": false,
+          "title": "Locked",
+          "type": "boolean"
+        },
+        "position": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "room_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Room Id"
+        },
+        "rotation": {
+          "default": 0,
+          "title": "Rotation",
+          "type": "number"
+        },
+        "template_id": {
+          "title": "Template Id",
+          "type": "string"
+        },
+        "template_version": {
+          "title": "Template Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "template_id",
+        "template_version",
+        "position",
+        "dims"
+      ],
+      "title": "PlacedObject",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate"
+        },
+        "changed_in": {
+          "default": 0,
+          "title": "Changed In",
+          "type": "integer"
+        },
+        "confidence": {
+          "default": 1.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Evidence",
+          "type": "object"
+        },
+        "source": {
+          "default": "manual",
+          "enum": [
+            "cv",
+            "llm",
+            "editor",
+            "manual"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ProvenanceLogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "By"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "op": {
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "ProvenanceLogEntry",
+      "type": "object"
+    },
+    "Room": {
+      "additionalProperties": false,
+      "properties": {
+        "area_m2": {
+          "default": 0,
+          "title": "Area M2",
+          "type": "number"
+        },
+        "bounding_walls": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Bounding Walls",
+          "type": "array"
+        },
+        "doors": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Doors",
+          "type": "array"
+        },
+        "holes": {
+          "default": [],
+          "items": {
+            "items": {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Holes",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label_pos": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label Pos"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "perimeter_m": {
+          "default": 0,
+          "title": "Perimeter M",
+          "type": "number"
+        },
+        "polygon": {
+          "items": {
+            "items": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "title": "Polygon",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "type": {
+          "default": "other",
+          "enum": [
+            "data_hall",
+            "ups_room",
+            "battery_room",
+            "electrical_room",
+            "mdf",
+            "ahu_room",
+            "capacitor_room",
+            "meeting",
+            "office",
+            "storage",
+            "pantry",
+            "toilet",
+            "corridor",
+            "lobby",
+            "stair",
+            "lift",
+            "prayer_room",
+            "outdoor",
+            "other"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "polygon"
+      ],
+      "title": "Room",
+      "type": "object"
+    },
+    "Stair": {
+      "additionalProperties": false,
+      "properties": {
+        "base_z": {
+          "default": 0,
+          "title": "Base Z",
+          "type": "integer"
+        },
+        "flights": {
+          "items": {
+            "$ref": "#/$defs/Flight"
+          },
+          "minItems": 1,
+          "title": "Flights",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "landings": {
+          "default": [],
+          "items": {
+            "items": {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Landings",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "room_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Room Id"
+        },
+        "top_z": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top Z"
+        }
+      },
+      "required": [
+        "id",
+        "flights"
+      ],
+      "title": "Stair",
+      "type": "object"
+    },
+    "Wall": {
+      "additionalProperties": false,
+      "properties": {
+        "a": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "A",
+          "type": "array"
+        },
+        "allow_skew": {
+          "default": false,
+          "title": "Allow Skew",
+          "type": "boolean"
+        },
+        "b": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "B",
+          "type": "array"
+        },
+        "base_z": {
+          "default": 0,
+          "title": "Base Z",
+          "type": "integer"
+        },
+        "free_ends": {
+          "default": false,
+          "title": "Free Ends",
+          "type": "boolean"
+        },
+        "grid_ref": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Grid Ref",
+          "type": "array"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "exterior",
+            "interior",
+            "partition",
+            "glass",
+            "low"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "thickness": {
+          "title": "Thickness",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "a",
+        "b",
+        "thickness",
+        "kind"
+      ],
+      "title": "Wall",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "columns": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Column"
+      },
+      "title": "Columns",
+      "type": "array"
+    },
+    "grid": {
+      "$ref": "#/$defs/Grid",
+      "default": {
+        "axes": []
+      }
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "objects": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PlacedObject"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "openings": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Opening"
+      },
+      "title": "Openings",
+      "type": "array"
+    },
+    "provenance_log": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProvenanceLogEntry"
+      },
+      "title": "Provenance Log",
+      "type": "array"
+    },
+    "rooms": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Room"
+      },
+      "title": "Rooms",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stairs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Stair"
+      },
+      "title": "Stairs",
+      "type": "array"
+    },
+    "walls": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Wall"
+      },
+      "title": "Walls",
+      "type": "array"
+    }
+  },
+  "required": [
+    "meta"
+  ],
+  "title": "Spec",
+  "type": "object"
+}

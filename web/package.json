@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:types": "json2ts -i ../schema/ts/layout-spec.schema.json -o src/types/spec.ts && json2ts -i ../schema/ts/spec-ops.schema.json -o src/types/ops.ts"
   },
   "dependencies": {
     "@carbon/react": "^1.119.0",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^18.3.7",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "json-schema-to-typescript": "^16.0.0",
     "oxlint": "^1.88.0",
     "sass": "^1.106.1",
     "typescript": "~6.0.3",

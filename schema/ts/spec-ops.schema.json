@@ -1,0 +1,1126 @@
+{
+  "$defs": {
+    "AddObject": {
+      "additionalProperties": false,
+      "properties": {
+        "dims": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Dims",
+          "type": "array"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "op": {
+          "const": "add_object",
+          "title": "Op",
+          "type": "string"
+        },
+        "position": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotation": {
+          "default": 0,
+          "title": "Rotation",
+          "type": "number"
+        },
+        "template_id": {
+          "title": "Template Id",
+          "type": "string"
+        },
+        "template_version": {
+          "title": "Template Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "template_id",
+        "template_version",
+        "position",
+        "dims"
+      ],
+      "title": "AddObject",
+      "type": "object"
+    },
+    "AddOpening": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "door",
+            "window"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "door_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "single_swing",
+                "double_swing",
+                "sliding",
+                "opening",
+                "rolling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Door Type"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "hinge": {
+          "anyOf": [
+            {
+              "enum": [
+                "start",
+                "end",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hinge"
+        },
+        "leaf_split": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Leaf Split"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "op": {
+          "const": "add_opening",
+          "title": "Op",
+          "type": "string"
+        },
+        "sill": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sill"
+        },
+        "swing": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swing"
+        },
+        "wall_id": {
+          "title": "Wall Id",
+          "type": "string"
+        },
+        "width": {
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "op",
+        "wall_id",
+        "category",
+        "offset",
+        "width"
+      ],
+      "title": "AddOpening",
+      "type": "object"
+    },
+    "AddStair": {
+      "additionalProperties": false,
+      "properties": {
+        "flights": {
+          "items": {
+            "$ref": "#/$defs/Flight"
+          },
+          "minItems": 1,
+          "title": "Flights",
+          "type": "array"
+        },
+        "landings": {
+          "default": [],
+          "items": {
+            "items": {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Landings",
+          "type": "array"
+        },
+        "op": {
+          "const": "add_stair",
+          "title": "Op",
+          "type": "string"
+        },
+        "top_z": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top Z"
+        }
+      },
+      "required": [
+        "op",
+        "flights"
+      ],
+      "title": "AddStair",
+      "type": "object"
+    },
+    "AddWall": {
+      "additionalProperties": false,
+      "properties": {
+        "a": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "A",
+          "type": "array"
+        },
+        "b": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "B",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "exterior",
+            "interior",
+            "partition",
+            "glass",
+            "low"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "op": {
+          "const": "add_wall",
+          "title": "Op",
+          "type": "string"
+        },
+        "thickness": {
+          "title": "Thickness",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "op",
+        "a",
+        "b",
+        "thickness",
+        "kind"
+      ],
+      "title": "AddWall",
+      "type": "object"
+    },
+    "DeleteObject": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete_object",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "DeleteObject",
+      "type": "object"
+    },
+    "DeleteOpening": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete_opening",
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "reason"
+      ],
+      "title": "DeleteOpening",
+      "type": "object"
+    },
+    "DeleteStair": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete_stair",
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "reason"
+      ],
+      "title": "DeleteStair",
+      "type": "object"
+    },
+    "DeleteWall": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete_wall",
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "reason"
+      ],
+      "title": "DeleteWall",
+      "type": "object"
+    },
+    "Flight": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "End",
+          "type": "array"
+        },
+        "risers": {
+          "minimum": 1,
+          "title": "Risers",
+          "type": "integer"
+        },
+        "start": {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Start",
+          "type": "array"
+        },
+        "width": {
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "width",
+        "risers"
+      ],
+      "title": "Flight",
+      "type": "object"
+    },
+    "MergeWalls": {
+      "additionalProperties": false,
+      "properties": {
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Ids",
+          "type": "array"
+        },
+        "op": {
+          "const": "merge_walls",
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "ids",
+        "reason"
+      ],
+      "title": "MergeWalls",
+      "type": "object"
+    },
+    "MoveWall": {
+      "additionalProperties": false,
+      "properties": {
+        "a": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "A"
+        },
+        "b": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "B"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "exterior",
+                "interior",
+                "partition",
+                "glass",
+                "low"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "op": {
+          "const": "move_wall",
+          "title": "Op",
+          "type": "string"
+        },
+        "thickness": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Thickness"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "MoveWall",
+      "type": "object"
+    },
+    "RenameRoom": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "op": {
+          "const": "rename_room",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "name"
+      ],
+      "title": "RenameRoom",
+      "type": "object"
+    },
+    "SetDefault": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "op": {
+          "const": "set_default",
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "op",
+        "key",
+        "value"
+      ],
+      "title": "SetDefault",
+      "type": "object"
+    },
+    "SetDoor": {
+      "additionalProperties": false,
+      "properties": {
+        "door_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "single_swing",
+                "double_swing",
+                "sliding",
+                "opening",
+                "rolling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Door Type"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "hinge": {
+          "anyOf": [
+            {
+              "enum": [
+                "start",
+                "end",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hinge"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "offset": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Offset"
+        },
+        "op": {
+          "const": "set_door",
+          "title": "Op",
+          "type": "string"
+        },
+        "swing": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swing"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "SetDoor",
+      "type": "object"
+    },
+    "SetRoomType": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "set_room_type",
+          "title": "Op",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "data_hall",
+            "ups_room",
+            "battery_room",
+            "electrical_room",
+            "mdf",
+            "ahu_room",
+            "capacitor_room",
+            "meeting",
+            "office",
+            "storage",
+            "pantry",
+            "toilet",
+            "corridor",
+            "lobby",
+            "stair",
+            "lift",
+            "prayer_room",
+            "outdoor",
+            "other"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "type"
+      ],
+      "title": "SetRoomType",
+      "type": "object"
+    },
+    "SetStair": {
+      "additionalProperties": false,
+      "properties": {
+        "flights": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Flight"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flights"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "landings": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "items": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Landings"
+        },
+        "op": {
+          "const": "set_stair",
+          "title": "Op",
+          "type": "string"
+        },
+        "top_z": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top Z"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "SetStair",
+      "type": "object"
+    },
+    "SetWallHeight": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Height"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "set_wall_height",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "height"
+      ],
+      "title": "SetWallHeight",
+      "type": "object"
+    },
+    "SplitWall": {
+      "additionalProperties": false,
+      "properties": {
+        "at_offset": {
+          "title": "At Offset",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "split_wall",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "at_offset"
+      ],
+      "title": "SplitWall",
+      "type": "object"
+    },
+    "UpdateObject": {
+      "additionalProperties": false,
+      "properties": {
+        "dims": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dims"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "locked": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Locked"
+        },
+        "op": {
+          "const": "update_object",
+          "title": "Op",
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position"
+        },
+        "rotation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rotation"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "UpdateObject",
+      "type": "object"
+    }
+  },
+  "items": {
+    "discriminator": {
+      "mapping": {
+        "add_object": "#/$defs/AddObject",
+        "add_opening": "#/$defs/AddOpening",
+        "add_stair": "#/$defs/AddStair",
+        "add_wall": "#/$defs/AddWall",
+        "delete_object": "#/$defs/DeleteObject",
+        "delete_opening": "#/$defs/DeleteOpening",
+        "delete_stair": "#/$defs/DeleteStair",
+        "delete_wall": "#/$defs/DeleteWall",
+        "merge_walls": "#/$defs/MergeWalls",
+        "move_wall": "#/$defs/MoveWall",
+        "rename_room": "#/$defs/RenameRoom",
+        "set_default": "#/$defs/SetDefault",
+        "set_door": "#/$defs/SetDoor",
+        "set_room_type": "#/$defs/SetRoomType",
+        "set_stair": "#/$defs/SetStair",
+        "set_wall_height": "#/$defs/SetWallHeight",
+        "split_wall": "#/$defs/SplitWall",
+        "update_object": "#/$defs/UpdateObject"
+      },
+      "propertyName": "op"
+    },
+    "oneOf": [
+      {
+        "$ref": "#/$defs/AddObject"
+      },
+      {
+        "$ref": "#/$defs/UpdateObject"
+      },
+      {
+        "$ref": "#/$defs/DeleteObject"
+      },
+      {
+        "$ref": "#/$defs/SetWallHeight"
+      },
+      {
+        "$ref": "#/$defs/SetDefault"
+      },
+      {
+        "$ref": "#/$defs/RenameRoom"
+      },
+      {
+        "$ref": "#/$defs/SetRoomType"
+      },
+      {
+        "$ref": "#/$defs/DeleteWall"
+      },
+      {
+        "$ref": "#/$defs/MergeWalls"
+      },
+      {
+        "$ref": "#/$defs/SplitWall"
+      },
+      {
+        "$ref": "#/$defs/MoveWall"
+      },
+      {
+        "$ref": "#/$defs/AddWall"
+      },
+      {
+        "$ref": "#/$defs/SetDoor"
+      },
+      {
+        "$ref": "#/$defs/DeleteOpening"
+      },
+      {
+        "$ref": "#/$defs/AddOpening"
+      },
+      {
+        "$ref": "#/$defs/SetStair"
+      },
+      {
+        "$ref": "#/$defs/DeleteStair"
+      },
+      {
+        "$ref": "#/$defs/AddStair"
+      }
+    ]
+  },
+  "type": "array"
+}
