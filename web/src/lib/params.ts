@@ -8,6 +8,7 @@ export interface ProjectFields {
   siteType?: string
   mmPerPx?: number | null
   useStrata?: boolean
+  profileId?: string | null
   start: boolean
 }
 
@@ -32,6 +33,7 @@ export function buildProjectForm(file: File, f: ProjectFields): FormData {
   fd.append('name', f.name || file.name.replace(/\.[^.]+$/, ''))
   if (f.prompt) fd.append('prompt', f.prompt)
   if (Object.keys(params).length) fd.append('params', JSON.stringify(params))
+  if (f.profileId) fd.append('profile_id', f.profileId)
   fd.append('start', String(f.start))
   return fd
 }

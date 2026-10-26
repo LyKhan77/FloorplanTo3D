@@ -5,7 +5,7 @@ import {
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useCreateProject } from '../api/hooks'
+import { useCreateProject, useProfiles } from '../api/hooks'
 import { buildProjectForm } from '../lib/params'
 
 const SITE_TYPES = ['data_hall', 'data_center', 'office', 'mixed', 'other']
@@ -25,6 +25,8 @@ export function NewProjectPage() {
   const [siteType, setSiteType] = useState('')
   const [mmPerPx, setMmPerPx] = useState('')
   const [useStrata, setUseStrata] = useState(true)
+  const [profileId, setProfileId] = useState<string | null>(null)
+  const { data: profiles = [] } = useProfiles()
   const [error, setError] = useState<string | null>(null)
 
   const pick = (files: File[]) => {
@@ -42,7 +44,7 @@ export function NewProjectPage() {
     try {
       const form = buildProjectForm(file, {
         name, prompt, wallHeight, doorHeight, wallThickness, floorName, siteType,
-        mmPerPx: mmPerPx ? Number(mmPerPx) : null, useStrata, start,
+        mmPerPx: mmPerPx ? Number(mmPerPx) : null, useStrata, profileId, start,
       })
       create.mutate(form, {
         onSuccess: (r) => navigate(`/projects/${r.project_id}?tab=pipeline`),
@@ -85,6 +87,10 @@ export function NewProjectPage() {
                 <TextInput id="scale" labelText="Skala manual (mm per px)" helperText="Kosongkan agar dihitung dari grid dan dimensi"
                   value={mmPerPx} onChange={(e) => setMmPerPx(e.target.value)} />
                 <Toggle id="strata" labelText="Gunakan Strata" toggled={useStrata} onToggle={setUseStrata} />
+                <Dropdown id="profile" titleText="Profile (opsional)" label="Tanpa profile" helperText="Sweep dimulai dari parameter profile"
+                  items={[null, ...profiles.map((p) => p.profile_id)]}
+                  itemToString={(pid) => (pid ? profiles.find((p) => p.profile_id === pid)?.name ?? pid : 'Tanpa profile')}
+                  selectedItem={profileId} onChange={({ selectedItem }) => setProfileId(selectedItem ?? null)} />
               </Stack>
             </AccordionItem>
           </Accordion>

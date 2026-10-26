@@ -1,9 +1,14 @@
-import { Button, InlineNotification, Modal, StructuredListBody, StructuredListCell, StructuredListRow, StructuredListWrapper, TextInput } from '@carbon/react'
+import {
+  Button, InlineNotification, Modal, ProgressBar, StructuredListBody, StructuredListCell, StructuredListRow, StructuredListWrapper,
+  TextInput,
+} from '@carbon/react'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import { useStartRun } from '../api/hooks'
-import type { Run } from '../api/types'
+import { useSaveProfile, useStartRun } from '../api/hooks'
+import type { Run, Stage, ValidationIssue } from '../api/types'
+import type { Spec } from '../types/spec'
 
 interface Props {
   projectId: string
@@ -14,7 +19,7 @@ interface Props {
 
 interface InputDoc { prompt: string; params_final: Record<string, unknown> }
 
-/** Stage 0-2 panels (PRD/08): parameters, working page, grid overlay with scale and manual-scale rerun. */
+/** Stage 0-5 panels (PRD/08): parameters, working page, grid, candidates, rooms, validation. */
 export function ExtractionStage({ projectId, run, n, message }: Props) {
   const stage = run.stages[n]
   const art = (path: string) => `/api/projects/${projectId}/runs/${run.run_id}/artifacts/${path}`
@@ -53,6 +58,8 @@ export function ExtractionStage({ projectId, run, n, message }: Props) {
         </figure>
       )}
       {n === 3 && done && <CandidatesStage art={art} runId={run.run_id} projectId={projectId} />}
+      {n === 4 && done && <RoomsStage art={art} runId={run.run_id} projectId={projectId} />}
+      {n === 5 && done && <ValidateStage art={art} run={run} stage={stage} projectId={projectId} />}
       {n === 2 && done && <GridStage projectId={projectId} run={run} art={art} metrics={m} warnings={stage.warnings}
         attention={stage.status === 'needs_attention'} />}
     </div>
@@ -148,6 +155,120 @@ function CandidatesStage({ art, runId, projectId }: { art: (p: string) => string
           : <img src={art(`03_extract/candidates/${selected}/overlay.png`)} alt={`Kandidat ${selected}: elemen terdeteksi`} className="artifact-img" />}
         <figcaption className="helper">Biru: dinding · Oranye: dinding keyakinan rendah / kolom · Hijau: pintu · Ungu: tangga · Abu-abu: hatch dan simbol</figcaption>
       </figure>
+    </>
+  )
+}
+
+interface RoomCandidate { index: number; error: string | null; rooms: number; labelled: number; gross_area_m2: number }
+
+function RoomsStage({ art, runId, projectId }: { art: (p: string) => string; runId: string; projectId: string }) {
+  const [selected, setSelected] = useState(0)
+  const list = useQuery({
+    queryKey: ['rooms-candidates', projectId, runId],
+    queryFn: () => api.get<RoomCandidate[]>(art('04_rooms/candidates.json')),
+  })
+  const current = list.data?.find((c) => c.index === selected) ?? list.data?.find((c) => !c.error)
+  const spec = useQuery({
+    queryKey: ['rooms-spec', projectId, runId, current?.index],
+    queryFn: () => api.get<Pick<Spec, 'rooms'>>(art(`04_rooms/candidates/${current?.index}/spec.json`)),
+    enabled: current !== undefined && !current.error,
+  })
+  if (!list.data) return null
+  return (
+    <>
+      <div className="candidate-scroll">
+        <table className="candidate-table">
+          <thead><tr><th>#</th><th>Ruang</th><th>Berlabel</th><th>Luas kotor (m²)</th></tr></thead>
+          <tbody>
+            {list.data.map((c) => (
+              <tr key={c.index} className={c.index === current?.index ? 'is-selected' : ''} onClick={() => setSelected(c.index)}>
+                <td className="mono"><label><input type="radio" name={`rooms-${runId}`} checked={c.index === current?.index}
+                  onChange={() => setSelected(c.index)} aria-label={`Kandidat ${c.index}`} /> {c.index}</label></td>
+                {c.error ? <td colSpan={3} className="helper">{c.error}</td> : (
+                  <><td className="mono">{c.rooms}</td><td className="mono">{c.labelled}</td><td className="mono">{c.gross_area_m2}</td></>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {current && !current.error && (
+        <figure>
+          <img src={art(`04_rooms/candidates/${current.index}/rooms.png`)} alt={`Ruang kandidat ${current.index}`} className="artifact-img" />
+        </figure>
+      )}
+      {spec.data && (
+        <div className="candidate-scroll">
+          <table className="candidate-table" aria-label="Ruang">
+            <thead><tr><th>ID</th><th>Nama</th><th>Tipe</th><th>Luas (m²)</th></tr></thead>
+            <tbody>
+              {(spec.data.rooms ?? []).map((r) => (
+                <tr key={r.id}><td className="mono">{r.id}</td><td>{r.name || '—'}</td><td className="mono">{r.type}</td>
+                  <td className="mono">{r.area_m2}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
+interface Score { index: number; score: number; passed: boolean; ratios: Record<string, number>; errors: string[]; coverage: number }
+interface Chosen { index: number; score: number; version: number }
+
+function ValidateStage({ art, run, stage, projectId }: { art: (p: string) => string; run: Run; stage: Stage; projectId: string }) {
+  const key = (name: string) => [name, projectId, run.run_id]
+  const scores = useQuery({ queryKey: key('scores'), queryFn: () => api.get<Score[]>(art('05_validate/scores.json')) })
+  const chosen = useQuery({ queryKey: key('chosen'), queryFn: () => api.get<Chosen>(art('05_validate/chosen.json')),
+    enabled: !!stage.metrics.version })
+  const issues = useQuery({ queryKey: key('issues'), queryFn: () => api.get<ValidationIssue[]>(art('05_validate/issues.json')),
+    enabled: !!stage.metrics.version })
+  const save = useSaveProfile()
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [saved, setSaved] = useState<string | null>(null)
+  const best = scores.data?.find((s) => s.index === chosen.data?.index)
+  return (
+    <>
+      {chosen.data && (
+        <p className="big-number">
+          <span className="mono">{chosen.data.score.toFixed(3)}</span>
+          <span className="helper"> skor validator · kandidat {chosen.data.index} · spec v{chosen.data.version}</span>
+        </p>
+      )}
+      {stage.warnings.map((w) => <p key={w} className="helper warning-line">{w}</p>)}
+      {best && Object.entries(best.ratios).map(([code, ratio]) => (
+        <ProgressBar key={code} label={code} value={Math.round((1 - ratio) * 100)} max={100} size="small"
+          helperText={`${Math.round((1 - ratio) * 100)}% lolos`} />
+      ))}
+      {issues.data && (
+        <div className="candidate-scroll">
+          <table className="candidate-table" aria-label="Masalah validator">
+            <thead><tr><th>Kode</th><th>Severity</th><th>Elemen</th><th>Pesan</th></tr></thead>
+            <tbody>
+              {issues.data.map((i, k) => (
+                <tr key={k}>
+                  <td className="mono">{i.code}</td><td>{i.severity}</td>
+                  <td className="mono">{(i.element_ids ?? []).map((id) => (
+                    <Link key={id} to={`?tab=review&focus=${id}`} className="issue-link">{id}</Link>))}</td>
+                  <td>{i.message}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {stage.status === 'succeeded' && (
+        <Button kind="tertiary" size="sm" onClick={() => setOpen(true)}>Simpan sebagai profile</Button>
+      )}
+      {saved && <InlineNotification kind="success" lowContrast title="Profile tersimpan" subtitle={saved} onClose={() => setSaved(null)} />}
+      <Modal open={open} modalHeading="Simpan sebagai profile" primaryButtonText="Simpan" secondaryButtonText="Batal"
+        primaryButtonDisabled={!name.trim() || save.isPending} onRequestClose={() => setOpen(false)}
+        onRequestSubmit={() => save.mutate({ name: name.trim(), from_run: `${projectId}/${run.run_id}` },
+          { onSuccess: (p) => { setSaved(p.profile_id); setOpen(false) } })}>
+        <TextInput id="profile-name" labelText="Nama profile" value={name} onChange={(e) => setName(e.target.value)} />
+      </Modal>
     </>
   )
 }

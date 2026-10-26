@@ -30,6 +30,7 @@ export interface Run {
   blender_version: string | null
   created_at: string
   error: string | null
+  profile_id?: string | null
 }
 
 export interface ApiEvent {
@@ -127,4 +128,20 @@ export interface AppConfig {
   blender_bin: string
   max_upload_mb: number
   [key: string]: unknown
+}
+
+export interface Profile {
+  profile_id: string
+  name: string
+  params: { strategy: string; sauvola_k: number; t_min: number; t_max: number; l_fix: number }
+  from_run: string
+  created_at: string
+}
+
+/** 05_validate/issues.json row: validator issues plus stage 3-4 issues (those carry `at` in mm, no IDs). */
+export interface ValidationIssue {
+  code: string
+  severity: 'error' | 'warning' | 'info'
+  element_ids?: string[]
+  message: string
 }

@@ -26,3 +26,11 @@ describe('buildProjectForm', () => {
     expect(() => buildProjectForm(new File(['x'], 'a.png'), { wallHeight: -1, start: false })).toThrow(/wall_height/)
   })
 })
+
+describe('buildProjectForm profile', () => {
+  it('new project form sends profile_id when a profile is chosen', () => {
+    const file = new File(['x'], 'plan.jpeg')
+    expect(buildProjectForm(file, { name: 'a', start: true, profileId: 'gatsu-ab12' }).get('profile_id')).toBe('gatsu-ab12')
+    expect(buildProjectForm(file, { name: 'a', start: true }).get('profile_id')).toBeNull()
+  })
+})

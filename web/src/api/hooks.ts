@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type { Spec } from '../types/spec'
-import type { AppConfig, Health, OutputVersion, ProjectDetail, ProjectSummary, Run, SpecDiff, SpecVersion, Template } from './types'
+import type { AppConfig, Health, OutputVersion, Profile, ProjectDetail, ProjectSummary, Run, SpecDiff, SpecVersion, Template } from './types'
 
 const P = (id: string) => `/api/projects/${id}`
 
@@ -20,6 +20,7 @@ export const useSpecHead = (id: string) => useQuery({ queryKey: ['spec', id, 'HE
 export const useOutputs = (id: string) => useQuery({ queryKey: ['outputs', id], queryFn: () => api.get<OutputVersion[]>(`${P(id)}/outputs`) })
 export const useTemplates = () => useQuery({ queryKey: ['templates'], queryFn: () => api.get<Template[]>('/api/templates') })
 export const useHealth = () => useQuery({ queryKey: ['health'], queryFn: () => api.get<Health>('/api/health'), refetchInterval: 10000 })
+export const useProfiles = () => useQuery({ queryKey: ['profiles'], queryFn: () => api.get<Profile[]>('/api/profiles') })
 export const useConfig = () => useQuery({ queryKey: ['config'], queryFn: () => api.get<AppConfig>('/api/config') })
 
 function useInvalidate(id?: string) {
@@ -46,7 +47,8 @@ export function useImportSpec(id: string) {
 export function useStartRun(id: string) {
   const invalidate = useInvalidate(id)
   return useMutation({
-    mutationFn: (body: { kind: string; from_stage?: number; params_override?: Record<string, unknown> }) => api.post<{ run_id: string }>(`${P(id)}/runs`, body),
+    mutationFn: (body: { kind: string; from_stage?: number; params_override?: Record<string, unknown>; profile_id?: string }) =>
+      api.post<{ run_id: string }>(`${P(id)}/runs`, body),
     onSuccess: invalidate,
   })
 }
@@ -67,4 +69,12 @@ export function useCancelRun(id: string) {
 export function useDeleteProject() {
   const invalidate = useInvalidate()
   return useMutation({ mutationFn: (id: string) => api.del(`${P(id)}?confirm=true`), onSuccess: invalidate })
+}
+
+export function useSaveProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { name: string; from_run: string }) => api.post<Profile>('/api/profiles', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profiles'] }),
+  })
 }

@@ -6,10 +6,11 @@ import { Renew, StopFilled } from '@carbon/icons-react'
 import { useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useCancelRun, useImportSpec, useProject, useRegenerate, useRuns, useStartRun } from '../api/hooks'
+import { useCancelRun, useImportSpec, useProfiles, useProject, useRegenerate, useRuns, useStartRun } from '../api/hooks'
 import { useProjectEvents } from '../api/sse'
 import type { ApiEvent } from '../api/types'
 import { LogViewer } from '../components/LogViewer'
+import { ReviewTab } from '../components/ReviewTab'
 import { OutputsTab } from '../components/OutputsTab'
 import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
@@ -36,6 +37,8 @@ export function ProjectDetailPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [fromStageOpen, setFromStageOpen] = useState(false)
   const [fromStage, setFromStage] = useState(1)
+  const [profileId, setProfileId] = useState<string | null>(null)
+  const { data: profiles = [] } = useProfiles()
   const [error, setError] = useState<string | null>(null)
 
   useProjectEvents(id, (e) => {
@@ -88,7 +91,7 @@ export function ProjectDetailPage() {
             )}
           </TabPanel>
           <TabPanel><LogViewer projectId={id} runs={runs} events={events} /></TabPanel>
-          <TabPanel><p className="helper">Overlay bernomor dan keputusan Strata tersedia di M5/M6.</p></TabPanel>
+          <TabPanel>{tab === TABS.indexOf('review') && <ReviewTab projectId={id} runs={runs} />}</TabPanel>
           <TabPanel>{tab === TABS.indexOf('editor') && <EditorTab projectId={id} run={run} />}</TabPanel>
           <TabPanel><OutputsTab projectId={id} /></TabPanel>
           <TabPanel><VersionsTab projectId={id} /></TabPanel>
@@ -106,10 +109,16 @@ export function ProjectDetailPage() {
       </Modal>
       <Modal open={fromStageOpen} modalHeading="Jalankan ulang dari tahap" primaryButtonText="Jalankan" secondaryButtonText="Batal"
         onRequestClose={() => setFromStageOpen(false)}
-        onRequestSubmit={() => { startRun.mutate({ kind: 'from_stage', from_stage: fromStage }, { onError: fail }); setFromStageOpen(false) }}>
+        onRequestSubmit={() => {
+          startRun.mutate({ kind: 'from_stage', from_stage: fromStage, ...(profileId ? { profile_id: profileId } : {}) }, { onError: fail })
+          setFromStageOpen(false)
+        }}>
         <Dropdown id="from-stage" titleText="Tahap" label="Tahap" items={Array.from({ length: 10 }, (_, i) => i + 1)}
           itemToString={(n) => (n === null ? '' : `${n} · ${stageLabel(n)}`)} selectedItem={fromStage}
           onChange={({ selectedItem }) => setFromStage(selectedItem ?? 1)} />
+        <Dropdown id="run-profile" titleText="Profile (opsional)" label="Tanpa profile" items={[null, ...profiles.map((p) => p.profile_id)]}
+          itemToString={(pid) => (pid ? profiles.find((p) => p.profile_id === pid)?.name ?? pid : 'Tanpa profile')}
+          selectedItem={profileId} onChange={({ selectedItem }) => setProfileId(selectedItem ?? null)} />
       </Modal>
     </>
   )

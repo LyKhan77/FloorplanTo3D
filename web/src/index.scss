@@ -787,3 +787,36 @@ body {
     background: #393939;
   }
 }
+
+.review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1rem;
+
+  @media (max-width: 66rem) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.candidate-table tr.is-focused {
+  background: #393939;
+  outline: 2px solid #4589ff;
+  outline-offset: -2px;
+}
+
+.big-number {
+  margin-bottom: 1rem;
+
+  .mono {
+    font-size: 2rem;
+  }
+}
+
+.warning-line {
+  color: #f1c21b;
+}
+
+.issue-link {
+  margin-right: 0.5rem;
+  color: #78a9ff;
+}
