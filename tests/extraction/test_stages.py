@@ -58,7 +58,7 @@ def test_tilted_plan_keeps_scale(tmp_path):
     img = cv2.copyMakeBorder(cv2.imread(str(PLAN)), 80, 80, 80, 80, cv2.BORDER_CONSTANT, value=(255, 255, 255))
     h, w = img.shape[:2]  # padded first: rotating in place would cut the corner bubbles off
     img = cv2.warpAffine(img, cv2.getRotationMatrix2D((w / 2, h / 2), 2.0, 1.0), (w, h), borderValue=(255, 255, 255))
-    ok, buf = cv2.imencode(".png", img)
+    _, buf = cv2.imencode(".png", img)
     project = make_project(tmp_path / "p", buf.tobytes(), "png")
     stages, results = run_0_2(project)
     assert results[2]["status"] == "succeeded", results[2]
