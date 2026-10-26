@@ -16,6 +16,9 @@ from core.extraction.grid import detect_grid
 from core.extraction.overlay import render_grid_overlay
 from core.extraction.params import input_doc, merge_params, parse_prompt
 from core.extraction.preprocess import load_raster, preprocess
+from core.extraction.rooms.assemble import assemble_spec
+from core.extraction.rooms.labels import labels_from_ocr
+from core.extraction.rooms.overlay import px_from_mm, render_rooms_overlay
 from core.extraction.scale import compose_original, scale_from
 from core.extraction.textclass import classify_text, ocr_page
 
@@ -180,3 +183,52 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
         return {"status": "failed", "message": "semua kandidat kosong", "metrics": metrics}
     errors = [f"kandidat {r['index']}: {r['error']}" for r in summary if r["error"]]
     return {"status": "succeeded", "metrics": metrics, "warnings": errors}
+
+
+def meta_info(project_dir: Path, override: dict | None = None) -> dict:
+    """Spec meta fields that come from the upload and the run parameters, not from the drawing."""
+    up = _upload(project_dir)
+    params = run_params(project_dir, override)
+    return {"project_id": project_dir.name, "floor_name": params.get("floor_name", ""),
+            "site_type": params.get("site_type", "other"),
+            "defaults": {k: params[k] for k in ("wall_height", "door_height", "wall_thickness") if k in params},
+            "sha256": up["sha256"]}
+
+
+def stage_rooms(project_dir: Path, work: Path, progress: Progress = None, override: dict | None = None) -> dict:
+    """Stage 4 (PRD/04 Tahap 4): every successful candidate -> candidates/<k>/{spec.json, rooms.png, issues.json}."""
+    work.mkdir(parents=True, exist_ok=True)
+    ext, pre, grid_dir = work.parent / "03_extract", work.parent / "01_preprocess", work.parent / "02_grid"
+    grid = json.loads((grid_dir / "grid.json").read_text())
+    pmeta = json.loads((pre / "meta.json").read_text())
+    page = cv2.imread(str(pre / "page.png"), cv2.IMREAD_GRAYSCALE)
+    labels = labels_from_ocr(json.loads((grid_dir / "ocr.json").read_text()), grid["px_to_mm"])
+    info = meta_info(project_dir, override)
+    w, h = pmeta["original_size"]
+    info["image"] = {"sha256": info.pop("sha256"), "width_px": w, "height_px": h}
+    to_px = px_from_mm(grid["px_to_mm"])
+    rows = []
+    cands = [c for c in json.loads((ext / "candidates.json").read_text()) if not c["error"]]
+    for i, c in enumerate(cands):
+        k = c["index"]
+        if progress:
+            progress(round(100 * i / max(1, len(cands))), f"kandidat {k}")
+        try:
+            el = json.loads((ext / "candidates" / str(k) / "elements.json").read_text())
+            spec, issues = assemble_spec(el, grid, labels, info)
+        except Exception as e:  # noqa: BLE001 - one bad candidate must not sink the stage
+            rows.append({"index": k, "error": f"{type(e).__name__}: {e}", "rooms": 0, "labelled": 0, "gross_area_m2": 0})
+            continue
+        out = work / "candidates" / str(k)
+        out.mkdir(parents=True, exist_ok=True)
+        write_json(out / "spec.json", spec.model_dump(mode="json"))
+        write_json(out / "issues.json", issues)
+        cv2.imwrite(str(out / "rooms.png"), render_rooms_overlay(page, spec, to_px))
+        rows.append({"index": k, "error": None, "rooms": len(spec.rooms), "labelled": sum(bool(r.name) for r in spec.rooms),
+                     "gross_area_m2": spec.meta.gross_area_m2})
+    write_json(work / "candidates.json", rows)
+    ok = [r for r in rows if not r["error"]]
+    if not ok:
+        return {"status": "failed", "message": "tidak ada kandidat yang bisa dirakit menjadi spec"}
+    return {"status": "succeeded", "metrics": {"candidates": len(ok), "rooms": ok[0]["rooms"]},
+            "warnings": [f"kandidat {r['index']}: {r['error']}" for r in rows if r["error"]]}

@@ -65,8 +65,8 @@ def _overlap(a, b) -> bool:
 def _completes(base, generic) -> bool:
     """The generic word sits right below or right of the base text, within 1.5 text heights."""
     h = base[3] - base[1]
-    below = 0 <= generic[1] - base[3] <= 1.5 * h and min(base[2], generic[2]) > max(base[0], generic[0])
-    right = 0 <= generic[0] - base[2] <= 1.5 * h and min(base[3], generic[3]) > max(base[1], generic[1])
+    below = -0.25 * h <= generic[1] - base[3] <= 1.5 * h and min(base[2], generic[2]) > max(base[0], generic[0])
+    right = -0.25 * h <= generic[0] - base[2] <= 1.5 * h and min(base[3], generic[3]) > max(base[1], generic[1])
     return below or right
 
 

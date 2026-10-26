@@ -49,3 +49,9 @@ def test_gatsu_labels():
     types = {lb.type for lb in labels}
     assert {"pantry", "meeting", "storage", "battery_room", "mdf", "ahu_room", "lobby", "capacitor_room"} <= types
     assert all(lb.type == "other" for lb in labels if "PRDPDSED" in lb.name)
+
+
+def test_stacked_line_touching_the_first_still_merges():
+    items = [text_item("CAPASITOR", (2968, 1178, 3152, 1216), "room_label"),
+             text_item("ROOM", (2979, 1215, 3089, 1258), "room_label")]  # Gatsu: boxes overlap by 1 px
+    assert [lb.name for lb in labels_from_ocr(items, A)] == ["CAPASITOR ROOM"]

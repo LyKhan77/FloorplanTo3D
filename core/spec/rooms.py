@@ -1,5 +1,6 @@
 """Room formation from walls + columns (PRD/04 stage 4, steps 1-3 and 2b) and room ID reconciliation (§5.4b)."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from shapely.geometry import MultiPolygon
@@ -57,7 +58,9 @@ def _ring(coords) -> list[tuple[int, int]]:
     return [(round(x), round(y)) for x, y in list(coords)[:-1]]
 
 
-def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None) -> Spec:
+def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None,
+                  pick: Callable[[list[RoomLabel]], RoomLabel | None] | None = None) -> Spec:
+    """`pick` chooses among several labels inside one room (default: the first)."""
     s = spec.model_copy(deep=True)
     polys, outlines = form_rooms(s)
     old = [(r, SPolygon(r.polygon, r.holes)) for r in s.rooms]
@@ -92,7 +95,8 @@ def rebuild_rooms(spec: Spec, labels: list[RoomLabel] | None = None) -> Spec:
             label_pos=prev.label_pos if prev else None,
             provenance=prev.provenance if prev else Room.model_fields["provenance"].default,
         )
-        label = next((lb for lb in labels or [] if p.covers(SPoint(lb.at))), None)
+        inside = [lb for lb in labels or [] if p.covers(SPoint(lb.at))]
+        label = pick(inside) if pick else next(iter(inside), None)
         if label:
             room = room.model_copy(update={"name": label.name, "type": label.type, "label_pos": label.at})
             room = Room.model_validate(room.model_dump())  # re-validate the literal room type
