@@ -183,7 +183,7 @@ def doors_from_arcs(arcs: list[dict], walls: list[dict], clean: np.ndarray, s: f
             if abs(first["hi"] - second["lo"]) <= 0.15 * first["radius"] and first["hinge"] == "start" \
                     and second["hinge"] == "end":
                 w = walls[a["wall"]]
-                swing = first["swing"] if first["swing"] == second["swing"] else first["swing"]
+                swing = first["swing"]  # double leaves swing to the same side; the first one decides
                 out.append(_door(a["wall"], w, first["lo"], second["hi"], s, door_type="double_swing", hinge="both",
                                  swing=swing, confidence=round(min(a["confidence"], b["confidence"]), 3),
                                  evidence={"arcs": 2}))
