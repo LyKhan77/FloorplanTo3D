@@ -446,25 +446,65 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** Strata meningkatkan hasil secara terukur tanpa pernah memperburuknya. Referensi: `05-llm-review.md`.
 
 ### Tugas
-- [ ] Spike Strata (bila belum dilakukan di M0). **Status 2026-10-26: ditunda dari M0 karena Strata tidak aktif** (`benchmarks/reports/spike-strata.md`). Kerjakan paling awal di M6 mengikuti Task 6 plan M0.
-- [ ] `core/llm_review/client.py`: SDK openai, healthcheck, timeout, retry JSON invalid, pencatatan token dan latensi.
-- [ ] Pembuat crop zoom + thumbnail konteks + bukti teks.
-- [ ] Tugas T0 (parse prompt), T1, T2, T3: prompt berversi, schema output, voting.
-- [ ] T4: definisi tool (subset ops), loop tool calling, umpan balik penolakan.
-- [ ] Harness: routing elemen, gerbang Fase A/B, batas waktu dan iterasi, `spec.v2` (`source: llm`).
-- [ ] `transcript.jsonl` + `decisions.json` + event `llm.decision`.
-- [ ] **Benchmark LLM:**
-  - [ ] Bangun item dari Gatsu (T1 ≥ 40, T2 ≥ 20, T3 ≥ 20).
-  - [ ] Pisahkan few-shot dari item evaluasi.
-  - [ ] Buat `run_llm_bench.py`, laporan, dan `DECISIONS.md`.
-- [ ] Flag `LLM_TASKS_ENABLED` diisi sesuai hasil benchmark.
-- [ ] Dashboard: tab Review menampilkan tabel keputusan, crop + respons mentah, banner `skipped`. Halaman `/system` menampilkan status Strata dan tugas aktif.
+- [x] Spike Strata (bila belum dilakukan di M0). Ditunda dari M0 karena Strata tidak aktif (2026-10-26), lalu dikerjakan sebagai probe kemampuan server di awal M6 (`benchmarks/reports/spike-strata.md`). Akurasi T1/T2 diukur di benchmark.
+- [x] `core/llm_review/client.py`: SDK openai, healthcheck, timeout, retry JSON invalid, pencatatan token dan latensi.
+- [x] Pembuat crop zoom + thumbnail konteks + bukti teks.
+- [x] Tugas T0 (parse prompt), T1, T2, T3: prompt berversi, schema output, voting.
+- [x] T4: definisi tool (subset ops), loop tool calling, umpan balik penolakan.
+- [x] Harness: routing elemen, gerbang Fase A/B, batas waktu dan iterasi, `spec.v2` (`source: llm`).
+- [x] `transcript.jsonl` + `decisions.json` + event `llm.decision`.
+- [x] **Benchmark LLM:**
+  - [x] Bangun item dari Gatsu (T1 ≥ 40, T2 ≥ 20, T3 ≥ 20).
+  - [x] Pisahkan few-shot dari item evaluasi.
+  - [x] Buat `run_llm_bench.py`, laporan, dan `DECISIONS.md`.
+- [x] Flag `LLM_TASKS_ENABLED` diisi sesuai hasil benchmark.
+- [x] Dashboard: tab Review menampilkan tabel keputusan, crop + respons mentah, banner `skipped`. Halaman `/system` menampilkan status Strata dan tugas aktif.
 
 ### Kriteria selesai
 - Laporan benchmark T0–T4 ada. Setiap tugas yang aktif memenuhi syarat `05-llm-review.md` §7.2.
 - Pada Gatsu, metrik akurasi akhir dengan Strata ≥ tanpa Strata untuk semua metrik.
 - Strata dimatikan: tahap 6 `skipped`, pipeline selesai (kriteria sukses MVP #5).
 - Tahap 6 ≤ 10 menit.
+
+**Status M6 (2026-10-27), branch `m6-strata`:**
+- **Strata aktif dan terukur.** Probe server:
+  - JSON selalu valid; `response_format` dan `reasoning_effort` diterima;
+  - teks 6 px masih terbaca di 768² dan 1536²;
+  - tool calling berfungsi.
+  - Default-nya berpikir tanpa batas (> 10k token, > 75 s untuk satu pertanyaan T1 bergambar). Karena itu T1–T3 memakai `reasoning_effort: none` (~5 s per panggilan), sedangkan T0 dan T4 memakai `reasoning_budget_tokens` 512/2048.
+- **Benchmark §7.2** (`benchmarks/DECISIONS.md`, `benchmarks/reports/m6-strata.md`):
+  - T0 0.99 vs aturan 0.78: lolos;
+  - T1 0.656 vs CV 0.531, presisi hapus 1.00: lolos item, tetapi gagal e2e;
+  - T2 engsel/arah 0.80 vs CV 0.80: gagal;
+  - T3 0.85 vs leksikon 0.75: lolos;
+  - T4: 0 perubahan: gagal.
+- **`LLM_TASKS_ENABLED=T0,T3`.**
+- **Gatsu end-to-end:**
+  - dengan T0+T3, semua metrik sama dengan tanpa Strata (kriteria ≥ terpenuhi), dan tahap 6 butuh 5.8 s;
+  - T1 menurunkan `wall_recall` 4.8 poin (menghapus dinding yang hanya sebagian cocok dengan GT, yang tidak ada di item benchmark), jadi dinonaktifkan;
+  - Strata tidak menaikkan akurasi Gatsu, karena galat utamanya ada di tahap 3–4 (dinding terputus, 22 vs 48 ruang). Ini dibawa ke M7.
+- **Kriteria selesai:**
+  - laporan T0–T4: ada;
+  - tugas aktif memenuhi §7.2: ya;
+  - Gatsu dengan Strata ≥ tanpa Strata: ya;
+  - Strata mati atau dimatikan: tahap 6 `skipped`, pipeline selesai (dicek E2E);
+  - tahap 6 ≤ 10 menit: ya (5.8 s untuk set aktif; T1+T3 592 s).
+- **E2E dashboard (Playwright):**
+  1. Upload `plan.jpeg` dengan prompt "Data hall lantai satu, dinding setinggi 4,5 meter". T0 mengisi `floor_name` dan `wall_height` yang dilewatkan parser aturan.
+  2. Tahap 6 meng-review 1 ruang lewat T3, lalu tab Review menampilkan tabel keputusan dan respons mentah.
+  3. Rerun dengan `use_strata=false` menghasilkan `disabled_by_user`.
+  4. Server dengan `STRATA_BASE_URL` mati menghasilkan `strata_unavailable`, pipeline tetap selesai, dan indikator Strata merah.
+  - Uji ini menemukan bug: rerun `from_stage=6` tidak membawa artefak tahap 1–5. Sudah diperbaiki dengan test.
+- **Suite:** pytest 454 passed, 3 xfailed; Vitest 159 passed; ruff, oxlint, dan build bersih.
+- **Penyimpangan:**
+  - item T2 hanya 5 pintu asli karena GT Gatsu punya 19 pintu dan CV menemukan ~8;
+  - T3 tepat 20 item setelah label yang bukan nama ruang dibuang;
+  - T1 berjalan tanpa few-shot karena few-shot menurunkan presisi hapusnya;
+  - run tahap 6 tidak deterministik (voting kedua dan ketiga di temperature 0.4).
+- **Untuk M7 atau keputusan pengguna:**
+  - item T1 dengan dinding ambigu, atau T1 khusus garis tanpa sambungan;
+  - syarat aktivasi T2 untuk "hapus pintu palsu" (is_door 0.96 vs CV 0.21);
+  - model atau kuantisasi lebih besar (R-06).
 
 **FR:** FR-IN-04 (Strata), FR-LLM-01…09.
 

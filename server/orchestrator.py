@@ -289,9 +289,9 @@ class Orchestrator:
             if kind == "regenerate" or from_stage > FIRST_BLENDER_STAGE:
                 from_stage = FIRST_BLENDER_STAGE  # stages 8-10 need stage 7's spec and Blender output from this run
             seed = None
-            if 0 < from_stage <= FIRST_SPEC_STAGE:
+            if 0 < from_stage <= REVIEW_STAGE:  # the Strata review reads stages 1-5 of its run too
                 seed = self._seed_source(pid, from_stage - 1)
-                if seed is None:
+                if seed is None and from_stage <= FIRST_SPEC_STAGE:
                     from_stage = 0  # nothing to continue from: run the extraction from the start
             resolved = head if version == "HEAD" else int(version)
             if from_stage >= FIRST_BLENDER_STAGE and resolved is None:

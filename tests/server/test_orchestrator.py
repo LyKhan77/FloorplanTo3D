@@ -268,3 +268,22 @@ def test_server_tests_never_reach_live_strata(data_dir):
 
     s = settings_for(data_dir)
     assert s.llm_tasks_enabled == () and settings_for(data_dir, LLM_TASKS_ENABLED="T1").llm_tasks_enabled == ("T1",)
+
+
+def test_rerun_from_stage6_carries_stage_1_to_5_artefacts(app_factory, project_id):
+    """Retrying the Strata review (from_stage 6) needs the run's page, OCR and validation context."""
+    def write(ctx):
+        ctx.work_dir.mkdir(parents=True, exist_ok=True)
+        (ctx.work_dir / "done.txt").write_text(str(ctx.stage))
+        return {"status": "succeeded", **({"metrics": {"version": 1}} if ctx.stage == 5 else {})}
+
+    seen = []
+    impls = fake_impls([]) | {n: write for n in range(6)}
+    impls[6] = lambda ctx: (seen.append(sorted(p.name for p in ctx.work_dir.parent.iterdir())), {"status": "succeeded"})[1]
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"succeeded"})
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "from_stage", "from_stage": 6}).json()["run_id"]
+        run = wait_status(client, project_id, rid, {"succeeded"})
+    assert run["from_stage"] == 6
+    assert {"00_input", "01_preprocess", "02_grid", "05_validate"} <= set(seen[-1])
