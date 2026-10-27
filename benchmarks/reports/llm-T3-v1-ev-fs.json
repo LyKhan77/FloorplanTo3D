@@ -1,0 +1,40 @@
+{
+ "model": "qwen3.8-flash-next-iq2_xs",
+ "prompt": "v1",
+ "votes": 3,
+ "evidence": true,
+ "fewshot": true,
+ "task": "T3",
+ "n": 20,
+ "invalid_rate": 0.0,
+ "accuracy": 0.85,
+ "baseline_accuracy": 0.75,
+ "lexicon_fail_rate": 0.25,
+ "confusion": {
+  "meeting": {
+   "meeting": 2
+  },
+  "storage": {
+   "storage": 3
+  },
+  "mdf": {
+   "mdf": 4
+  },
+  "ahu_room": {
+   "ahu_room": 4
+  },
+  "lobby": {
+   "other": 2,
+   "corridor": 1
+  },
+  "capacitor_room": {
+   "capacitor_room": 4
+  }
+ },
+ "passes": true,
+ "latency": {
+  "calls": 40,
+  "mean_ms": 2428,
+  "p90_ms": 4631
+ }
+}

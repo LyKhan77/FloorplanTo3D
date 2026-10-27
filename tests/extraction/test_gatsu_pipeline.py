@@ -8,9 +8,8 @@ import time
 from pathlib import Path
 
 import pytest
-from shapely.geometry import Polygon
 
-from benchmarks.extraction_metrics import THRESHOLDS, evaluate, passed
+from benchmarks.extraction_metrics import THRESHOLDS, evaluate, passed, typed_room_count
 from core.extraction.stages import (
     stage_extract,
     stage_grid,
@@ -72,17 +71,7 @@ def run_pipeline(root: Path, from_stages: Path | None = None) -> dict:
 
 
 def named_rooms_typed_right(pred: Spec, gt: Spec) -> int:
-    """Named GT rooms whose best-overlapping predicted room (IoU >= 0.5) has the same type."""
-    ok = 0
-    for g in (r for r in gt.rooms if r.name):
-        gs = Polygon(g.polygon, g.holes)
-        best = max(pred.rooms, key=lambda p: gs.intersection(Polygon(p.polygon, p.holes)).area, default=None)
-        if best is None:
-            continue
-        ps = Polygon(best.polygon, best.holes)
-        inter = gs.intersection(ps).area
-        ok += inter / (gs.area + ps.area - inter) >= 0.5 and best.type == g.type
-    return ok
+    return typed_room_count(pred, gt)
 
 
 @pytest.fixture(scope="module")
@@ -114,3 +103,18 @@ def test_rerun_gives_identical_spec(first, tmp_path):
 def test_nfr_full(first):
     m = evaluate(first["spec"], GT)
     assert all(passed(m).values()), {k: (m[k], THRESHOLDS[k]) for k, ok in passed(m).items() if not ok}
+
+
+def test_stage6_skipped_keeps_stage5_spec(first):
+    """Strata off (MVP success criterion #5): stage 6 is skipped and the spec stage 7 builds is stage 5's."""
+    import dataclasses
+
+    from core.config import load_settings
+    from core.llm_review.stage import stage_review
+
+    project = first["stages"].parents[2]
+    head = SpecStore(project / "specs").head()
+    r = stage_review(project, first["stages"] / "06_review", "r", dataclasses.replace(load_settings(), llm_tasks_enabled=()),
+                     version=head, use_strata=True)
+    assert r["status"] == "skipped" and r["metrics"]["reason"] == "disabled"
+    assert SpecStore(project / "specs").head() == head and not (first["stages"] / "06_review").exists()

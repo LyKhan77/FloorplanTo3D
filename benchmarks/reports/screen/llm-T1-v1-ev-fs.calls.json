@@ -1,0 +1,966 @@
+{
+ "answers": {
+  "T1-002": {
+   "id": "W15",
+   "verdict": "annotation"
+  },
+  "T1-003": {
+   "id": "W42",
+   "verdict": "annotation"
+  },
+  "T1-004": {
+   "id": "W59",
+   "verdict": "wall"
+  },
+  "T1-005": {
+   "id": "W66",
+   "verdict": "wall"
+  },
+  "T1-007": {
+   "id": "W90",
+   "verdict": "wall"
+  },
+  "T1-008": {
+   "id": "W97",
+   "verdict": "wall"
+  },
+  "T1-009": {
+   "id": "W109",
+   "verdict": "annotation"
+  },
+  "T1-010": {
+   "id": "W120",
+   "verdict": "wall"
+  },
+  "T1-011": {
+   "id": "W127",
+   "verdict": "wall"
+  },
+  "T1-012": {
+   "id": "W137",
+   "verdict": "wall"
+  },
+  "T1-013": {
+   "id": "W147",
+   "verdict": "wall"
+  },
+  "T1-014": {
+   "id": "W7",
+   "verdict": "annotation"
+  },
+  "T1-015": {
+   "id": "W39",
+   "verdict": "wall"
+  },
+  "T1-016": {
+   "id": "W61",
+   "verdict": "wall"
+  },
+  "T1-017": {
+   "id": "W78",
+   "verdict": "wall"
+  },
+  "T1-018": {
+   "id": "W88",
+   "verdict": "wall"
+  },
+  "T1-019": {
+   "id": "W116",
+   "verdict": "wall"
+  },
+  "T1-020": {
+   "id": "W128",
+   "verdict": "wall"
+  },
+  "T1-021": {
+   "id": "W142",
+   "verdict": "annotation"
+  },
+  "T1-022": {
+   "id": "W153",
+   "verdict": "wall"
+  },
+  "T1-023": {
+   "id": "W34",
+   "verdict": "wall"
+  },
+  "T1-024": {
+   "id": "W76",
+   "verdict": "wall"
+  },
+  "T1-025": {
+   "id": "W93",
+   "verdict": "annotation"
+  },
+  "T1-026": {
+   "id": "W106",
+   "verdict": "wall"
+  },
+  "T1-027": {
+   "id": "W45",
+   "verdict": "wall"
+  },
+  "T1-028": {
+   "id": "W97",
+   "verdict": "wall"
+  },
+  "T1-029": {
+   "id": "W112",
+   "verdict": "annotation"
+  },
+  "T1-030": {
+   "id": "W8",
+   "verdict": "annotation"
+  },
+  "T1-031": {
+   "id": "W60",
+   "verdict": "wall"
+  },
+  "T1-032": {
+   "id": "W89",
+   "verdict": "annotation"
+  },
+  "T1-033": {
+   "id": "W116",
+   "verdict": "annotation"
+  },
+  "T1-034": {
+   "id": "W132",
+   "verdict": "wall"
+  },
+  "T1-035": {
+   "id": "W143",
+   "verdict": "wall"
+  },
+  "T1-036": {
+   "id": "W160",
+   "verdict": "wall"
+  },
+  "T1-037": {
+   "id": "W22",
+   "verdict": "annotation"
+  },
+  "T1-038": {
+   "id": "W72",
+   "verdict": "wall"
+  },
+  "T1-039": {
+   "id": "W105",
+   "verdict": "wall"
+  },
+  "T1-040": {
+   "id": "W124",
+   "verdict": "wall"
+  },
+  "T1-041": {
+   "id": "W135",
+   "verdict": "annotation"
+  },
+  "T1-042": {
+   "id": "W152",
+   "verdict": "wall"
+  },
+  "T1-043": {
+   "id": "W65",
+   "verdict": "wall"
+  },
+  "T1-044": {
+   "id": "W116",
+   "verdict": "wall"
+  },
+  "T1-045": {
+   "id": "W4",
+   "verdict": "annotation"
+  },
+  "T1-046": {
+   "id": "W60",
+   "verdict": "wall"
+  },
+  "T1-047": {
+   "id": "W87",
+   "verdict": "annotation"
+  },
+  "T1-048": {
+   "id": "W26",
+   "verdict": "wall"
+  },
+  "T1-049": {
+   "id": "W42",
+   "verdict": "annotation"
+  },
+  "T1-050": {
+   "id": "W52",
+   "verdict": "wall"
+  },
+  "T1-053": {
+   "id": "W24",
+   "verdict": "wall"
+  },
+  "T1-054": {
+   "id": "W34",
+   "verdict": "annotation"
+  },
+  "T1-055": {
+   "id": "W44",
+   "verdict": "annotation"
+  },
+  "T1-056": {
+   "id": "W54",
+   "verdict": "annotation"
+  },
+  "T1-057": {
+   "id": "W82",
+   "verdict": "annotation"
+  },
+  "T1-058": {
+   "id": "W102",
+   "verdict": "annotation"
+  },
+  "T1-059": {
+   "id": "W114",
+   "verdict": "wall"
+  },
+  "T1-060": {
+   "id": "W139",
+   "verdict": "wall"
+  },
+  "T1-061": {
+   "id": "W20",
+   "verdict": "wall"
+  },
+  "T1-062": {
+   "id": "W34",
+   "verdict": "annotation"
+  },
+  "T1-063": {
+   "id": "W46",
+   "verdict": "annotation"
+  },
+  "T1-064": {
+   "id": "W56",
+   "verdict": "annotation"
+  },
+  "T1-065": {
+   "id": "W82",
+   "verdict": "annotation"
+  },
+  "T1-066": {
+   "id": "W99",
+   "verdict": "annotation"
+  },
+  "T1-067": {
+   "id": "W120",
+   "verdict": "wall"
+  },
+  "T1-068": {
+   "id": "W3",
+   "verdict": "annotation"
+  },
+  "T1-069": {
+   "id": "W15",
+   "verdict": "annotation"
+  },
+  "T1-070": {
+   "id": "W31",
+   "verdict": "annotation"
+  },
+  "T1-071": {
+   "id": "W73",
+   "verdict": "wall"
+  },
+  "T1-072": {
+   "id": "W8",
+   "verdict": "wall"
+  },
+  "T1-073": {
+   "id": "W28",
+   "verdict": "annotation"
+  },
+  "T1-074": {
+   "id": "W46",
+   "verdict": "annotation"
+  },
+  "T1-075": {
+   "id": "W10",
+   "verdict": "annotation"
+  },
+  "T1-076": {
+   "id": "W28",
+   "verdict": "annotation"
+  },
+  "T1-077": {
+   "id": "W42",
+   "verdict": "annotation"
+  },
+  "T1-078": {
+   "id": "W53",
+   "verdict": "annotation"
+  },
+  "T1-079": {
+   "id": "W65",
+   "verdict": "annotation"
+  },
+  "T1-080": {
+   "id": "W92",
+   "verdict": "annotation"
+  },
+  "T1-081": {
+   "id": "W100",
+   "verdict": "annotation"
+  },
+  "T1-082": {
+   "id": "W124",
+   "verdict": "wall"
+  },
+  "T1-083": {
+   "id": "W9",
+   "verdict": "annotation"
+  },
+  "T1-084": {
+   "id": "W32",
+   "verdict": "annotation"
+  },
+  "T1-085": {
+   "id": "W48",
+   "verdict": "annotation"
+  },
+  "T1-086": {
+   "id": "W61",
+   "verdict": "annotation"
+  },
+  "T1-087": {
+   "id": "W88",
+   "verdict": "annotation"
+  },
+  "T1-088": {
+   "id": "W107",
+   "verdict": "annotation"
+  },
+  "T1-089": {
+   "id": "W5",
+   "verdict": "annotation"
+  },
+  "T1-090": {
+   "id": "W26",
+   "verdict": "wall"
+  },
+  "T1-091": {
+   "id": "W50",
+   "verdict": "annotation"
+  },
+  "T1-092": {
+   "id": "W87",
+   "verdict": "annotation"
+  },
+  "T1-093": {
+   "id": "W20",
+   "verdict": "annotation"
+  },
+  "T1-094": {
+   "id": "W37",
+   "verdict": "annotation"
+  },
+  "T1-095": {
+   "id": "W73",
+   "verdict": "annotation"
+  },
+  "T1-096": {
+   "id": "W1",
+   "verdict": "annotation"
+  },
+  "T1-097": {
+   "id": "W10",
+   "verdict": "annotation"
+  },
+  "T1-098": {
+   "id": "W20",
+   "verdict": "annotation"
+  },
+  "T1-099": {
+   "id": "W32",
+   "verdict": "annotation"
+  },
+  "T1-100": {
+   "id": "W7",
+   "verdict": "annotation"
+  }
+ },
+ "calls": [
+  {
+   "id": "T1-002",
+   "latency_ms": 5858,
+   "valid": true,
+   "raw": "{\"id\":\"W15\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-003",
+   "latency_ms": 5853,
+   "valid": true,
+   "raw": "{\"id\":\"W42\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-004",
+   "latency_ms": 5487,
+   "valid": true,
+   "raw": "{\"id\":\"W59\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-005",
+   "latency_ms": 5607,
+   "valid": true,
+   "raw": "{\"id\":\"W66\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-007",
+   "latency_ms": 5748,
+   "valid": true,
+   "raw": "{\"id\":\"W90\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-008",
+   "latency_ms": 5767,
+   "valid": true,
+   "raw": "{\"id\":\"W97\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-009",
+   "latency_ms": 5671,
+   "valid": true,
+   "raw": "{\"id\":\"W109\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-010",
+   "latency_ms": 5598,
+   "valid": true,
+   "raw": "{\"id\":\"W120\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-011",
+   "latency_ms": 5834,
+   "valid": true,
+   "raw": "{\"id\":\"W127\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-012",
+   "latency_ms": 5744,
+   "valid": true,
+   "raw": "{\"id\":\"W137\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-013",
+   "latency_ms": 5630,
+   "valid": true,
+   "raw": "{\"id\":\"W147\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-014",
+   "latency_ms": 5636,
+   "valid": true,
+   "raw": "{\"id\":\"W7\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-015",
+   "latency_ms": 5607,
+   "valid": true,
+   "raw": "{\"id\":\"W39\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-016",
+   "latency_ms": 5574,
+   "valid": true,
+   "raw": "{\"id\":\"W61\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-017",
+   "latency_ms": 5566,
+   "valid": true,
+   "raw": "{\"id\":\"W78\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-018",
+   "latency_ms": 5500,
+   "valid": true,
+   "raw": "{\"id\":\"W88\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-019",
+   "latency_ms": 5661,
+   "valid": true,
+   "raw": "{\"id\":\"W116\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-020",
+   "latency_ms": 5518,
+   "valid": true,
+   "raw": "{\"id\":\"W128\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-021",
+   "latency_ms": 5620,
+   "valid": true,
+   "raw": "{\"id\":\"W142\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-022",
+   "latency_ms": 5519,
+   "valid": true,
+   "raw": "{\"id\":\"W153\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-023",
+   "latency_ms": 5469,
+   "valid": true,
+   "raw": "{\"id\":\"W34\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-024",
+   "latency_ms": 5593,
+   "valid": true,
+   "raw": "{\"id\":\"W76\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-025",
+   "latency_ms": 5518,
+   "valid": true,
+   "raw": "{\"id\":\"W93\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-026",
+   "latency_ms": 5515,
+   "valid": true,
+   "raw": "{\"id\":\"W106\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-027",
+   "latency_ms": 5535,
+   "valid": true,
+   "raw": "{\"id\":\"W45\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-028",
+   "latency_ms": 5756,
+   "valid": true,
+   "raw": "{\"id\":\"W97\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-029",
+   "latency_ms": 6211,
+   "valid": true,
+   "raw": "{\"id\":\"W112\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-030",
+   "latency_ms": 5791,
+   "valid": true,
+   "raw": "{\"id\":\"W8\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-031",
+   "latency_ms": 5923,
+   "valid": true,
+   "raw": "{\"id\":\"W60\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-032",
+   "latency_ms": 5717,
+   "valid": true,
+   "raw": "{\"id\":\"W89\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-033",
+   "latency_ms": 5773,
+   "valid": true,
+   "raw": "{\"id\":\"W116\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-034",
+   "latency_ms": 5775,
+   "valid": true,
+   "raw": "{\"id\":\"W132\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-035",
+   "latency_ms": 5510,
+   "valid": true,
+   "raw": "{\"id\":\"W143\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-036",
+   "latency_ms": 5688,
+   "valid": true,
+   "raw": "{\"id\":\"W160\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-037",
+   "latency_ms": 5870,
+   "valid": true,
+   "raw": "{\"id\":\"W22\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-038",
+   "latency_ms": 6256,
+   "valid": true,
+   "raw": "{\"id\":\"W72\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-039",
+   "latency_ms": 5995,
+   "valid": true,
+   "raw": "{\"id\":\"W105\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-040",
+   "latency_ms": 5625,
+   "valid": true,
+   "raw": "{\"id\":\"W124\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-041",
+   "latency_ms": 5807,
+   "valid": true,
+   "raw": "{\"id\":\"W135\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-042",
+   "latency_ms": 5680,
+   "valid": true,
+   "raw": "{\"id\":\"W152\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-043",
+   "latency_ms": 5827,
+   "valid": true,
+   "raw": "{\"id\":\"W65\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-044",
+   "latency_ms": 5738,
+   "valid": true,
+   "raw": "{\"id\":\"W116\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-045",
+   "latency_ms": 5576,
+   "valid": true,
+   "raw": "{\"id\":\"W4\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-046",
+   "latency_ms": 5612,
+   "valid": true,
+   "raw": "{\"id\":\"W60\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-047",
+   "latency_ms": 5524,
+   "valid": true,
+   "raw": "{\"id\":\"W87\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-048",
+   "latency_ms": 5479,
+   "valid": true,
+   "raw": "{\"id\":\"W26\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-049",
+   "latency_ms": 5516,
+   "valid": true,
+   "raw": "{\"id\":\"W42\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-050",
+   "latency_ms": 5493,
+   "valid": true,
+   "raw": "{\"id\":\"W52\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-053",
+   "latency_ms": 5686,
+   "valid": true,
+   "raw": "{\"id\":\"W24\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-054",
+   "latency_ms": 5653,
+   "valid": true,
+   "raw": "{\"id\":\"W34\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-055",
+   "latency_ms": 5693,
+   "valid": true,
+   "raw": "{\"id\":\"W44\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-056",
+   "latency_ms": 5557,
+   "valid": true,
+   "raw": "{\"id\":\"W54\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-057",
+   "latency_ms": 5622,
+   "valid": true,
+   "raw": "{\"id\":\"W82\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-058",
+   "latency_ms": 5575,
+   "valid": true,
+   "raw": "{\"id\":\"W102\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-059",
+   "latency_ms": 5676,
+   "valid": true,
+   "raw": "{\"id\":\"W114\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-060",
+   "latency_ms": 5674,
+   "valid": true,
+   "raw": "{\"id\":\"W139\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-061",
+   "latency_ms": 5490,
+   "valid": true,
+   "raw": "{\"id\":\"W20\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-062",
+   "latency_ms": 5567,
+   "valid": true,
+   "raw": "{\"id\":\"W34\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-063",
+   "latency_ms": 5559,
+   "valid": true,
+   "raw": "{\"id\":\"W46\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-064",
+   "latency_ms": 5647,
+   "valid": true,
+   "raw": "{\"id\":\"W56\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-065",
+   "latency_ms": 5579,
+   "valid": true,
+   "raw": "{\"id\":\"W82\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-066",
+   "latency_ms": 5512,
+   "valid": true,
+   "raw": "{\"id\":\"W99\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-067",
+   "latency_ms": 5581,
+   "valid": true,
+   "raw": "{\"id\":\"W120\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-068",
+   "latency_ms": 5611,
+   "valid": true,
+   "raw": "{\"id\":\"W3\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-069",
+   "latency_ms": 5688,
+   "valid": true,
+   "raw": "{\"id\":\"W15\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-070",
+   "latency_ms": 5577,
+   "valid": true,
+   "raw": "{\"id\":\"W31\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-071",
+   "latency_ms": 5560,
+   "valid": true,
+   "raw": "{\"id\":\"W73\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-072",
+   "latency_ms": 5512,
+   "valid": true,
+   "raw": "{\"id\":\"W8\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-073",
+   "latency_ms": 5527,
+   "valid": true,
+   "raw": "{\"id\":\"W28\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-074",
+   "latency_ms": 5527,
+   "valid": true,
+   "raw": "{\"id\":\"W46\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-075",
+   "latency_ms": 5590,
+   "valid": true,
+   "raw": "{\"id\":\"W10\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-076",
+   "latency_ms": 5535,
+   "valid": true,
+   "raw": "{\"id\":\"W28\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-077",
+   "latency_ms": 5600,
+   "valid": true,
+   "raw": "{\"id\":\"W42\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-078",
+   "latency_ms": 5569,
+   "valid": true,
+   "raw": "{\"id\":\"W53\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-079",
+   "latency_ms": 5657,
+   "valid": true,
+   "raw": "{\"id\":\"W65\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-080",
+   "latency_ms": 5671,
+   "valid": true,
+   "raw": "{\"id\":\"W92\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-081",
+   "latency_ms": 5653,
+   "valid": true,
+   "raw": "{\"id\":\"W100\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-082",
+   "latency_ms": 5606,
+   "valid": true,
+   "raw": "{\"id\":\"W124\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-083",
+   "latency_ms": 5608,
+   "valid": true,
+   "raw": "{\"id\":\"W9\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-084",
+   "latency_ms": 5559,
+   "valid": true,
+   "raw": "{\"id\":\"W32\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-085",
+   "latency_ms": 5631,
+   "valid": true,
+   "raw": "{\"id\":\"W48\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-086",
+   "latency_ms": 5536,
+   "valid": true,
+   "raw": "{\"id\":\"W61\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-087",
+   "latency_ms": 5506,
+   "valid": true,
+   "raw": "{\"id\":\"W88\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-088",
+   "latency_ms": 5523,
+   "valid": true,
+   "raw": "{\"id\":\"W107\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-089",
+   "latency_ms": 5495,
+   "valid": true,
+   "raw": "{\"id\":\"W5\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-090",
+   "latency_ms": 5594,
+   "valid": true,
+   "raw": "{\"id\":\"W26\",\"verdict\":\"wall\"}"
+  },
+  {
+   "id": "T1-091",
+   "latency_ms": 5607,
+   "valid": true,
+   "raw": "{\"id\":\"W50\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-092",
+   "latency_ms": 5626,
+   "valid": true,
+   "raw": "{\"id\":\"W87\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-093",
+   "latency_ms": 5668,
+   "valid": true,
+   "raw": "{\"id\":\"W20\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-094",
+   "latency_ms": 5700,
+   "valid": true,
+   "raw": "{\"id\":\"W37\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-095",
+   "latency_ms": 5699,
+   "valid": true,
+   "raw": "{\"id\":\"W73\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-096",
+   "latency_ms": 5625,
+   "valid": true,
+   "raw": "{\"id\":\"W1\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-097",
+   "latency_ms": 5657,
+   "valid": true,
+   "raw": "{\"id\":\"W10\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-098",
+   "latency_ms": 5605,
+   "valid": true,
+   "raw": "{\"id\":\"W20\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-099",
+   "latency_ms": 5642,
+   "valid": true,
+   "raw": "{\"id\":\"W32\",\"verdict\":\"annotation\"}"
+  },
+  {
+   "id": "T1-100",
+   "latency_ms": 5735,
+   "valid": true,
+   "raw": "{\"id\":\"W7\",\"verdict\":\"annotation\"}"
+  }
+ ]
+}

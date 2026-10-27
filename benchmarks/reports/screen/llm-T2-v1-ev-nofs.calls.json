@@ -1,0 +1,318 @@
+{
+ "answers": {
+  "T2-003": {
+   "id": "D16",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "T2-005": {
+   "id": "D20",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-006": {
+   "id": "D21",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-007": {
+   "id": "D7",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "T2-008": {
+   "id": "D11",
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "right"
+  },
+  "T2-010": {
+   "id": "D3",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-011": {
+   "id": "D5",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-012": {
+   "id": "D8",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-013": {
+   "id": "D10",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "T2-014": {
+   "id": "D22",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-015": {
+   "id": "D24",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-016": {
+   "id": "D30",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-017": {
+   "id": "D2",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-018": {
+   "id": "D4",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-019": {
+   "id": "D18",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-020": {
+   "id": "D2",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-021": {
+   "id": "D6",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "T2-022": {
+   "id": "D19",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-023": {
+   "id": "D24",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-024": {
+   "id": "D2",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-025": {
+   "id": "D17",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-026": {
+   "id": "D24",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-027": {
+   "id": "D27",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-028": {
+   "id": "D20",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  }
+ },
+ "calls": [
+  {
+   "id": "T2-003",
+   "latency_ms": 4990,
+   "valid": true,
+   "raw": "{\"id\":\"D16\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"end\",\"swing\":\"right\"}"
+  },
+  {
+   "id": "T2-005",
+   "latency_ms": 4755,
+   "valid": true,
+   "raw": "{\"id\":\"D20\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"start\",\"swing\":\"left\"}"
+  },
+  {
+   "id": "T2-006",
+   "latency_ms": 4793,
+   "valid": true,
+   "raw": "{\"id\":\"D21\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"start\",\"swing\":\"left\"}"
+  },
+  {
+   "id": "T2-007",
+   "latency_ms": 4706,
+   "valid": true,
+   "raw": "{\"id\":\"D7\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"end\",\"swing\":\"right\"}"
+  },
+  {
+   "id": "T2-008",
+   "latency_ms": 4683,
+   "valid": true,
+   "raw": "{\"id\":\"D11\",\"is_door\":true,\"door_type\":\"double_swing\",\"hinge\":\"both\",\"swing\":\"right\"}"
+  },
+  {
+   "id": "T2-010",
+   "latency_ms": 4649,
+   "valid": true,
+   "raw": "{\"id\":\"D3\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-011",
+   "latency_ms": 4725,
+   "valid": true,
+   "raw": "{\"id\":\"D5\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-012",
+   "latency_ms": 4721,
+   "valid": true,
+   "raw": "{\"id\":\"D8\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-013",
+   "latency_ms": 4763,
+   "valid": true,
+   "raw": "{\"id\":\"D10\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"end\",\"swing\":\"left\"}"
+  },
+  {
+   "id": "T2-014",
+   "latency_ms": 4732,
+   "valid": true,
+   "raw": "{\"id\":\"D22\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-015",
+   "latency_ms": 4647,
+   "valid": true,
+   "raw": "{\"id\":\"D24\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-016",
+   "latency_ms": 4708,
+   "valid": true,
+   "raw": "{\"id\":\"D30\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-017",
+   "latency_ms": 4632,
+   "valid": true,
+   "raw": "{\"id\":\"D2\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-018",
+   "latency_ms": 4726,
+   "valid": true,
+   "raw": "{\"id\":\"D4\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-019",
+   "latency_ms": 4634,
+   "valid": true,
+   "raw": "{\"id\":\"D18\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-020",
+   "latency_ms": 4731,
+   "valid": true,
+   "raw": "{\"id\":\"D2\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"start\",\"swing\":\"left\"}"
+  },
+  {
+   "id": "T2-021",
+   "latency_ms": 4748,
+   "valid": true,
+   "raw": "{\"id\":\"D6\",\"is_door\":true,\"door_type\":\"single_swing\",\"hinge\":\"start\",\"swing\":\"right\"}"
+  },
+  {
+   "id": "T2-022",
+   "latency_ms": 4624,
+   "valid": true,
+   "raw": "{\"id\":\"D19\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-023",
+   "latency_ms": 4702,
+   "valid": true,
+   "raw": "{\"id\":\"D24\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-024",
+   "latency_ms": 4661,
+   "valid": true,
+   "raw": "{\"id\":\"D2\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-025",
+   "latency_ms": 4654,
+   "valid": true,
+   "raw": "{\"id\":\"D17\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-026",
+   "latency_ms": 4658,
+   "valid": true,
+   "raw": "{\"id\":\"D24\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-027",
+   "latency_ms": 4657,
+   "valid": true,
+   "raw": "{\"id\":\"D27\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  },
+  {
+   "id": "T2-028",
+   "latency_ms": 4733,
+   "valid": true,
+   "raw": "{\"id\":\"D20\",\"is_door\":true,\"door_type\":\"opening\",\"hinge\":null,\"swing\":null}"
+  }
+ ]
+}

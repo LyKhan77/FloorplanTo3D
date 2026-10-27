@@ -14,7 +14,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from benchmarks.extraction_metrics import LOWER_IS_BETTER, evaluate
+from benchmarks.extraction_metrics import LOWER_IS_BETTER, evaluate, typed_room_count
 from benchmarks.llm_items import (
     CACHE,
     FEWSHOT_ROOT,
@@ -103,7 +103,14 @@ def run_items(task: str, items: list[dict], client, *, prompt: str, votes: int, 
     return answers, calls_all
 
 
-def harness_delta(cache: Path, base_tasks: set[str], test_tasks: set[str], client, votes: int, max_iter: int) -> dict:
+def delta_passes(improvement: dict[str, float], need_gain: bool) -> bool:
+    """No metric worse (M6: "dengan Strata >= tanpa Strata"); T4 (§7.2) also needs one metric better."""
+    ok = all(d >= -1e-9 for d in improvement.values())
+    return ok and (not need_gain or any(d > 1e-9 for d in improvement.values()))
+
+
+def harness_delta(cache: Path, base_tasks: set[str], test_tasks: set[str], client, votes: int, max_iter: int,
+                  need_gain: bool = False) -> dict:
     """GT metrics of the Gatsu stage-5 spec reviewed with `base_tasks` vs `test_tasks` (empty set = no Strata)."""
     from core.llm_review.harness import run_review
     from core.llm_review.stage import _inputs
@@ -124,7 +131,8 @@ def harness_delta(cache: Path, base_tasks: set[str], test_tasks: set[str], clien
                         "timed_out": r.timed_out, "ops": r.ops}
 
     (bs, binfo), (ts, tinfo) = reviewed(base_tasks), reviewed(test_tasks)
-    bm, tm = evaluate(bs, gt), evaluate(ts, gt)
+    bm = evaluate(bs, gt) | {"rooms_typed_ok": typed_room_count(bs, gt)}
+    tm = evaluate(ts, gt) | {"rooms_typed_ok": typed_room_count(ts, gt)}
     delta = {}
     for k, v in tm.items():
         if k == "passed" or v is None or bm.get(k) is None:
@@ -133,7 +141,7 @@ def harness_delta(cache: Path, base_tasks: set[str], test_tasks: set[str], clien
     return {"base_tasks": sorted(base_tasks), "test_tasks": sorted(test_tasks), "base": binfo, "test": tinfo,
             "base_metrics": {k: v for k, v in bm.items() if k != "passed"},
             "test_metrics": {k: v for k, v in tm.items() if k != "passed"}, "improvement": delta,
-            "passes": all(d >= -1e-9 for d in delta.values()) and any(d > 1e-9 for d in delta.values())}
+            "passes": delta_passes(delta, need_gain)}
 
 
 def _latency(calls: list) -> dict:
@@ -177,7 +185,7 @@ def main(argv: list[str] | None = None) -> dict:
     if a.task in ("T4", "e2e"):
         tasks = {t for t in a.tasks.split(",") if t}
         base, test = (tasks - {"T4"}, tasks | {"T4"}) if a.task == "T4" else (set(), tasks)
-        rep = meta | harness_delta(a.cache, base, test, client, a.votes, s.llm_max_iter)
+        rep = meta | harness_delta(a.cache, base, test, client, a.votes, s.llm_max_iter, need_gain=a.task == "T4")
         name = f"llm-{a.task}-{a.prompt}-{'-'.join(sorted(tasks)) or 'none'}"
     else:
         items = json.loads((a.items / f"{a.task}.json").read_text())

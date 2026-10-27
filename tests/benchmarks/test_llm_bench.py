@@ -146,3 +146,22 @@ def test_report_written(tmp_path):
     assert rep["passes"] is True and rep["n"] == 10
     assert (tmp_path / "llm-T1-v1-ev-fs.md").exists()
     assert json.loads((tmp_path / "llm-T1-v1-ev-fs.json").read_text())["accuracy"] == 1.0
+
+
+def test_delta_gate_e2e_needs_no_gain_t4_needs_one():
+    from benchmarks.run_llm_bench import delta_passes
+
+    flat = {"wall_recall": 0.0, "room_match": 0.0}
+    assert delta_passes(flat, need_gain=False) is True and delta_passes(flat, need_gain=True) is False
+    assert delta_passes({"wall_recall": 0.01, "room_match": 0.0}, need_gain=True) is True
+    assert delta_passes({"wall_recall": -0.01, "room_match": 0.5}, need_gain=False) is False
+
+
+def test_typed_room_count():
+    from benchmarks.extraction_metrics import typed_room_count
+
+    gt = gt_spec()
+    pred = gt.model_copy(deep=True)
+    assert typed_room_count(pred, gt) == 2
+    pred.rooms[0].type = "other"
+    assert typed_room_count(pred, gt) == 1

@@ -217,6 +217,20 @@ def passed(metrics: dict) -> dict[str, bool]:
     return out
 
 
+def typed_room_count(pred: Spec, gt: Spec) -> int:
+    """Named GT rooms whose best-overlapping predicted room (IoU >= 0.5) has the same type."""
+    ok = 0
+    for g in (r for r in gt.rooms if r.name):
+        gs = Polygon(g.polygon, g.holes)
+        best = max(pred.rooms, key=lambda p: gs.intersection(Polygon(p.polygon, p.holes)).area, default=None)
+        if best is None:
+            continue
+        ps = Polygon(best.polygon, best.holes)
+        inter = gs.intersection(ps).area
+        ok += inter / (gs.area + ps.area - inter) >= 0.5 and best.type == g.type
+    return ok
+
+
 def evaluate(pred: Spec, gt: Spec) -> dict:
     m = {**scale_metrics(pred.meta.mm_per_px, gt), **wall_metrics(pred, gt), **door_metrics(pred, gt),
          **room_metrics(pred, gt), "wall_iou": wall_iou(pred, gt), **stair_metrics_cmp(pred, gt),
