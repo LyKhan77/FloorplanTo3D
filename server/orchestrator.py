@@ -139,7 +139,8 @@ def _validate(ctx: StageContext) -> dict:
 def _review(ctx: StageContext) -> dict:
     result = stage_review(ctx.project_dir, ctx.work_dir, ctx.run_id, ctx.settings,
                           version=ctx.state.get("version", ctx.version), use_strata=_use_strata(ctx),
-                          client=_strata(ctx.settings), emit=ctx.emit_event, progress=ctx.emit_progress)
+                          client=_strata(ctx.settings), emit=ctx.emit_event, progress=ctx.emit_progress,
+                          cancelled=ctx.cancelled)
     if result.get("metrics", {}).get("version"):
         ctx.state["version"] = result["metrics"]["version"]
     return result

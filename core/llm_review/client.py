@@ -28,6 +28,7 @@ class CallResult:
     tokens: dict = field(default_factory=lambda: {"prompt": 0, "completion": 0})
     tool_calls: list[dict] = field(default_factory=list)
     attempts: int = 1
+    transport: bool = False  # the server did not answer (timeout, refused, HTTP error), as opposed to a bad answer
 
 
 def extract_json(text: str) -> dict:
@@ -47,7 +48,7 @@ def _reasoning(effort: str) -> dict:
 class StrataClient:
     def __init__(self, base_url: str, model: str, timeout_s: float, http_client: httpx.Client | None = None,
                  use_response_format: bool = USE_RESPONSE_FORMAT):
-        self.model = model
+        self.model, self.timeout_s = model, timeout_s
         self.root = base_url.removesuffix("/").removesuffix("/v1")
         self.use_response_format = use_response_format
         self._http = http_client
@@ -61,11 +62,12 @@ class StrataClient:
         except httpx.HTTPError:
             return False
 
-    def _create(self, messages: list[dict], effort: str, temperature: float, **kw):
+    def _create(self, messages: list[dict], effort: str, temperature: float, deadline: float | None, **kw):
         t0 = time.monotonic()
+        timeout = self.timeout_s if deadline is None else min(self.timeout_s, max(0.0, deadline - t0))
         try:
             r = self._sdk.chat.completions.create(model=self.model, messages=messages, temperature=temperature,
-                                                  extra_body=_reasoning(effort), **kw)
+                                                  extra_body=_reasoning(effort), timeout=timeout, **kw)
             return r, None, int((time.monotonic() - t0) * 1000)
         except openai.APITimeoutError as e:
             return None, f"timeout: {e}", int((time.monotonic() - t0) * 1000)
@@ -79,17 +81,20 @@ class StrataClient:
             tokens["completion"] += r.usage.completion_tokens or 0
 
     def ask_json(self, messages: list[dict], schema: type[BaseModel], *, effort: str, temperature: float,
-                 max_retries: int = 2) -> CallResult:
+                 max_retries: int = 2, deadline: float | None = None) -> CallResult:
+        """`deadline` (time.monotonic) caps every attempt's timeout and stops the retries once it has passed."""
         kw = {}
         if self.use_response_format:
             kw["response_format"] = {"type": "json_schema",
                                      "json_schema": {"name": schema.__name__, "schema": schema.model_json_schema()}}
         msgs, tokens, latency, raw, error = list(messages), {"prompt": 0, "completion": 0}, 0, "", None
         for attempt in range(1, max_retries + 2):
-            r, err, ms = self._create(msgs, effort, temperature, **kw)
+            if deadline is not None and time.monotonic() >= deadline:
+                return CallResult(raw, None, False, error or "deadline reached", latency, tokens, attempts=attempt - 1)
+            r, err, ms = self._create(msgs, effort, temperature, deadline, **kw)
             latency += ms
             if r is None:  # transport errors are not retried: the server is down or overloaded
-                return CallResult(raw, None, False, err, latency, tokens, attempts=attempt)
+                return CallResult(raw, None, False, err, latency, tokens, attempts=attempt, transport=True)
             self._add_usage(tokens, r)
             raw = r.choices[0].message.content or ""
             try:
@@ -102,11 +107,14 @@ class StrataClient:
                                                      "Answer ONLY with JSON matching the schema."}]
         return CallResult(raw, None, False, error, latency, tokens, attempts=max_retries + 1)
 
-    def ask_tools(self, messages: list[dict], tools: list[dict], *, effort: str, temperature: float = 0.0) -> CallResult:
-        r, err, ms = self._create(messages, effort, temperature, tools=tools)
+    def ask_tools(self, messages: list[dict], tools: list[dict], *, effort: str, temperature: float = 0.0,
+                  deadline: float | None = None) -> CallResult:
         tokens = {"prompt": 0, "completion": 0}
+        if deadline is not None and time.monotonic() >= deadline:
+            return CallResult("", None, False, "deadline reached", 0, tokens, attempts=0)
+        r, err, ms = self._create(messages, effort, temperature, deadline, tools=tools)
         if r is None:
-            return CallResult("", None, False, err, ms, tokens)
+            return CallResult("", None, False, err, ms, tokens, transport=True)
         self._add_usage(tokens, r)
         m = r.choices[0].message
         calls = []

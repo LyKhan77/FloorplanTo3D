@@ -13,7 +13,8 @@ export function strataSummary(stage: Stage, lastMessage?: string): string {
   if (stage.status === 'skipped') return `Review Strata dilewati: ${REASONS[String(m.reason)] ?? 'tahap dilewati'}`
   if (typeof m.reviewed === 'number') {
     const score = (v: unknown) => (typeof v === 'number' ? v.toFixed(3) : '—')
-    return `Diperiksa ${m.reviewed} · diterima ${m.accepted ?? 0} · ditolak ${m.rejected ?? 0} · skor ${score(m.score_before)} → ${score(m.score_after)}`
+    const unsaved = (m.saved as unknown) === false ? ' · tidak disimpan' : ''
+    return `Diperiksa ${m.reviewed} · diterima ${m.accepted ?? 0} · ditolak ${m.rejected ?? 0} · skor ${score(m.score_before)} → ${score(m.score_after)}${unsaved}`
   }
   return lastMessage ?? '—'
 }

@@ -39,12 +39,12 @@ class FakeStrata:
         self.calls.append({"messages": messages, "element": element_of(messages), **kw})
         return self.script(messages, kw)
 
-    def ask_json(self, messages, schema, *, effort, temperature, max_retries=2) -> CallResult:
+    def ask_json(self, messages, schema, *, effort, temperature, max_retries=2, deadline=None) -> CallResult:
         raw, error = "", None
         for attempt in range(1, max_retries + 2):
             reply = self._record(messages, {"effort": effort, "temperature": temperature, "schema": schema})
             if isinstance(reply, Exception):
-                return CallResult("", None, False, f"timeout: {reply}", 1, attempts=attempt)
+                return CallResult("", None, False, f"timeout: {reply}", 1, attempts=attempt, transport=True)
             raw = reply if isinstance(reply, str) else json.dumps(reply)
             try:
                 return CallResult(raw, schema.model_validate(extract_json(raw)).model_dump(), True, None, 1,
@@ -53,10 +53,10 @@ class FakeStrata:
                 error = str(e).splitlines()[0]
         return CallResult(raw, None, False, error, 1, attempts=max_retries + 1)
 
-    def ask_tools(self, messages, tools, *, effort, temperature=0.0) -> CallResult:
+    def ask_tools(self, messages, tools, *, effort, temperature=0.0, deadline=None) -> CallResult:
         reply = self._record(messages, {"effort": effort, "temperature": temperature, "tools": tools})
         if isinstance(reply, Exception):
-            return CallResult("", None, False, f"timeout: {reply}", 1)
+            return CallResult("", None, False, f"timeout: {reply}", 1, transport=True)
         calls = [{"id": f"c{i}", "name": c["name"], "arguments": c.get("arguments")}
                  for i, c in enumerate(reply.get("tool_calls", []))]
         return CallResult(reply.get("content", ""), None, True, None, 1, {"prompt": 10, "completion": 2}, calls)

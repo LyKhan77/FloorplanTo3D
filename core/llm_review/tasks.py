@@ -133,29 +133,32 @@ def _element(spec: Spec, eid: str):
     return next((x for x in [*spec.walls, *spec.openings, *spec.rooms] if x.id == eid), None)
 
 
-def ops_for(task: str, spec: Spec, element: str, ans: BaseModel) -> list[dict]:
-    """Spec ops for an agreed answer about `element`; [] when nothing changes or the answer may not apply."""
+def ops_for(task: str, spec: Spec, element: str, ans: BaseModel) -> tuple[list[dict], str | None]:
+    """(spec ops, None) for an agreed answer about `element`; ([], None) when nothing changes; ([], reason) when
+    the answer asks for a change that may not be applied (wrong_id, human_edit, confidence>=0.8)."""
     el = _element(spec, element)
-    if el is None or ans.id != element or el.provenance.source in HUMAN_SOURCES:
-        return []
+    if el is None or ans.id != element:
+        return [], "wrong_id"
+    if el.provenance.source in HUMAN_SOURCES:
+        return [], "human_edit"
+    if task in ("T1", "T2") and (ans.verdict == "annotation" if task == "T1" else not ans.is_door):
+        if el.provenance.confidence >= DELETE_MAX_CONF:
+            return [], "confidence>=0.8"
+        if task == "T1":
+            return [{"op": "delete_wall", "id": element, "reason": "strata: annotation"}], None
+        return [{"op": "delete_opening", "id": element, "reason": "strata: not a door"}], None
     if task == "T1":
-        if ans.verdict == "annotation" and el.provenance.confidence < DELETE_MAX_CONF:
-            return [{"op": "delete_wall", "id": element, "reason": "strata: annotation"}]
-        return []
+        return [], None
     if task == "T2":
-        if not ans.is_door:
-            if el.provenance.confidence < DELETE_MAX_CONF:
-                return [{"op": "delete_opening", "id": element, "reason": "strata: not a door"}]
-            return []
         changed = {f: getattr(ans, f) for f in ("door_type", "hinge", "swing") if getattr(ans, f) != getattr(el, f)}
-        return [{"op": "set_door", "id": element, **changed}] if changed else []
+        return ([{"op": "set_door", "id": element, **changed}] if changed else []), None
     ops = []
     if ans.type != el.type:
         ops.append({"op": "set_room_type", "id": element, "type": ans.type})
     name = ans.name_normalized.strip()
     if name and name != el.name:
         ops.append({"op": "rename_room", "id": element, "name": name})
-    return ops
+    return ops, None
 
 
 def parse_prompt_llm(client, prompt: str) -> dict:

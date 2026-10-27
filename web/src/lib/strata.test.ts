@@ -18,6 +18,8 @@ describe('strata helpers', () => {
     const s = stage({ metrics: { reviewed: 3, accepted: 1, rejected: 1, score_before: 0.812, score_after: 0.825 } })
     expect(strataSummary(s)).toBe('Diperiksa 3 · diterima 1 · ditolak 1 · skor 0.812 → 0.825')
     expect(strataSummary(stage({ status: 'pending' }), 'menunggu')).toBe('menunggu')
+    const lost = stage({ metrics: { reviewed: 3, accepted: 1, rejected: 0, score_before: 0.8, score_after: 0.81, saved: false } })
+    expect(strataSummary(lost)).toBe('Diperiksa 3 · diterima 1 · ditolak 0 · skor 0.800 → 0.810 · tidak disimpan')
   })
 
   it('renders verdicts without the id', () => {

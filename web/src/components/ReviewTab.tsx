@@ -20,7 +20,7 @@ export function ReviewTab({ projectId, runs }: { projectId: string; runs: Run[] 
   const focus = params.get('focus')
   const [picked, setPicked] = useState<string | null>(null)
   const run = [...runs].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.run_id.localeCompare(a.run_id))
-    .find((r) => r.stages[5]?.metrics?.version)
+    .find((r) => r.stages[5]?.metrics?.version || r.from_stage === 6)  // a stage-6 rerun carries 05_validate
   const art = (path: string) => `/api/projects/${projectId}/runs/${run?.run_id}/artifacts/${path}`
   const issues = useQuery({
     queryKey: ['review-issues', projectId, run?.run_id],
@@ -48,12 +48,15 @@ export function ReviewTab({ projectId, runs }: { projectId: string; runs: Run[] 
   const hasCrop = votes.some((l) => l.request?.messages_ref)
   return (
     <div className="review-grid">
-      <OverlayViewer src={art('01_preprocess/page.png')} alt={`Overlay bernomor spec v${run.stages[5].metrics.version}`}
+      <OverlayViewer src={art('01_preprocess/page.png')} alt={`Overlay bernomor spec v${run.stages[5].metrics.version ?? run.version}`}
         layers={LAYERS.map(([id, label]) => ({ id, label, src: art(`05_validate/layers/${id}.png`), visible: true }))} />
       <div>
         {review?.status === 'skipped' && (
           <InlineNotification kind="info" lowContrast hideCloseButton title="Strata" subtitle={strataSummary(review)} />
         )}
+        {(review?.warnings ?? []).map((w) => (
+          <InlineNotification key={w} kind="warning" lowContrast hideCloseButton title="Strata" subtitle={w} />
+        ))}
         {reviewed && (
           <>
             <h3 className="section-title">Keputusan Strata</h3>

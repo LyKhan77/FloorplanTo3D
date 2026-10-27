@@ -69,35 +69,37 @@ def test_t3_agreement_ignores_case_and_spaces():
 
 def test_ops_for_t1_respects_confidence_limit():
     assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W5", verdict="annotation")) == \
-        [{"op": "delete_wall", "id": "W5", "reason": "strata: annotation"}]
-    assert ops_for("T1", spec_cv(0.85), "W5", T1Answer(id="W5", verdict="annotation")) == []
-    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W5", verdict="wall")) == []
-    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W5", verdict="unsure")) == []
+        ([{"op": "delete_wall", "id": "W5", "reason": "strata: annotation"}], None)
+    assert ops_for("T1", spec_cv(0.85), "W5", T1Answer(id="W5", verdict="annotation")) == ([], "confidence>=0.8")
+    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W5", verdict="wall")) == ([], None)
+    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W5", verdict="unsure")) == ([], None)
 
 
 def test_ops_for_t2_only_changed_fields():
     ans = T2Answer(id="D1", is_door=True, door_type="single_swing", hinge="end", swing="left")
-    assert ops_for("T2", spec_cv(), "D1", ans) == [{"op": "set_door", "id": "D1", "hinge": "end"}]
+    assert ops_for("T2", spec_cv(), "D1", ans) == ([{"op": "set_door", "id": "D1", "hinge": "end"}], None)
     same = T2Answer(id="D1", is_door=True, door_type="single_swing", hinge="start", swing="left")
-    assert ops_for("T2", spec_cv(), "D1", same) == []
+    assert ops_for("T2", spec_cv(), "D1", same) == ([], None)
     gone = T2Answer(id="D1", is_door=False, door_type=None, hinge=None, swing=None)
-    assert ops_for("T2", spec_cv(), "D1", gone) == [{"op": "delete_opening", "id": "D1", "reason": "strata: not a door"}]
-    assert ops_for("T2", spec_cv(door_conf=0.9), "D1", gone) == []
+    assert ops_for("T2", spec_cv(), "D1", gone) == \
+        ([{"op": "delete_opening", "id": "D1", "reason": "strata: not a door"}], None)
+    assert ops_for("T2", spec_cv(door_conf=0.9), "D1", gone) == ([], "confidence>=0.8")
 
 
 def test_ops_for_t3_type_and_name():
     ans = T3Answer(id="R1", type="pantry", name_normalized="PANTRY")
-    assert ops_for("T3", spec_cv(), "R1", ans) == [{"op": "set_room_type", "id": "R1", "type": "pantry"},
-                                                   {"op": "rename_room", "id": "R1", "name": "PANTRY"}]
-    assert ops_for("T3", spec_cv(), "R1", T3Answer(id="R1", type="office", name_normalized="")) == []
+    assert ops_for("T3", spec_cv(), "R1", ans) == ([{"op": "set_room_type", "id": "R1", "type": "pantry"},
+                                                    {"op": "rename_room", "id": "R1", "name": "PANTRY"}], None)
+    assert ops_for("T3", spec_cv(), "R1", T3Answer(id="R1", type="office", name_normalized="")) == ([], None)
 
 
 def test_ops_for_rejects_wrong_id_and_human_edits():
-    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W9", verdict="annotation")) == []
-    assert ops_for("T3", spec_cv(room_source="editor"), "R1", T3Answer(id="R1", type="toilet", name_normalized="WC")) == []
+    assert ops_for("T1", spec_cv(0.4), "W5", T1Answer(id="W9", verdict="annotation")) == ([], "wrong_id")
+    assert ops_for("T3", spec_cv(room_source="editor"), "R1",
+                   T3Answer(id="R1", type="toilet", name_normalized="WC")) == ([], "human_edit")
     manual = spec_cv(0.4)
     manual.walls[4].provenance = Provenance(source="manual", confidence=0.4)
-    assert ops_for("T1", manual, "W5", T1Answer(id="W5", verdict="annotation")) == []
+    assert ops_for("T1", manual, "W5", T1Answer(id="W5", verdict="annotation")) == ([], "human_edit")
 
 
 def item_with_images():

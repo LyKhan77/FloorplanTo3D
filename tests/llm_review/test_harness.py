@@ -204,3 +204,77 @@ def test_fewshot_only_for_tasks_that_gained_from_it(tmp_path):
     t1 = next(c for c in f.calls if c["schema"].__name__ == "T1Answer")
     t3 = next(c for c in f.calls if c["schema"].__name__ == "T3Answer")
     assert len(t1["messages"]) == 2 and len(t3["messages"]) == 4  # system + question; T3 adds one example pair
+
+
+# --- final review fixes ---------------------------------------------------------------------------------------------
+
+def test_malformed_tool_call_is_rejected_not_a_crash(tmp_path):
+    replies = iter([{"tool_calls": [{"name": "merge_walls", "arguments": {"ids": [1, 2], "reason": "x"}}]},
+                    {"tool_calls": [{"name": "merge_walls", "arguments": {"ids": None, "reason": "x"}}]},
+                    {"tool_calls": [{"name": "delete_wall", "arguments": "oops"}]},
+                    {"tool_calls": [{"name": "finish", "arguments": {"summary": "ok"}}]}])
+    r = run(review_spec(), FakeStrata(lambda m, kw: next(replies)), tmp_path, tasks={"T4"}, max_iter=5)
+    t4 = [d for d in r.decisions if d["task"] == "T4"]
+    assert [d["decision"] for d in t4] == ["rejected"] * 3 and all(d["reason"].startswith("bad_args") for d in t4)
+
+
+def test_phase_a_drops_bounded_by_the_stage5_score(tmp_path, monkeypatch):
+    """Each delete costs 0.004 (inside the 0.005 tolerance); together they may not fall below stage 5 - 0.005."""
+    import core.llm_review.harness as h
+    from core.spec.validate import ValidationResult
+
+    s = review_spec()
+    s.walls[1].provenance = cv(0.45)  # W2 is reviewed too
+    n0 = len(s.walls)
+    monkeypatch.setattr(h, "validate", lambda spec, ctx=None: ValidationResult(0.9 - 0.004 * (n0 - len(spec.walls)), True, []))
+    r = run(s, t1({"W6": "annotation", "W2": "annotation", "W1": "annotation"}), tmp_path)
+    assert len(r.ops) == 1 and r.score_after >= r.score_before - 0.005
+    assert sum(d["reason"] == "score_drop" for d in r.decisions) == 2
+
+
+def test_answer_about_another_element_is_rejected(tmp_path):
+    f = FakeStrata(lambda m, kw: {"id": "W1", "verdict": "annotation"} if element_of(m) == "W6" else
+                   {"id": element_of(m), "verdict": "wall"})
+    r = run(review_spec(), f, tmp_path)
+    d = decisions(tmp_path)["W6"]
+    assert d["decision"] == "rejected" and d["reason"] == "wrong_id" and r.ops == []
+
+
+def test_wrong_id_vote_does_not_beat_a_correct_majority(tmp_path):
+    votes = iter([{"id": "W1", "verdict": "wall"}, {"id": "W6", "verdict": "annotation"},
+                  {"id": "W6", "verdict": "annotation"}])
+    f = FakeStrata(lambda m, kw: next(votes) if element_of(m) == "W6" else {"id": element_of(m), "verdict": "wall"})
+    run(review_spec(), f, tmp_path)
+    assert decisions(tmp_path)["W6"]["decision"] == "accepted"
+
+
+def test_refused_change_is_rejected_with_reason(tmp_path, monkeypatch):
+    """W2 (confidence 0.9) reached review through a validator warning; T1 may not delete it."""
+    import core.llm_review.harness as h
+
+    monkeypatch.setattr(h, "select_for_review", lambda spec, issues, tasks, limit=60: [("T1", "W2")])
+    r = run(review_spec(), t1({"W2": "annotation"}), tmp_path)
+    d = decisions(tmp_path)["W2"]
+    assert d["decision"] == "rejected" and d["reason"] == "confidence>=0.8" and r.ops == []
+
+
+def test_cancel_stops_the_review(tmp_path):
+    import threading
+
+    cancel = threading.Event()
+
+    def script(messages, kw):
+        cancel.set()  # the user cancels while the first call runs
+        return {"id": element_of(messages), "verdict": "annotation"}
+
+    r = run(review_spec(), FakeStrata(script), tmp_path, cancelled=cancel)
+    assert r.cancelled and len([d for d in r.decisions if d["element"] == "W1"]) == 0
+
+
+def test_dead_strata_stops_the_review_after_three_transport_errors(tmp_path):
+    s = review_spec()
+    s.walls[1].provenance = cv(0.3)
+    s.walls[2].provenance = cv(0.35)
+    f = FakeStrata(lambda m, kw: ConnectionError("refused"))
+    r = run(s, f, tmp_path)
+    assert r.aborted and len(f.calls) == 3

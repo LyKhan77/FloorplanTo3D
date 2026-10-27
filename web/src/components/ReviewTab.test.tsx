@@ -80,6 +80,27 @@ describe('ReviewTab', () => {
     expect(screen.getAllByLabelText(/Respons mentah/)).toHaveLength(2)
   })
 
+  it('shows stage 6 warnings, e.g. changes that were not saved', async () => {
+    get.mockImplementation(async (path: string) => (path.endsWith('decisions.json') ? DECISIONS : ISSUES) as never)
+    text.mockResolvedValue('')
+    const warned = run('r1', reviewed.stages.map((st) => (st.n === 6
+      ? { ...st, warnings: ['HEAD berubah selama review; perubahan Strata tidak disimpan'] } : st)))
+    show([warned])
+    expect(await screen.findByText(/perubahan Strata tidak disimpan/)).toBeInTheDocument()
+  })
+
+  it('shows the review of a rerun from stage 6', async () => {
+    get.mockImplementation(async (path: string) => (path.endsWith('decisions.json') ? DECISIONS : ISSUES) as never)
+    text.mockResolvedValue('')
+    const rerun = { ...run('r9', Array.from({ length: 11 }, (_, n) => stage(n, n < 6 ? { status: 'skipped' }
+      : n === 6 ? { metrics: { reviewed: 2, accepted: 1, rejected: 1, score_before: 0.8, score_after: 0.81 } } : {}))),
+      from_stage: 6, version: 3, created_at: '2026-10-27T18:00:00' }
+    show([{ ...reviewed, created_at: '2026-10-27T17:00:00' }, rerun])
+    await screen.findByText('W2', { selector: 'td' })
+    expect(get).toHaveBeenCalledWith('/api/projects/p1/runs/r9/artifacts/06_review/decisions.json')
+    expect(get).toHaveBeenCalledWith('/api/projects/p1/runs/r9/artifacts/05_validate/issues.json')
+  })
+
   it('says so when no run has validation results', () => {
     show([run('r3', Array.from({ length: 11 }, (_, n) => stage(n, { status: 'pending' })))])
     expect(screen.getByText('Belum ada hasil validasi')).toBeInTheDocument()

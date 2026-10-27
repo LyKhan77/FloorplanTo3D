@@ -100,3 +100,60 @@ def test_head_moved_during_review_keeps_editor_work(run_dir):
 def test_deadline_warning(run_dir):
     r = review(run_dir, clock=iter([0] + [10_000] * 50).__next__)
     assert any("batas waktu" in w for w in r["warnings"])
+
+
+# --- final review fixes ---------------------------------------------------------------------------------------------
+
+def test_harness_exception_never_fails_the_stage(run_dir):
+    project, _ = run_dir
+
+    def boom(messages, kw):
+        raise RuntimeError("unexpected")
+
+    class Exploding(FakeStrata):
+        def ask_json(self, *a, **kw):
+            raise RuntimeError("unexpected")
+
+    r = review(run_dir, client=Exploding(boom))
+    assert r["status"] == "succeeded" and any("review Strata gagal" in w for w in r["warnings"])
+    assert SpecStore(project / "specs").head() == 1
+
+
+def test_saved_version_is_the_spec_the_gates_scored(run_dir, monkeypatch):
+    """The gates scored result.spec; replaying the ops in one apply() can rebuild rooms differently."""
+    import core.llm_review.stage as stage_mod
+    from core.llm_review.harness import ReviewResult
+
+    project, _ = run_dir
+    gated = review_spec()
+    gated.rooms[0].name = "GATED"
+    monkeypatch.setattr(stage_mod, "run_review", lambda *a, **kw: ReviewResult(
+        gated, [{"op": "rename_room", "id": "R1", "name": "REPLAYED"}], 0.97, 0.98,
+        [{"element": "R1", "task": "T3", "decision": "accepted"}]))
+    r = review(run_dir)
+    saved = SpecStore(project / "specs").load(2)
+    assert r["metrics"]["version"] == 2 and saved.rooms[0].name == "GATED" and saved.meta.source == "llm"
+
+
+def test_discarded_changes_are_reported_unsaved(run_dir):
+    project, _ = run_dir
+    store = SpecStore(project / "specs")
+
+    def editor_commits_first(messages, kw):
+        if store.head() == 1:
+            store.commit_ops(1, [{"op": "rename_room", "id": "R2", "name": "GUDANG"}], "editor")
+        return w6_annotation(messages, kw)
+
+    r = review(run_dir, client=FakeStrata(editor_commits_first))
+    assert r["metrics"]["saved"] is False
+    assert review(run_dir, version=2)["metrics"]["saved"] is True  # a fresh review of HEAD v2 saves v3
+
+
+def test_cancelled_review_commits_nothing(run_dir):
+    import threading
+
+    project, _ = run_dir
+    cancel = threading.Event()
+    cancel.set()
+    r = review(run_dir, cancelled=cancel)
+    assert SpecStore(project / "specs").head() == 1 and "version" not in r["metrics"]

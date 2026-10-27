@@ -3,7 +3,9 @@ without the run's stage 1-3 artefacts, or when Strata is down. Accepted ops are 
 version with commit_ops, so an editor commit made during the review is never overwritten."""
 
 import json
+import logging
 import math
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -16,9 +18,9 @@ from core.extraction.rooms.overlay import px_from_mm
 from core.extraction.stages import validation_context
 from core.llm_review.client import StrataClient
 from core.llm_review.harness import ReviewInputs, run_review
-from core.spec.ops import OpError
 from core.spec.store import SpecStore, ValidationFailed, VersionConflict
 
+log = logging.getLogger(__name__)
 REVIEW_TASKS = ("T1", "T2", "T3", "T4")
 STAGE_LIMIT_S = 600
 REASONS = {
@@ -54,7 +56,7 @@ def _inputs(st: Path) -> ReviewInputs:
 def stage_review(project_dir: Path, work: Path, run_id: str, settings: Settings, *, version: int | None,
                  use_strata: bool, client=None, emit: Callable[[str, dict], None] | None = None,
                  progress: Callable[[int, str], None] | None = None,
-                 clock: Callable[[], float] = time.monotonic) -> dict:
+                 clock: Callable[[], float] = time.monotonic, cancelled: threading.Event | None = None) -> dict:
     tasks = {t for t in settings.llm_tasks_enabled if t in REVIEW_TASKS}
     if not tasks:
         return _skip("disabled")
@@ -69,9 +71,15 @@ def stage_review(project_dir: Path, work: Path, run_id: str, settings: Settings,
     if progress:
         progress(5, f"review Strata: {', '.join(sorted(tasks))}")
     store = SpecStore(project_dir / "specs")
-    result = run_review(store.load(version), _inputs(st), client, tasks=tasks, votes=settings.llm_votes,
-                        max_iter=settings.llm_max_iter, deadline=clock() + STAGE_LIMIT_S, out=work, version=version,
-                        clock=clock, emit=emit)
+    try:
+        result = run_review(store.load(version), _inputs(st), client, tasks=tasks, votes=settings.llm_votes,
+                            max_iter=settings.llm_max_iter, deadline=clock() + STAGE_LIMIT_S, out=work,
+                            version=version, clock=clock, emit=emit, cancelled=cancelled)
+    except Exception as e:  # the review is optional: the run goes on with the stage-5 spec
+        log.exception("stage 6 review failed")
+        return {"status": "succeeded", "metrics": {"saved": False},
+                "warnings": [f"review Strata gagal ({type(e).__name__}: {e}); spec tahap 5 dipakai"],
+                "message": "review Strata gagal; spec tahap 5 dipakai"}
     decided = result.decisions
     metrics = {"reviewed": len({(d["task"], d["element"]) for d in decided}),
                "accepted": sum(d["decision"] == "accepted" for d in decided),
@@ -81,17 +89,19 @@ def stage_review(project_dir: Path, work: Path, run_id: str, settings: Settings,
     warnings = []
     if result.timed_out:
         warnings.append("batas waktu tahap 6 tercapai; hasil sejauh ini dipakai")
-    if result.ops:
-        try:
-            saved, _ = store.commit_ops(version, result.ops, "llm", f"review Strata: {metrics['accepted']} perubahan",
-                                        run_id=run_id)
-            metrics["version"] = saved.meta.version
+    if result.aborted:
+        warnings.append("Strata berhenti merespons; review dihentikan, hasil sejauh ini dipakai")
+    if result.cancelled:
+        warnings.append("run dibatalkan; perubahan Strata tidak disimpan")
+    elif result.ops:
+        metrics["saved"] = False
+        try:  # the spec the gates scored, not a replay of its ops (a replay rebuilds rooms once, not per change)
+            saved = store.save_on(version, result.spec, "llm", run_id, f"review Strata: {metrics['accepted']} perubahan")
+            metrics.update(version=saved.meta.version, saved=True)
         except VersionConflict:
             warnings.append("HEAD berubah selama review; perubahan Strata tidak disimpan")
         except ValidationFailed as e:
             warnings.append("spec hasil review gagal validasi: " + ", ".join(sorted({i.code for i in e.issues})))
-        except OpError as e:
-            warnings.append(f"perubahan Strata gagal diterapkan: {e}")
     if progress:
         progress(100, "selesai")
     return {"status": "succeeded", "metrics": metrics, "warnings": warnings,

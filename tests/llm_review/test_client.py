@@ -124,3 +124,26 @@ def test_thinking_is_capped_for_low_and_medium():
     bodies = []
     make_client([completion('{"id": "W7", "verdict": "wall"}')], bodies).ask_json(MSGS, T1Like, effort="none", temperature=0)
     assert "reasoning_budget_tokens" not in bodies[0]
+
+
+def test_deadline_caps_each_attempt_and_stops_retries():
+    import time
+
+    seen = []
+
+    def handler(request):
+        seen.append(request.extensions["timeout"]["read"])
+        return httpx.Response(200, json=completion("no json"))
+
+    c = StrataClient("http://strata.test/v1", "m", 120, http_client=httpx.Client(transport=httpx.MockTransport(handler)))
+    r = c.ask_json(MSGS, T1Like, effort="none", temperature=0, deadline=time.monotonic() + 5)
+    assert seen and max(seen) <= 5 and not r.valid
+    seen.clear()
+    r = c.ask_json(MSGS, T1Like, effort="none", temperature=0, deadline=time.monotonic() - 1)
+    assert seen == [] and not r.valid and "deadline" in r.error
+
+
+def test_transport_errors_are_flagged():
+    r = make_client([httpx.ConnectError("refused")]).ask_json(MSGS, T1Like, effort="none", temperature=0)
+    assert r.transport is True
+    assert make_client([completion("x")] * 3).ask_json(MSGS, T1Like, effort="none", temperature=0).transport is False
