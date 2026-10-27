@@ -495,7 +495,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   3. Rerun dengan `use_strata=false` menghasilkan `disabled_by_user`.
   4. Server dengan `STRATA_BASE_URL` mati menghasilkan `strata_unavailable`, pipeline tetap selesai, dan indikator Strata merah.
   - Uji ini menemukan bug: rerun `from_stage=6` tidak membawa artefak tahap 1–5. Sudah diperbaiki dengan test.
-- **Suite:** pytest 454 passed, 3 xfailed; Vitest 159 passed; ruff, oxlint, dan build bersih.
+- **Suite:** pytest 466 passed, 3 xfailed (tanpa test live `strata`); Vitest 161 passed; ruff, oxlint, dan build bersih (sesudah fix review akhir).
 - **Penyimpangan:**
   - item T2 hanya 5 pintu asli karena GT Gatsu punya 19 pintu dan CV menemukan ~8;
   - T3 tepat 20 item setelah label yang bukan nama ruang dibuang;
