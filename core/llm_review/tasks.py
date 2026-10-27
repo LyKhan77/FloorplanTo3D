@@ -84,7 +84,7 @@ def load_fewshot(task: str, root: Path = FEWSHOT_DIR) -> list[FewShot]:
             for x in json.loads((d / "items.json").read_text())]
 
 
-def _png(img: np.ndarray) -> dict:
+def png_part(img: np.ndarray) -> dict:
     data = base64.b64encode(cv2.imencode(".png", img)[1].tobytes()).decode()
     return {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{data}"}}
 
@@ -97,7 +97,7 @@ def _user(item: ReviewItem, evidence: bool) -> dict:
         lines.append(f'OCR label: "{item.label}"')
     lines.append("Answer with JSON matching this schema: " + json.dumps(SCHEMAS[item.task].model_json_schema()))
     parts = [{"type": "text", "text": "\n".join(lines)}]
-    parts += [_png(x) for x in (item.image, item.context) if x is not None]
+    parts += [png_part(x) for x in (item.image, item.context) if x is not None]
     return {"role": "user", "content": parts}
 
 

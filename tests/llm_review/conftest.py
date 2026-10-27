@@ -20,6 +20,11 @@ def _last_text(messages: list[dict]) -> str:
     return content or ""
 
 
+def element_of(messages: list[dict]) -> str | None:
+    m = _ELEMENT.search(_last_text(messages))
+    return m[1] if m else None
+
+
 class FakeStrata:
     """script(messages, kwargs) -> reply. A str is the raw content, a dict is JSON-encoded (or, for ask_tools,
     {"tool_calls": [{"name", "arguments"}], "content"?}), an Exception is a transport failure."""
@@ -31,8 +36,7 @@ class FakeStrata:
         return self.healthy
 
     def _record(self, messages, kw) -> object:
-        m = _ELEMENT.search(_last_text(messages))
-        self.calls.append({"messages": messages, "element": m[1] if m else None, **kw})
+        self.calls.append({"messages": messages, "element": element_of(messages), **kw})
         return self.script(messages, kw)
 
     def ask_json(self, messages, schema, *, effort, temperature, max_retries=2) -> CallResult:
