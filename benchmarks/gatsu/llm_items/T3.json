@@ -1,0 +1,362 @@
+[
+ {
+  "task": "T3",
+  "room": "R18",
+  "element": "R18",
+  "text": "PANTRY",
+  "synthetic": false,
+  "label": {
+   "type": "pantry"
+  },
+  "baseline": {
+   "type": "pantry"
+  },
+  "fewshot": true,
+  "id": "T3-001"
+ },
+ {
+  "task": "T3",
+  "room": "R18",
+  "element": "R18",
+  "text": "PANRY",
+  "synthetic": true,
+  "label": {
+   "type": "pantry"
+  },
+  "baseline": {
+   "type": "pantry"
+  },
+  "fewshot": true,
+  "id": "T3-002"
+ },
+ {
+  "task": "T3",
+  "room": "R18",
+  "element": "R18",
+  "text": "PATNRY",
+  "synthetic": true,
+  "label": {
+   "type": "pantry"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": true,
+  "id": "T3-003"
+ },
+ {
+  "task": "T3",
+  "room": "R22",
+  "element": "R22",
+  "text": "R MEETING",
+  "synthetic": false,
+  "label": {
+   "type": "meeting"
+  },
+  "baseline": {
+   "type": "meeting"
+  },
+  "fewshot": false,
+  "id": "T3-004"
+ },
+ {
+  "task": "T3",
+  "room": "R22",
+  "element": "R22",
+  "text": "R METING",
+  "synthetic": true,
+  "label": {
+   "type": "meeting"
+  },
+  "baseline": {
+   "type": "meeting"
+  },
+  "fewshot": true,
+  "id": "T3-005"
+ },
+ {
+  "task": "T3",
+  "room": "R22",
+  "element": "R22",
+  "text": "R MEET1NG",
+  "synthetic": true,
+  "label": {
+   "type": "meeting"
+  },
+  "baseline": {
+   "type": "meeting"
+  },
+  "fewshot": false,
+  "id": "T3-006"
+ },
+ {
+  "task": "T3",
+  "room": "R24",
+  "element": "R24",
+  "text": "GUDANG",
+  "synthetic": false,
+  "label": {
+   "type": "storage"
+  },
+  "baseline": {
+   "type": "storage"
+  },
+  "fewshot": false,
+  "id": "T3-007"
+ },
+ {
+  "task": "T3",
+  "room": "R24",
+  "element": "R24",
+  "text": "GUDNG",
+  "synthetic": true,
+  "label": {
+   "type": "storage"
+  },
+  "baseline": {
+   "type": "storage"
+  },
+  "fewshot": false,
+  "id": "T3-008"
+ },
+ {
+  "task": "T3",
+  "room": "R24",
+  "element": "R24",
+  "text": "GUADNG",
+  "synthetic": true,
+  "label": {
+   "type": "storage"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": false,
+  "id": "T3-009"
+ },
+ {
+  "task": "T3",
+  "room": "R32",
+  "element": "R32",
+  "text": "MDF ROOM",
+  "synthetic": false,
+  "label": {
+   "type": "mdf"
+  },
+  "baseline": {
+   "type": "mdf"
+  },
+  "fewshot": false,
+  "id": "T3-010"
+ },
+ {
+  "task": "T3",
+  "room": "R32",
+  "element": "R32",
+  "text": "MDF OOM",
+  "synthetic": true,
+  "label": {
+   "type": "mdf"
+  },
+  "baseline": {
+   "type": "mdf"
+  },
+  "fewshot": false,
+  "id": "T3-011"
+ },
+ {
+  "task": "T3",
+  "room": "R32",
+  "element": "R32",
+  "text": "MDFR OOM",
+  "synthetic": true,
+  "label": {
+   "type": "mdf"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": false,
+  "id": "T3-012"
+ },
+ {
+  "task": "T3",
+  "room": "R32",
+  "element": "R32",
+  "text": "MDF R0OM",
+  "synthetic": true,
+  "label": {
+   "type": "mdf"
+  },
+  "baseline": {
+   "type": "mdf"
+  },
+  "fewshot": false,
+  "id": "T3-013"
+ },
+ {
+  "task": "T3",
+  "room": "R34",
+  "element": "R34",
+  "text": "AHU ROOM",
+  "synthetic": false,
+  "label": {
+   "type": "ahu_room"
+  },
+  "baseline": {
+   "type": "ahu_room"
+  },
+  "fewshot": false,
+  "id": "T3-014"
+ },
+ {
+  "task": "T3",
+  "room": "R34",
+  "element": "R34",
+  "text": "AHU OOM",
+  "synthetic": true,
+  "label": {
+   "type": "ahu_room"
+  },
+  "baseline": {
+   "type": "ahu_room"
+  },
+  "fewshot": false,
+  "id": "T3-015"
+ },
+ {
+  "task": "T3",
+  "room": "R34",
+  "element": "R34",
+  "text": "AHUR OOM",
+  "synthetic": true,
+  "label": {
+   "type": "ahu_room"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": false,
+  "id": "T3-016"
+ },
+ {
+  "task": "T3",
+  "room": "R34",
+  "element": "R34",
+  "text": "AHU R0OM",
+  "synthetic": true,
+  "label": {
+   "type": "ahu_room"
+  },
+  "baseline": {
+   "type": "ahu_room"
+  },
+  "fewshot": false,
+  "id": "T3-017"
+ },
+ {
+  "task": "T3",
+  "room": "R29",
+  "element": "R29",
+  "text": "GALERY",
+  "synthetic": false,
+  "label": {
+   "type": "lobby"
+  },
+  "baseline": {
+   "type": "lobby"
+  },
+  "fewshot": false,
+  "id": "T3-018"
+ },
+ {
+  "task": "T3",
+  "room": "R29",
+  "element": "R29",
+  "text": "GALRY",
+  "synthetic": true,
+  "label": {
+   "type": "lobby"
+  },
+  "baseline": {
+   "type": "lobby"
+  },
+  "fewshot": false,
+  "id": "T3-019"
+ },
+ {
+  "task": "T3",
+  "room": "R29",
+  "element": "R29",
+  "text": "GAELRY",
+  "synthetic": true,
+  "label": {
+   "type": "lobby"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": false,
+  "id": "T3-020"
+ },
+ {
+  "task": "T3",
+  "room": "R36",
+  "element": "R36",
+  "text": "CAPASITOR ROOM",
+  "synthetic": false,
+  "label": {
+   "type": "capacitor_room"
+  },
+  "baseline": {
+   "type": "capacitor_room"
+  },
+  "fewshot": false,
+  "id": "T3-021"
+ },
+ {
+  "task": "T3",
+  "room": "R36",
+  "element": "R36",
+  "text": "CAPASITR ROOM",
+  "synthetic": true,
+  "label": {
+   "type": "capacitor_room"
+  },
+  "baseline": {
+   "type": "capacitor_room"
+  },
+  "fewshot": false,
+  "id": "T3-022"
+ },
+ {
+  "task": "T3",
+  "room": "R36",
+  "element": "R36",
+  "text": "CAPASIOTR ROOM",
+  "synthetic": true,
+  "label": {
+   "type": "capacitor_room"
+  },
+  "baseline": {
+   "type": "other"
+  },
+  "fewshot": false,
+  "id": "T3-023"
+ },
+ {
+  "task": "T3",
+  "room": "R36",
+  "element": "R36",
+  "text": "CAPASIT0R ROOM",
+  "synthetic": true,
+  "label": {
+   "type": "capacitor_room"
+  },
+  "baseline": {
+   "type": "capacitor_room"
+  },
+  "fewshot": false,
+  "id": "T3-024"
+ }
+]

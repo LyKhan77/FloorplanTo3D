@@ -1,0 +1,50 @@
+[
+ {
+  "element": "R18",
+  "evidence": "Element R18\n- OCR label: \"PANTRY\"\n- area: 11.9 m2\n- current type: other\n- current name: (none)",
+  "label": "PANTRY",
+  "answer": {
+   "id": "R18",
+   "type": "pantry",
+   "name_normalized": "PANTRY"
+  },
+  "image": null,
+  "context": null
+ },
+ {
+  "element": "R18",
+  "evidence": "Element R18\n- OCR label: \"PANRY\"\n- area: 11.9 m2\n- current type: other\n- current name: (none)",
+  "label": "PANRY",
+  "answer": {
+   "id": "R18",
+   "type": "pantry",
+   "name_normalized": "PANRY"
+  },
+  "image": null,
+  "context": null
+ },
+ {
+  "element": "R18",
+  "evidence": "Element R18\n- OCR label: \"PATNRY\"\n- area: 11.9 m2\n- current type: other\n- current name: (none)",
+  "label": "PATNRY",
+  "answer": {
+   "id": "R18",
+   "type": "pantry",
+   "name_normalized": "PATNRY"
+  },
+  "image": null,
+  "context": null
+ },
+ {
+  "element": "R22",
+  "evidence": "Element R22\n- OCR label: \"R METING\"\n- area: 67.5 m2\n- current type: other\n- current name: (none)",
+  "label": "R METING",
+  "answer": {
+   "id": "R22",
+   "type": "meeting",
+   "name_normalized": "R METING"
+  },
+  "image": null,
+  "context": null
+ }
+]

@@ -1,0 +1,534 @@
+[
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D13",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "fewshot": true,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "id": "T2-001"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D15",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "fewshot": true,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "id": "T2-002"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D16",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "id": "T2-003"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D19",
+  "baseline": {
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "right"
+  },
+  "fewshot": true,
+  "label": {
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "left"
+  },
+  "id": "T2-004"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D20",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "id": "T2-005"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D21",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "id": "T2-006"
+ },
+ {
+  "task": "T2",
+  "candidate": 1,
+  "element": "D7",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "id": "T2-007"
+ },
+ {
+  "task": "T2",
+  "candidate": 1,
+  "element": "D11",
+  "baseline": {
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "right"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "right"
+  },
+  "id": "T2-008"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D1",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": true,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-009"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D3",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-010"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D5",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-011"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D8",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-012"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D10",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-013"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D22",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-014"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D24",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-015"
+ },
+ {
+  "task": "T2",
+  "candidate": 0,
+  "element": "D30",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-016"
+ },
+ {
+  "task": "T2",
+  "candidate": 1,
+  "element": "D2",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-017"
+ },
+ {
+  "task": "T2",
+  "candidate": 1,
+  "element": "D4",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-018"
+ },
+ {
+  "task": "T2",
+  "candidate": 1,
+  "element": "D18",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-019"
+ },
+ {
+  "task": "T2",
+  "candidate": 3,
+  "element": "D2",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-020"
+ },
+ {
+  "task": "T2",
+  "candidate": 4,
+  "element": "D6",
+  "baseline": {
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-021"
+ },
+ {
+  "task": "T2",
+  "candidate": 4,
+  "element": "D19",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-022"
+ },
+ {
+  "task": "T2",
+  "candidate": 4,
+  "element": "D24",
+  "baseline": {
+   "is_door": true,
+   "door_type": "sliding",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-023"
+ },
+ {
+  "task": "T2",
+  "candidate": 5,
+  "element": "D2",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-024"
+ },
+ {
+  "task": "T2",
+  "candidate": 5,
+  "element": "D17",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-025"
+ },
+ {
+  "task": "T2",
+  "candidate": 5,
+  "element": "D24",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-026"
+ },
+ {
+  "task": "T2",
+  "candidate": 5,
+  "element": "D27",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-027"
+ },
+ {
+  "task": "T2",
+  "candidate": 7,
+  "element": "D20",
+  "baseline": {
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-028"
+ }
+]

@@ -1,0 +1,46 @@
+[
+ {
+  "element": "W1",
+  "evidence": "Element W1\n- length: 32921 mm, thickness: 89 mm (stroke 6.9 px), orientation: horizontal\n- connects to walls at ends: start=W55, end=W35\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: \"CB\" (other class)\n- parallel partner line found: yes\n- CV confidence: 0.75",
+  "label": "",
+  "answer": {
+   "id": "W1",
+   "verdict": "wall"
+  },
+  "image": "T1-001.png",
+  "context": "T1-001_ctx.png"
+ },
+ {
+  "element": "W76",
+  "evidence": "Element W76\n- length: 387 mm, thickness: 142 mm (stroke 11.0 px), orientation: horizontal\n- connects to walls at ends: start=none, end=W77\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: none\n- parallel partner line found: yes\n- CV confidence: 0.44",
+  "label": "",
+  "answer": {
+   "id": "W76",
+   "verdict": "wall"
+  },
+  "image": "T1-006.png",
+  "context": "T1-006_ctx.png"
+ },
+ {
+  "element": "W4",
+  "evidence": "Element W4\n- length: 601 mm, thickness: 222 mm (stroke 17.2 px), orientation: vertical\n- connects to walls at ends: start=W3, end=W1\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: none\n- parallel partner line found: yes\n- CV confidence: 0.68",
+  "label": "",
+  "answer": {
+   "id": "W4",
+   "verdict": "annotation"
+  },
+  "image": "T1-051.png",
+  "context": "T1-051_ctx.png"
+ },
+ {
+  "element": "W16",
+  "evidence": "Element W16\n- length: 1454 mm, thickness: 233 mm (stroke 18.0 px), orientation: vertical\n- connects to walls at ends: start=W15, end=W1\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: none\n- parallel partner line found: yes\n- CV confidence: 0.90",
+  "label": "",
+  "answer": {
+   "id": "W16",
+   "verdict": "annotation"
+  },
+  "image": "T1-052.png",
+  "context": "T1-052_ctx.png"
+ }
+]

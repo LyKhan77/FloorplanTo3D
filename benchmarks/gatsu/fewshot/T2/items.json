@@ -1,0 +1,58 @@
+[
+ {
+  "element": "D13",
+  "evidence": "Element D13\n- host wall: W60 (thickness 150 mm, horizontal)\n- width: 771 mm, offset from wall start: 2749 mm\n- current door_type: single_swing, hinge: start, swing: right\n- in the image the host wall runs from its start (left) to its end (right): hinge \"start\" = the left end of the opening, \"end\" = the right end; swing \"left\" = the leaf opens towards the top, \"right\" = towards the bottom\n- swing arc found: no, gap in wall found: yes\n- CV confidence: 0.83",
+  "label": "",
+  "answer": {
+   "id": "D13",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "image": "T2-001.png",
+  "context": "T2-001_ctx.png"
+ },
+ {
+  "element": "D15",
+  "evidence": "Element D15\n- host wall: W75 (thickness 100 mm, horizontal)\n- width: 871 mm, offset from wall start: 673 mm\n- current door_type: single_swing, hinge: end, swing: right\n- in the image the host wall runs from its start (left) to its end (right): hinge \"start\" = the left end of the opening, \"end\" = the right end; swing \"left\" = the leaf opens towards the top, \"right\" = towards the bottom\n- swing arc found: no, gap in wall found: no\n- CV confidence: 0.55",
+  "label": "",
+  "answer": {
+   "id": "D15",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "image": "T2-002.png",
+  "context": "T2-002_ctx.png"
+ },
+ {
+  "element": "D19",
+  "evidence": "Element D19\n- host wall: W92 (thickness 142 mm, vertical)\n- width: 1672 mm, offset from wall start: 1625 mm\n- current door_type: double_swing, hinge: both, swing: right\n- in the image the host wall runs from its start (top) to its end (bottom): hinge \"start\" = the top end of the opening, \"end\" = the bottom end; swing \"left\" = the leaf opens towards the right, \"right\" = towards the left\n- swing arc found: no, gap in wall found: no\n- CV confidence: 0.83",
+  "label": "",
+  "answer": {
+   "id": "D19",
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "left"
+  },
+  "image": "T2-004.png",
+  "context": "T2-004_ctx.png"
+ },
+ {
+  "element": "D1",
+  "evidence": "Element D1\n- host wall: W1 (thickness 89 mm, horizontal)\n- width: 2404 mm, offset from wall start: 27846 mm\n- current door_type: opening, hinge: None, swing: None\n- in the image the host wall runs from its start (left) to its end (right): hinge \"start\" = the left end of the opening, \"end\" = the right end; swing \"left\" = the leaf opens towards the top, \"right\" = towards the bottom\n- swing arc found: no, gap in wall found: yes\n- CV confidence: 0.40",
+  "label": "",
+  "answer": {
+   "id": "D1",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "image": "T2-009.png",
+  "context": "T2-009_ctx.png"
+ }
+]

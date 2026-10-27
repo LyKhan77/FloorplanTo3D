@@ -1,0 +1,209 @@
+[
+ {
+  "id": "T0-001",
+  "task": "T0",
+  "prompt": "Data hall lantai 1, tinggi dinding 4.5 m, pintu 2.4 m",
+  "expected": {
+   "wall_height": 4500,
+   "door_height": 2400,
+   "floor_name": "Lantai 1",
+   "site_type": "data_center"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-002",
+  "task": "T0",
+  "prompt": "lantai dua gedung pusat data, tinggi dinding 4 meter",
+  "expected": {
+   "floor_name": "Lantai 2",
+   "site_type": "data_center",
+   "wall_height": 4000
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-003",
+  "task": "T0",
+  "prompt": "Denah lt. 3, dinding tebal 20 cm",
+  "expected": {
+   "floor_name": "Lantai 3",
+   "wall_thickness": 200
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-004",
+  "task": "T0",
+  "prompt": "Basement parkir, tinggi 3,2 m",
+  "expected": {
+   "floor_name": "Basement",
+   "wall_height": 3200
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-005",
+  "task": "T0",
+  "prompt": "Kantor lantai 5 tinggi pintu 2100 mm",
+  "expected": {
+   "floor_name": "Lantai 5",
+   "door_height": 2100,
+   "site_type": "office"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-006",
+  "task": "T0",
+  "prompt": "DC tier 3, 2nd floor, wall height 5 m",
+  "expected": {
+   "site_type": "data_center",
+   "floor_name": "Lantai 2",
+   "wall_height": 5000
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-007",
+  "task": "T0",
+  "prompt": "Tolong buatkan model 3D dari denah ini",
+  "expected": {},
+  "fewshot": false
+ },
+ {
+  "id": "T0-008",
+  "task": "T0",
+  "prompt": "Gedung data center lantai 4",
+  "expected": {
+   "site_type": "data_center",
+   "floor_name": "Lantai 4"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-009",
+  "task": "T0",
+  "prompt": "tinggi dinding 450 cm, tebal dinding 15 cm",
+  "expected": {
+   "wall_height": 4500,
+   "wall_thickness": 150
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-010",
+  "task": "T0",
+  "prompt": "Lantai tiga, dinding setinggi 4,5 meter",
+  "expected": {
+   "floor_name": "Lantai 3",
+   "wall_height": 4500
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-011",
+  "task": "T0",
+  "prompt": "Data hall L2 tinggi 6m",
+  "expected": {
+   "floor_name": "Lantai 2",
+   "site_type": "data_center",
+   "wall_height": 6000
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-012",
+  "task": "T0",
+  "prompt": "pintu setinggi 2,2 m dan dinding 3 m",
+  "expected": {
+   "door_height": 2200,
+   "wall_height": 3000
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-013",
+  "task": "T0",
+  "prompt": "Lantai 1 data centre, tebal dinding 200mm",
+  "expected": {
+   "floor_name": "Lantai 1",
+   "site_type": "data_center",
+   "wall_thickness": 200
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-014",
+  "task": "T0",
+  "prompt": "Lantai 7 gedung kantor",
+  "expected": {
+   "floor_name": "Lantai 7",
+   "site_type": "office"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-015",
+  "task": "T0",
+  "prompt": "lt 2, tinggi dinding 4500",
+  "expected": {
+   "floor_name": "Lantai 2",
+   "wall_height": 4500
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-016",
+  "task": "T0",
+  "prompt": "tinggi dinding 3.5 m, tinggi pintu 2.1 m, lantai 2",
+  "expected": {
+   "wall_height": 3500,
+   "door_height": 2100,
+   "floor_name": "Lantai 2"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-017",
+  "task": "T0",
+  "prompt": "Mezzanine, dinding partisi tebal 10 cm",
+  "expected": {
+   "floor_name": "Mezzanine",
+   "wall_thickness": 100
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-018",
+  "task": "T0",
+  "prompt": "Lantai satu data hall dengan tinggi 5 m",
+  "expected": {
+   "floor_name": "Lantai 1",
+   "site_type": "data_center",
+   "wall_height": 5000
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-019",
+  "task": "T0",
+  "prompt": "Pusat data lantai 2, tinggi pintu 240 cm",
+  "expected": {
+   "floor_name": "Lantai 2",
+   "door_height": 2400,
+   "site_type": "data_center"
+  },
+  "fewshot": false
+ },
+ {
+  "id": "T0-020",
+  "task": "T0",
+  "prompt": "Gedung mixed-use (kantor + retail) lantai 3",
+  "expected": {
+   "floor_name": "Lantai 3",
+   "site_type": "mixed"
+  },
+  "fewshot": false
+ }
+]
