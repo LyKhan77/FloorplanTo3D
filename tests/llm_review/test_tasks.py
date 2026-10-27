@@ -41,7 +41,7 @@ def spec_cv(wall_conf=0.4, door_conf=0.4, room_source="cv"):
 
 def test_schemas_and_effort():
     assert set(SCHEMAS) == {"T0", "T1", "T2", "T3"}
-    assert EFFORT == {"T0": "low", "T1": "low", "T2": "low", "T3": "none", "T4": "medium"}
+    assert EFFORT == {"T0": "low", "T1": "none", "T2": "none", "T3": "none", "T4": "medium"}
 
 
 def test_prompts_are_versioned_and_t1_t3_carry_the_frame():

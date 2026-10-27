@@ -12,6 +12,8 @@ import openai
 from pydantic import BaseModel, ValidationError
 
 USE_RESPONSE_FORMAT = True  # the probe (benchmarks/reports/spike-strata.md) showed json_schema is honoured
+# Strata thinks without a budget by default: a T1 image question ran > 10k thinking tokens (> 75 s) at "low"
+REASONING_BUDGET = {"low": 512, "medium": 2048}
 _THINK = re.compile(r"<think>.*?</think>", re.DOTALL)
 _FENCE = re.compile(r"```(?:json)?")
 
@@ -37,6 +39,11 @@ def extract_json(text: str) -> dict:
     return json.loads(t[start:end + 1])  # starts with "{", so it is an object or a JSONDecodeError (a ValueError)
 
 
+def _reasoning(effort: str) -> dict:
+    budget = REASONING_BUDGET.get(effort)
+    return {"reasoning_effort": effort, **({"reasoning_budget_tokens": budget} if budget else {})}
+
+
 class StrataClient:
     def __init__(self, base_url: str, model: str, timeout_s: float, http_client: httpx.Client | None = None,
                  use_response_format: bool = USE_RESPONSE_FORMAT):
@@ -58,7 +65,7 @@ class StrataClient:
         t0 = time.monotonic()
         try:
             r = self._sdk.chat.completions.create(model=self.model, messages=messages, temperature=temperature,
-                                                  extra_body={"reasoning_effort": effort}, **kw)
+                                                  extra_body=_reasoning(effort), **kw)
             return r, None, int((time.monotonic() - t0) * 1000)
         except openai.APITimeoutError as e:
             return None, f"timeout: {e}", int((time.monotonic() - t0) * 1000)

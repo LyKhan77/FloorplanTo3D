@@ -113,3 +113,14 @@ def test_request_carries_model_temperature_effort_and_schema():
     bodies = []
     make_client([completion('{"id": "W7", "verdict": "wall"}')], bodies, use_response_format=False).ask_json(MSGS, T1Like, effort="low", temperature=0)
     assert "response_format" not in bodies[0]
+
+
+def test_thinking_is_capped_for_low_and_medium():
+    """Strata's default thinking has no budget: a T1 image question ran > 10k thinking tokens (spike-strata.md)."""
+    for effort, budget in (("low", 512), ("medium", 2048)):
+        bodies = []
+        make_client([completion('{"id": "W7", "verdict": "wall"}')], bodies).ask_json(MSGS, T1Like, effort=effort, temperature=0)
+        assert bodies[0]["reasoning_budget_tokens"] == budget
+    bodies = []
+    make_client([completion('{"id": "W7", "verdict": "wall"}')], bodies).ask_json(MSGS, T1Like, effort="none", temperature=0)
+    assert "reasoning_budget_tokens" not in bodies[0]

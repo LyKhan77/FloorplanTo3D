@@ -92,7 +92,7 @@ def test_vote3_skipped_when_first_two_agree(tmp_path):
     run(review_spec(), f, tmp_path)
     w6 = [c for c in f.calls if c["element"] == "W6"]
     assert [c["temperature"] for c in w6] == [0, 0.4]
-    assert all(c["effort"] == "low" for c in w6)
+    assert all(c["effort"] == "none" for c in w6)
 
 
 def test_votes_use_zoomed_crops(tmp_path):
@@ -165,7 +165,7 @@ def test_transcript_lines_follow_schema(tmp_path):
     run(review_spec(), t1({"W6": "annotation"}), tmp_path)
     line = json.loads((tmp_path / "transcript.jsonl").read_text().splitlines()[0])
     assert {"ts", "task", "element", "prompt_version", "vote", "request", "response", "latency_ms", "tokens"} <= line.keys()
-    assert line["prompt_version"] == "v1" and line["request"]["effort"] == "low"
+    assert line["prompt_version"] == "v1" and line["request"]["effort"] == "none"
     assert {"raw", "parsed", "valid"} <= line["response"].keys()
     assert (tmp_path / line["request"]["messages_ref"]).exists()
 
