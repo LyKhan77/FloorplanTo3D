@@ -7,6 +7,7 @@ import type { ApiEvent, Run } from '../api/types'
 import { formatBytes, formatDuration } from '../lib/format'
 import { formatLogLine } from '../lib/logs'
 import { stageLabel } from '../lib/runState'
+import { strataSummary } from '../lib/strata'
 import { ExtractionStage } from './ExtractionStage'
 import { StatusTag } from './StatusTag'
 
@@ -49,7 +50,7 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
       </div>
 
       {n <= 5 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
-      {n === 6 && <p className="helper">{messages.at(-1)?.msg ?? 'Review Strata tersedia di M6.'}</p>}
+      {n === 6 && <p className="helper">{strataSummary(stage, messages.at(-1)?.msg)}</p>}
 
       {n === 7 && (
         <>

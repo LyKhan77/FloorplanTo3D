@@ -145,3 +145,25 @@ export interface ValidationIssue {
   element_ids?: string[]
   message: string
 }
+
+/** One row of 06_review/decisions.json (PRD/05 §9). */
+export interface LlmDecision {
+  element: string
+  task: string
+  verdict: Record<string, unknown> | null
+  decision: 'accepted' | 'rejected' | 'no_consensus' | 'invalid_output' | 'no_change'
+  reason: string | null
+  score_before: number
+  score_after: number
+  ops: Record<string, unknown>[]
+}
+
+/** One line of 06_review/transcript.jsonl. */
+export interface TranscriptLine {
+  element: string | null
+  task?: string
+  vote?: number
+  request?: { messages_ref?: string | null; effort?: string }
+  response?: { raw?: string; valid?: boolean; error?: string | null }
+  latency_ms?: number
+}

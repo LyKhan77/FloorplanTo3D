@@ -820,3 +820,8 @@ body {
   margin-right: 0.5rem;
   color: #78a9ff;
 }
+
+.strata-detail { margin-top: 1rem; }
+.strata-detail__images { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.strata-detail__images img { width: min(100%, 384px); height: auto; border: 1px solid var(--cds-border-subtle); }
+.strata-detail__images img + img { width: min(100%, 192px); }

@@ -20,8 +20,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.status === 204 ? (undefined as T) : (res.json() as Promise<T>)
 }
 
+async function requestText(path: string): Promise<string> {
+  const res = await fetch(path)
+  if (!res.ok) throw new ApiError(res.status, 'http_error', res.statusText)
+  return res.text()
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
+  text: (path: string) => requestText(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }),
   postRaw: <T>(path: string, body: BodyInit, contentType: string) =>
