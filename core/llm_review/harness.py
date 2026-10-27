@@ -29,6 +29,7 @@ from core.llm_review.crops import (
 from core.llm_review.tasks import (
     EFFORT,
     FEWSHOT_DIR,
+    FEWSHOT_TASKS,
     HUMAN_SOURCES,
     SCHEMAS,
     ReviewItem,
@@ -175,7 +176,8 @@ class _Run:
     def classify(self, task: str, eid: str, votes: int, label: str = "") -> bool:
         """Ask, vote, gate; False when the deadline stopped it before a decision."""
         if task not in self._fewshot:
-            self._fewshot[task] = load_fewshot(task, self.fewshot_root) if self.fewshot_root else []
+            use = self.fewshot_root and task in FEWSHOT_TASKS
+            self._fewshot[task] = load_fewshot(task, self.fewshot_root) if use else []
         answers = []
         for vote in range(1, votes + 1):
             if vote == 3 and None not in answers[:2] and agree_key(task, answers[0]) == agree_key(task, answers[1]):

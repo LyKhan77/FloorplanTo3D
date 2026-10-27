@@ -176,3 +176,31 @@ def test_events_emitted(tmp_path):
     assert events and events[0][0] == "llm.decision"
     assert {"element", "task", "verdict", "accepted", "score_before", "score_after"} <= events[0][1].keys()
     assert next(d for t, d in events if d["element"] == "W6")["accepted"] is True
+
+
+def test_fewshot_only_for_tasks_that_gained_from_it(tmp_path):
+    """benchmarks/DECISIONS.md: few-shot raised T1's accuracy but dropped its delete precision to 0.76."""
+    import cv2
+
+    for task in ("T1", "T3"):
+        d = tmp_path / "shots" / task
+        d.mkdir(parents=True)
+        cv2.imwrite(str(d / "x.png"), np.zeros((8, 8, 3), np.uint8))
+        answer = {"id": "W9", "verdict": "wall"} if task == "T1" else {"id": "R9", "type": "office", "name_normalized": "X"}
+        (d / "items.json").write_text(json.dumps([{"element": "W9", "evidence": "Element W9", "label": "X",
+                                                   "answer": answer, "image": None, "context": None}]))
+    s = review_spec()
+    s.rooms[0].type, s.rooms[0].name = "other", ""
+
+    def script(messages, kw):
+        el = element_of(messages)
+        if kw["schema"].__name__ == "T3Answer":
+            return {"id": el, "type": "pantry", "name_normalized": "PANTRY"}
+        return {"id": el, "verdict": "wall"}
+
+    f = FakeStrata(script)
+    run(s, f, tmp_path / "out", tasks={"T1", "T3"}, fewshot_root=tmp_path / "shots",
+        inputs=inputs(labels=[("PANTRI", (2000, 2000))]))
+    t1 = next(c for c in f.calls if c["schema"].__name__ == "T1Answer")
+    t3 = next(c for c in f.calls if c["schema"].__name__ == "T3Answer")
+    assert len(t1["messages"]) == 2 and len(t3["messages"]) == 4  # system + question; T3 adds one example pair

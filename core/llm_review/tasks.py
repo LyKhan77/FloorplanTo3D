@@ -16,6 +16,7 @@ from core.spec.models import RoomType, Spec
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 FEWSHOT_DIR = Path(__file__).resolve().parents[2] / "benchmarks" / "gatsu" / "fewshot"
 HUMAN_SOURCES = ("editor", "manual")
+FEWSHOT_TASKS = ("T2", "T3")  # benchmarks/DECISIONS.md: few-shot cut T1's delete precision from 1.0 to 0.76
 DELETE_MAX_CONF = 0.8  # same limit as the T4 tools (§4)
 # PRD/05 §2 asks "low" for T1/T2; measured on Gatsu, "none" gives the same answers in ~6 s instead of 7-10 s
 # (budgeted) or > 75 s (unbudgeted), and stage 6 has 600 s for up to 60 elements x ~2.3 votes
