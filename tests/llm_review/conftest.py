@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from core.config import load_settings
 from core.llm_review.client import CallResult, StrataClient, extract_json
 
-_ELEMENT = re.compile(r"Element (\w+)")
+_ELEMENT = re.compile(r"[Ee]lement (\w+)")
 
 
 def _last_text(messages: list[dict]) -> str:

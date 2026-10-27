@@ -23,3 +23,42 @@ def test_input_doc_shape():
     assert doc == {"prompt": "tinggi 4 m", "params_explicit": {"mm_per_px": 25}, "params_parsed": {"wall_height": 4000},
                    "params_final": {"mm_per_px": 25, "wall_height": 4000}, "sha256": "ab", "filename": "plan.jpeg",
                    "page": 1}
+
+
+def _project(tmp_path, prompt: str, params: dict):
+    import json
+
+    (tmp_path / "input").mkdir()
+    (tmp_path / "input" / "input.json").write_text(json.dumps(
+        {"prompt": prompt, "params": params, "sha256": "0", "filename": "plan.jpeg"}))
+    return tmp_path
+
+
+def test_llm_params_fill_only_empty_fields(tmp_path):
+    import json
+
+    from core.extraction.stages import run_params
+
+    project = _project(tmp_path, "tinggi 4.5 m", {"door_height": 2400})
+    stages = tmp_path / "stages"
+    (stages / "00_input").mkdir(parents=True)
+    (stages / "00_input" / "input.json").write_text(json.dumps(
+        {"params_parsed_llm": {"wall_height": 5000, "floor_name": "Lantai 1", "door_height": 2100}}))
+    p = run_params(project, stages=stages)
+    assert p["wall_height"] == 4500 and p["floor_name"] == "Lantai 1" and p["door_height"] == 2400
+    assert "floor_name" not in run_params(project)  # without the stage-0 record only the rule parser counts
+
+
+def test_stage_input_records_llm_params(tmp_path):
+    import json
+
+    from core.extraction.stages import stage_input
+
+    project = _project(tmp_path, "data hall lantai satu", {})
+    work = tmp_path / "stages" / "00_input"
+    stage_input(project, work, llm_parse=lambda prompt: {"floor_name": "Lantai 1", "site_type": "data_hall"})
+    doc = json.loads((work / "input.json").read_text())
+    assert doc["params_parsed_llm"] == {"floor_name": "Lantai 1", "site_type": "data_hall"}
+    assert doc["params_final"]["floor_name"] == "Lantai 1" and doc["params_final"]["site_type"] == "data_center"
+    stage_input(project, work)
+    assert json.loads((work / "input.json").read_text())["params_parsed_llm"] is None

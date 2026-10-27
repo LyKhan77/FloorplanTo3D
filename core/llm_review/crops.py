@@ -157,6 +157,23 @@ def wall_evidence(spec: Spec, wid: str, *, mm_per_px: float, hatch: np.ndarray |
     ])
 
 
+def _image_side(vx: float, vy: float) -> str:
+    """Image direction of a vector given in image axes (x right, y down)."""
+    if abs(vx) >= abs(vy):
+        return "right" if vx > 0 else "left"
+    return "bottom" if vy > 0 else "top"
+
+
+def _door_frame(w: Wall) -> str:
+    """hinge/swing (PRD/03: relative to a->b, swing seen from a facing b) in image terms; spec y is up."""
+    dx, dy = w.b[0] - w.a[0], -(w.b[1] - w.a[1])
+    start, end = _image_side(-dx, -dy), _image_side(dx, dy)
+    left, right = _image_side(dy, -dx), _image_side(-dy, dx)
+    return (f'- in the image the host wall runs from its start ({start}) to its end ({end}): hinge "start" = the '
+            f'{start} end of the opening, "end" = the {end} end; swing "left" = the leaf opens towards the {left}, '
+            f'"right" = towards the {right}')
+
+
 def door_evidence(spec: Spec, did: str) -> str:
     o = next(x for x in spec.openings if x.id == did)
     w = next((x for x in spec.walls if x.id == o.wall_id), None)
@@ -167,6 +184,7 @@ def door_evidence(spec: Spec, did: str) -> str:
         f"- host wall: {o.wall_id} (thickness {w.thickness if w else '?'} mm, {_orientation(w) if w else '?'})",
         f"- width: {o.width} mm, offset from wall start: {o.offset} mm",
         f"- current door_type: {o.door_type}, hinge: {o.hinge}, swing: {o.swing}",
+        *([_door_frame(w)] if w else []),
         f"- swing arc found: {yn('arc')}, gap in wall found: {yn('gap')}",
         f"- CV confidence: {o.provenance.confidence:.2f}",
     ])

@@ -52,19 +52,30 @@ def _upload(project_dir: Path) -> dict:
     return json.loads((project_dir / "input" / "input.json").read_text())
 
 
-def run_params(project_dir: Path, override: dict | None = None) -> dict:
+def _llm_params(stages: Path | None) -> dict:
+    doc = stages / "00_input" / "input.json" if stages else None
+    return (json.loads(doc.read_text()).get("params_parsed_llm") or {}) if doc and doc.exists() else {}
+
+
+def run_params(project_dir: Path, override: dict | None = None, stages: Path | None = None,
+               llm: dict | None = None) -> dict:
+    """Explicit form params > rule parser > Strata (T0, recorded by stage 0 of the run in `stages`)."""
     up = _upload(project_dir)
-    return merge_params({**(up.get("params") or {}), **(override or {})}, parse_prompt(up.get("prompt") or ""))
+    parsed = {**(_llm_params(stages) if llm is None else llm), **parse_prompt(up.get("prompt") or "")}
+    return merge_params({**(up.get("params") or {}), **(override or {})}, parsed)
 
 
 def _original(project_dir: Path) -> Path:
     return next(p for p in sorted((project_dir / "input").glob("original.*")))
 
 
-def stage_input(project_dir: Path, work: Path, override: dict | None = None) -> dict:
+def stage_input(project_dir: Path, work: Path, override: dict | None = None,
+                llm_parse: Callable[[str], dict] | None = None) -> dict:
     work.mkdir(parents=True, exist_ok=True)
     up = _upload(project_dir)
-    doc = input_doc(up) | {"params_final": run_params(project_dir, override)}
+    llm = llm_parse(up.get("prompt") or "") if llm_parse else None
+    doc = input_doc(up) | {"params_parsed_llm": llm,
+                           "params_final": run_params(project_dir, override, llm=llm or {})}
     write_json(work / "input.json", doc)
     return {"status": "succeeded", "metrics": {"type": up.get("type"), "page": doc["page"]}}
 
@@ -98,7 +109,7 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
     meta = json.loads((pre / "meta.json").read_text())
     page = cv2.imread(str(pre / "page.png"), cv2.IMREAD_GRAYSCALE)
     binary = cv2.imread(str(pre / "bin.png"), cv2.IMREAD_GRAYSCALE)
-    params = run_params(project_dir, override)
+    params = run_params(project_dir, override, work.parent)
     ocr = ocr_page(page, meta["upscale"])
     if progress:
         progress(30, "OCR")
@@ -166,7 +177,7 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
     t0 = time.monotonic()
     work.mkdir(parents=True, exist_ok=True)
     pre, grid_dir = work.parent / "01_preprocess", work.parent / "02_grid"
-    params_final = run_params(project_dir, override)
+    params_final = run_params(project_dir, override, work.parent)
     inputs = {
         "page": cv2.imread(str(pre / "page.png"), cv2.IMREAD_GRAYSCALE),
         "binary": cv2.imread(str(pre / "bin.png"), cv2.IMREAD_GRAYSCALE),
@@ -193,10 +204,10 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
     return {"status": "succeeded", "metrics": metrics, "warnings": errors}
 
 
-def meta_info(project_dir: Path, override: dict | None = None) -> dict:
+def meta_info(project_dir: Path, override: dict | None = None, stages: Path | None = None) -> dict:
     """Spec meta fields that come from the upload and the run parameters, not from the drawing."""
     up = _upload(project_dir)
-    params = run_params(project_dir, override)
+    params = run_params(project_dir, override, stages)
     return {"project_id": project_dir.name, "floor_name": params.get("floor_name", ""),
             "site_type": params.get("site_type", "other"),
             "defaults": {k: params[k] for k in ("wall_height", "door_height", "wall_thickness") if k in params},
@@ -211,7 +222,7 @@ def stage_rooms(project_dir: Path, work: Path, progress: Progress = None, overri
     pmeta = json.loads((pre / "meta.json").read_text())
     page = cv2.imread(str(pre / "page.png"), cv2.IMREAD_GRAYSCALE)
     labels = labels_from_ocr(json.loads((grid_dir / "ocr.json").read_text()), grid["px_to_mm"])
-    info = meta_info(project_dir, override)
+    info = meta_info(project_dir, override, work.parent)
     w, h = pmeta["original_size"]
     info["image"] = {"sha256": info.pop("sha256"), "width_px": w, "height_px": h}
     to_px = px_from_mm(grid["px_to_mm"])

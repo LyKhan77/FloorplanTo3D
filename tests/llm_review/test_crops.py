@@ -89,6 +89,11 @@ def test_door_and_room_evidence():
     d = door_evidence(two_room_spec(), "D1")
     assert d.splitlines()[0] == "Element D1"
     assert "host wall: W5" in d and "width: 900 mm" in d and "door_type: single_swing, hinge: start, swing: left" in d
+    # W5 runs (5000,0) -> (5000,6000): bottom -> top in the image; looking up, left is the image left
+    assert 'host wall runs from its start (bottom) to its end (top): hinge "start" = the bottom end' in d
+    assert 'swing "left" = the leaf opens towards the left, "right" = towards the right' in d
+    w1 = door_evidence(two_room_spec(), "D2")  # W1 (0,0) -> (10000,0): left -> right; left side = image top
+    assert 'start (left) to its end (right)' in w1 and '"left" = the leaf opens towards the top' in w1
     r = room_evidence(spec_with_rooms(), "R1", "PANTRI")
     assert r.splitlines()[0] == "Element R1" and '- OCR label: "PANTRI"' in r and "- current type: office" in r
     assert "- area: 28.1 m2" in r
