@@ -9,7 +9,8 @@ from server.app import create_app
 
 
 def settings_for(data_dir: Path, **env):
-    return load_settings({**os.environ, "DATA_DIR": str(data_dir), **env})
+    """Strata tasks are off unless a test turns them on: .env may enable them for the live server."""
+    return load_settings({**os.environ, "DATA_DIR": str(data_dir), "LLM_TASKS_ENABLED": "", **env})
 
 
 @pytest.fixture

@@ -265,6 +265,16 @@ def _issue_dicts(result) -> list[dict]:
             for i in result.issues]
 
 
+def validation_context(stages: Path) -> ValidationContext:
+    """The validator context of a run (stage 5 and the stage-6 gates): OCR dimensions from stage 2 and one
+    estimate of the drawn wall lines for the whole drawing (V018), the most any stage-3 candidate found."""
+    grid = json.loads((stages / "02_grid" / "grid.json").read_text())
+    cands = stages / "03_extract" / "candidates.json"
+    rows = json.loads(cands.read_text()) if cands.exists() else []
+    line_mm = max((c.get("line_len_m") or 0 for c in rows), default=0) * 1000
+    return ValidationContext(ocr_dimensions=ocr_dimensions_from(grid) or None, thick_line_length_mm=line_mm or None)
+
+
 def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progress = None,
                    override: dict | None = None) -> dict:
     """Stage 5 (PRD/04 Tahap 5): validate every stage-4 candidate, keep the best one without errors, label its
@@ -273,16 +283,15 @@ def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progres
     st = work.parent
     rows3 = {c["index"]: c for c in json.loads((st / "03_extract" / "candidates.json").read_text())}
     grid = json.loads((st / "02_grid" / "grid.json").read_text())
-    dims = ocr_dimensions_from(grid) or None
-    # one estimate of the drawn wall lines for the whole drawing (V018): the most any candidate found
-    line_mm = max((c.get("line_len_m") or 0 for c in rows3.values()), default=0) * 1000
+    ctx = validation_context(st)
+    line_mm = ctx.thick_line_length_mm or 0
     scored, specs = [], {}
     for row in json.loads((st / "04_rooms" / "candidates.json").read_text()):
         if row["error"]:
             continue
         k = row["index"]
         spec = Spec.model_validate_json((st / "04_rooms" / "candidates" / str(k) / "spec.json").read_text())
-        res = validate(spec, ValidationContext(ocr_dimensions=dims, thick_line_length_mm=line_mm or None))
+        res = validate(spec, ctx)
         specs[k] = spec
         scored.append({"index": k, "score": round(res.score, 4), "passed": res.passed,
                        "ratios": {c: round(v, 4) for c, v in res.ratios.items()},
@@ -296,7 +305,6 @@ def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progres
                 "message": f"semua kandidat punya error validator ({', '.join(codes) or 'tidak ada kandidat'})"}
     k = chosen["index"]
     spec = specs[k]
-    ctx = ValidationContext(ocr_dimensions=dims, thick_line_length_mm=line_mm or None)
     page = cv2.imread(str(st / "01_preprocess" / "page.png"), cv2.IMREAD_GRAYSCALE)
     labels = labels_from_ocr(json.loads((st / "02_grid" / "ocr.json").read_text()), grid["px_to_mm"])
     if progress:

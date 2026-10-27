@@ -230,3 +230,41 @@ def test_stage5_version_becomes_the_run_output(app_factory, project_id):
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
         run = wait_status(client, project_id, rid, {"needs_attention"})
         assert run["spec_version_out"] == 1
+
+
+def test_stage6_version_becomes_the_run_output(app_factory, project_id):
+    impls = fake_impls([])
+    impls[5] = lambda ctx: {"status": "succeeded", "metrics": {"version": 1}}
+    impls[6] = lambda ctx: {"status": "succeeded", "metrics": {"version": 2}}
+    seen = []
+    impls[7] = lambda ctx: (seen.append(ctx.state.get("version")), {"status": "succeeded"})[1]
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        run = wait_status(client, project_id, rid, {"succeeded"})
+        assert run["spec_version_out"] == 2
+
+
+def test_stage6_emits_llm_decision_events(app_factory, project_id):
+    impls = fake_impls([])
+    impls[6] = lambda ctx: (ctx.emit_event("llm.decision", {"element": "W1", "accepted": True}), {"status": "succeeded"})[1]
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"succeeded"})
+        events = [e for e in client_events(client, project_id) if e["type"] == "llm.decision"]
+        assert events and events[0]["stage"] == 6 and events[0]["data"]["element"] == "W1"
+
+
+def test_real_stage6_skips_when_disabled(app_factory, project_with_gt):
+    impls = {n: fast_blender for n in range(7, 11)} | {n: fake_impls([])[n] for n in range(5)}
+    impls[5] = lambda ctx: (ctx.state.update(version=1), {"status": "succeeded", "metrics": {"version": 1}})[1]
+    with app_factory(stage_impls=impls) as client:  # stage 6 is the real one; settings_for empties LLM_TASKS_ENABLED
+        rid = client.post(f"/api/projects/{project_with_gt}/runs", json={"kind": "full"}).json()["run_id"]
+        run = wait_status(client, project_with_gt, rid, {"succeeded"})
+        assert run["stages"][6]["status"] == "skipped" and run["stages"][6]["metrics"]["reason"] == "disabled"
+
+
+def test_server_tests_never_reach_live_strata(data_dir):
+    from tests.server.conftest import settings_for
+
+    s = settings_for(data_dir)
+    assert s.llm_tasks_enabled == () and settings_for(data_dir, LLM_TASKS_ENABLED="T1").llm_tasks_enabled == ("T1",)

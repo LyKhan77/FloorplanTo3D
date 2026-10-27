@@ -29,7 +29,9 @@ def _strata(base_url: str) -> dict:
         status = None
         try:
             s = httpx.get(f"{root}/status", timeout=2)
-            status = s.json().get("status") if s.status_code == 200 else None
+            body = s.json() if s.status_code == 200 else {}
+            # Strata answers {"busy": bool, "queued": n}; keep a plain "status" field for other servers
+            status = body.get("status") or (("processing" if body["busy"] else "idle") if "busy" in body else None)
         except (httpx.HTTPError, ValueError):
             pass
         return {"ok": r.status_code == 200, "status": status, "latency_ms": latency}

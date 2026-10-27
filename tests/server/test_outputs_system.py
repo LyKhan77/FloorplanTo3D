@@ -77,3 +77,19 @@ def test_bundle_streams_large_outputs_in_chunks(client_with_outputs, data_dir):
     elapsed = time.monotonic() - t0
     assert zipfile.ZipFile(io.BytesIO(r.content)).read("layout.blend") == blob
     assert elapsed < 2.0, f"bundle took {elapsed:.1f}s"
+
+
+def test_strata_status_maps_busy_flag(monkeypatch):
+    """Strata's /status answers {"busy": bool, "queued": n} (spike-strata.md), not {"status": ...}."""
+    import httpx
+
+    from server.routes import system
+
+    replies = {"/health": {"status": "ok"}, "/status": {"busy": True, "queued": 0}}
+    monkeypatch.setattr(system.httpx, "get", lambda url, timeout: httpx.Response(
+        200, json=replies[url.removeprefix("http://s:1")], request=httpx.Request("GET", url)))
+    assert system._strata("http://s:1/v1")["status"] == "processing"
+    replies["/status"] = {"busy": False, "queued": 0}
+    assert system._strata("http://s:1/v1")["status"] == "idle"
+    replies["/status"] = {"status": "idle"}
+    assert system._strata("http://s:1/v1")["status"] == "idle"

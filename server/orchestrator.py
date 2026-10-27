@@ -19,6 +19,7 @@ from core.blender_run import parse_progress
 from core.config import Settings
 from core.extraction.profiles import ProfileNotFound, load_profile
 from core.extraction.stages import (
+    run_params,
     stage_extract,
     stage_grid,
     stage_input,
@@ -26,6 +27,9 @@ from core.extraction.stages import (
     stage_rooms,
     stage_validate,
 )
+from core.llm_review.client import StrataClient
+from core.llm_review.stage import stage_review
+from core.llm_review.tasks import parse_prompt_llm
 from core.pipeline import plan_mask_for, publish, stage_build, stage_report, stage_verify
 from core.spec.store import SpecStore
 from server.errors import ApiError
@@ -40,6 +44,7 @@ STAGES = [(0, "input"), (1, "preprocess"), (2, "grid"), (3, "extract"), (4, "roo
 FIRST_BLENDER_STAGE = 7
 STOP_ON_ATTENTION = {1, 2, 5}  # needs_attention here stops the run; at 6 and 8 it is only a warning
 FIRST_SPEC_STAGE = 5  # stages before it read the previous stages' folders of the same run
+REVIEW_STAGE = 6
 BLENDER_TIMEOUT_S = 300
 
 
@@ -70,14 +75,28 @@ class StageContext:
     register_process: Callable[[subprocess.Popen], None] = lambda p: None
     params_override: dict = field(default_factory=dict)  # POST /runs params_override (explicit params win)
     profile: dict | None = None  # style profile chosen for the run (its params seed the sweep)
+    emit_event: Callable[[str, dict], None] = lambda type, data: None  # e.g. llm.decision
 
 
 # --- default stage implementations ------------------------------------------------------------------------------
 
+def _strata(settings: Settings) -> StrataClient:
+    return StrataClient(settings.strata_base_url, settings.strata_model, settings.strata_timeout_s)
+
+
+def _use_strata(ctx: StageContext) -> bool:
+    return run_params(ctx.project_dir, ctx.params_override, ctx.work_dir.parent).get("use_strata", True) is not False
+
+
 def _input(ctx: StageContext) -> dict:
     if not list((ctx.project_dir / "input").glob("original.*")):
         return {"status": "failed", "message": "original upload missing"}
-    return stage_input(ctx.project_dir, ctx.work_dir, ctx.params_override)
+    llm_parse = None
+    if "T0" in ctx.settings.llm_tasks_enabled and _use_strata(ctx):
+        client = _strata(ctx.settings)
+        if client.health():
+            llm_parse = lambda prompt: parse_prompt_llm(client, prompt)
+    return stage_input(ctx.project_dir, ctx.work_dir, ctx.params_override, llm_parse)
 
 
 def _preprocess(ctx: StageContext) -> dict:
@@ -118,7 +137,12 @@ def _validate(ctx: StageContext) -> dict:
 
 
 def _review(ctx: StageContext) -> dict:
-    return {"status": "skipped", "message": "Strata review arrives in M6"}
+    result = stage_review(ctx.project_dir, ctx.work_dir, ctx.run_id, ctx.settings,
+                          version=ctx.state.get("version", ctx.version), use_strata=_use_strata(ctx),
+                          client=_strata(ctx.settings), emit=ctx.emit_event, progress=ctx.emit_progress)
+    if result.get("metrics", {}).get("version"):
+        ctx.state["version"] = result["metrics"]["version"]
+    return result
 
 
 def _on_blender_line(ctx: StageContext, line: str) -> None:
@@ -374,7 +398,8 @@ class Orchestrator:
         return StageContext(pid, rid, n, run.get("version"), work, project_dir, self.storage, self.settings,
                             emit_log, emit_progress, self._cancel[rid], self._state[rid], register,
                             params_override=run.get("params_override") or {},
-                            profile=load_profile(self.storage, run["profile_id"]) if run.get("profile_id") else None)
+                            profile=load_profile(self.storage, run["profile_id"]) if run.get("profile_id") else None,
+                            emit_event=lambda type, data: self.bus.emit(pid, rid, n, type, data=data))
 
     async def _run_stage(self, run: dict, n: int) -> bool:
         """Run one stage; return False when the run must stop."""
@@ -395,7 +420,7 @@ class Orchestrator:
         finally:
             self._procs.pop(rid, None)
         status = result.get("status", "succeeded")
-        if n == FIRST_SPEC_STAGE and result.get("metrics", {}).get("version"):
+        if n in (FIRST_SPEC_STAGE, REVIEW_STAGE) and result.get("metrics", {}).get("version"):
             run.update(spec_version_out=result["metrics"]["version"], version=result["metrics"]["version"])
         stage.update(status=status, ended_at=_now(), duration_ms=int((asyncio.get_running_loop().time() - t0) * 1000),
                      metrics=result.get("metrics", {}), warnings=result.get("warnings", []))
