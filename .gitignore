@@ -11,3 +11,5 @@ benchmarks/spike/crops/
 .superpowers/
 .playwright-mcp/
 .coverage
+benchmarks/spike/out/
+benchmarks/.cache/
