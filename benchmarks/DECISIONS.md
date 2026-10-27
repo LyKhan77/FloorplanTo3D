@@ -9,11 +9,30 @@ Model: `qwen3.8-flash-next-iq2_xs` (Strata, `192.168.2.142:8081`). Item: `benchm
 | Tugas | Varian dan prompt | n eval | Hasil | Pembanding | Syarat §7.2 | Keputusan |
 |---|---|---|---|---|---|---|
 | T0 parse prompt | v1, `low` (diukur sebelum budget 512 ditambahkan; latensi 2.8 s, jadi tidak terdampak) | 20 prompt × 5 field | akurasi field 0.99 | parser aturan 0.78 | ≥ aturan + 5 poin | **aktif** |
-| T1 verifikasi dinding | v1, bukti teks, **tanpa** few-shot, `none`, 3 suara | 96 (48 dinding / 48 anotasi) | akurasi 0.656, presisi "hapus" **1.00** (15/15) | ambang CV ≥ 0.5: 0.531 | ≥ +5 poin **dan** presisi hapus ≥ 0.90 | **aktif** |
+| T1 verifikasi dinding | v1, bukti teks, **tanpa** few-shot, `none`, 3 suara | 96 (48 dinding / 48 anotasi) | akurasi 0.656, presisi "hapus" **1.00** (15/15) | ambang CV ≥ 0.5: 0.531 | ≥ +5 poin **dan** presisi hapus ≥ 0.90 | lolos §7.2, tetapi **nonaktif**: gagal uji Gatsu end-to-end (lihat bawah) |
 | T1 (varian lain) | v1, bukti teks + few-shot, 3 suara | 96 | akurasi 0.760, presisi hapus 0.755 | 0.531 | presisi hapus < 0.90 | ditolak: menghapus 12 dari 48 dinding asli |
 | T2 verifikasi pintu | v1, bukti teks + few-shot, 1 suara (saringan) | 24 (5 pintu asli + 19 deteksi palsu) | engsel 0.80, arah 0.80; is_door 0.83 (tanpa bukti teks: 0.96) | CV: engsel 0.80, arah 0.80; is_door 0.21 | engsel dan arah masing-masing ≥ +10 poin | **nonaktif** |
 | T3 tipe ruang | v1, bukti teks + few-shot, `none`, 3 suara | 20 (7 label + 13 varian typo) | akurasi tipe 0.85 | leksikon 0.75 | ≥ leksikon + 5 poin | **aktif** |
-| T4 perbaikan via tool | v1, `medium` + budget 2048 | Gatsu end-to-end | _diisi setelah run_ | T1+T3 tanpa T4 | Δ akurasi GT ≥ 0 semua metrik, > 0 minimal satu | _diisi_ |
+| T4 perbaikan via tool | v1, `medium` + budget 2048, di atas T3 | Gatsu end-to-end | 0 perubahan diterima (59.5 s), Δ semua metrik 0 | T3 tanpa T4 | Δ akurasi GT ≥ 0 semua metrik, > 0 minimal satu | **nonaktif**: tidak ada perbaikan |
+
+### Uji Gatsu end-to-end (kriteria selesai M6: dengan Strata ≥ tanpa Strata untuk semua metrik)
+
+Spec tahap 5 Gatsu (`benchmarks/.cache/gatsu`) di-review oleh harness tahap 6, lalu metrik GT (`benchmarks/extraction_metrics.evaluate` + `rooms_typed_ok`) dibandingkan dengan spec tanpa review. Laporan: `benchmarks/reports/llm-e2e-*.md`, `llm-T4-*.md`.
+
+| Set aktif | Waktu tahap 6 | Perubahan diterima | Metrik yang turun | Hasil |
+|---|---|---|---|---|
+| T1 + T3 | 592 s | 16 hapus dinding, 1 ganti nama | `wall_recall` −4.8 poin, `wall_iou` −0.004, `gross_area_err` +0.4 poin | **gagal** |
+| T3 | 5.8 s | 0 | tidak ada | lolos |
+| T3 + T4 | 59.5 s | 0 | tidak ada | lolos (T4 tanpa manfaat) |
+
+T1 lolos di set benchmark, tetapi di spec nyata ia menghapus dinding yang hanya sebagian cocok dengan GT. Dinding "ambigu" semacam ini (10–80% garisnya dekat dinding GT) sengaja dikeluarkan dari item T1, sehingga presisi 1.00 di benchmark tidak berlaku untuk mereka. Gerbang skor validator meloloskan penghapusan itu karena skor naik (0.884 → 0.891). Run T1 juga tidak deterministik: voting kedua dan ketiga di temperature 0.4 menghasilkan 13 vs 16 dinding terhapus di dua run.
+
+**Set aktif: `LLM_TASKS_ENABLED=T0,T3`.**
+
+Yang perlu dicoba lagi sebelum T1 diaktifkan:
+1. Item T1 yang menyertakan dinding ambigu dengan label "jangan hapus".
+2. Penghapusan T1 hanya untuk dinding yang tidak bersambung di kedua ujung.
+3. Model atau kuantisasi yang lebih besar (R-06).
 
 ### Catatan
 

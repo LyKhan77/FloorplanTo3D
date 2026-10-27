@@ -1,0 +1,101 @@
+{
+ "date": "2026-10-27",
+ "model": "qwen3.8-flash-next-iq2_xs",
+ "enabled": [
+  "T0",
+  "T3"
+ ],
+ "bench": {
+  "T0": {
+   "acc": 0.99,
+   "base": 0.78,
+   "passes": true
+  },
+  "T1": {
+   "acc": 0.656,
+   "base": 0.531,
+   "delete_precision": 1.0,
+   "passes": true,
+   "e2e": "fails"
+  },
+  "T2": {
+   "hinge": 0.8,
+   "swing": 0.8,
+   "base_hinge": 0.8,
+   "base_swing": 0.8,
+   "is_door": 0.83,
+   "base_is_door": 0.21,
+   "passes": false
+  },
+  "T3": {
+   "acc": 0.85,
+   "base": 0.75,
+   "passes": true
+  },
+  "T4": {
+   "accepted": 0,
+   "passes": false
+  }
+ },
+ "gatsu_without_strata": {
+  "scale_err": 0.001276983240907618,
+  "wall_recall": 0.7662311279858441,
+  "wall_precision": 0.7997874693076812,
+  "wall_pos_median_mm": 18.0,
+  "wall_pos_p95_mm": 113.0,
+  "door_recall": 0.42105263157894735,
+  "door_width_ok": 0.3157894736842105,
+  "door_dir_ok": 0.16666666666666666,
+  "room_match": 0.020833333333333332,
+  "rooms_pred": 22,
+  "rooms_gt": 48,
+  "area_err_max": 0.7460622184664027,
+  "wall_iou": 0.5110114825077328,
+  "stair_risers_ok": 0.3333333333333333,
+  "stair_dir_ok": 1.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": 0.030172413793103432,
+  "rooms_typed_ok": 4
+ },
+ "gatsu_with_enabled_set": {
+  "scale_err": 0.001276983240907618,
+  "wall_recall": 0.7662311279858441,
+  "wall_precision": 0.7997874693076812,
+  "wall_pos_median_mm": 18.0,
+  "wall_pos_p95_mm": 113.0,
+  "door_recall": 0.42105263157894735,
+  "door_width_ok": 0.3157894736842105,
+  "door_dir_ok": 0.16666666666666666,
+  "room_match": 0.020833333333333332,
+  "rooms_pred": 22,
+  "rooms_gt": 48,
+  "area_err_max": 0.7460622184664027,
+  "wall_iou": 0.5110114825077328,
+  "stair_risers_ok": 0.3333333333333333,
+  "stair_dir_ok": 1.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": 0.030172413793103432,
+  "rooms_typed_ok": 4
+ },
+ "stage6_seconds_enabled_set": 5.8,
+ "stage6_seconds_T1_T3": 591.6,
+ "e2e_T1_T3_improvement": {
+  "scale_err": 0.0,
+  "wall_recall": -0.0476,
+  "wall_precision": 0.0189,
+  "wall_pos_median_mm": 0.0,
+  "wall_pos_p95_mm": 11.0,
+  "door_recall": 0.0,
+  "door_width_ok": 0.0,
+  "door_dir_ok": 0.0,
+  "room_match": 0.0208,
+  "rooms_pred": -2,
+  "rooms_gt": 0,
+  "area_err_max": 0.0293,
+  "wall_iou": -0.004,
+  "stair_risers_ok": 0.0,
+  "stair_dir_ok": 0.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": -0.004
+ }
+}
