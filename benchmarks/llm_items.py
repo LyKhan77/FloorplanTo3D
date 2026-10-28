@@ -64,7 +64,10 @@ def run_stages(project: Path, image_bytes: bytes, filename: str, overrides: dict
              "05_validate": lambda p, w: stage_validate(p, w, "r")} | (overrides or {})
     results = {}
     for d, fn in steps.items():
-        results[d] = r = fn(project, st / d)
+        try:
+            results[d] = r = fn(project, st / d)
+        except Exception as e:  # noqa: BLE001 - as the orchestrator: a raising stage fails, the run goes on
+            results[d] = r = {"status": "failed", "message": f"{type(e).__name__}: {e}"}
         if r.get("status") == "failed" or (r.get("status") == "needs_attention" and d in STOP_ON_ATTENTION):
             break
     return st, results

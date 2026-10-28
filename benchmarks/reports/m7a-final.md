@@ -1,6 +1,6 @@
 # M7a — Laporan akhir ketahanan & akurasi ekstraksi
 
-Kode akhir = kondisi sesudah Task 5 (Task 3 dan 6 di-revert). Angka Gatsu dari `m7a-baseline` → `m7a-t5`, set augmentasi dari `m7a-augment-baseline` → `m7a-augment-t5`.
+Kode akhir = Task 4 + Task 5 + fix pass review akhir (Task 3 dan 6 di-revert). Angka Gatsu dari `m7a-baseline` → `m7a-final-fix`, set augmentasi dari `m7a-augment-baseline` → `m7a-augment-final`.
 
 ## Gatsu (run tahap 0–5 pada `floorplan/plan.jpeg`)
 
@@ -14,7 +14,7 @@ Kode akhir = kondisi sesudah Task 5 (Task 3 dan 6 di-revert). Angka Gatsu dari `
 | door_recall | 0.421 | 0.474 | 0.900 | tidak |
 | door_width_ok | 0.316 | 0.368 | 0.900 | tidak |
 | door_dir_ok | 0.167 | 0.222 | 0.800 | tidak |
-| room_match | 0.021 | 0.042 | 0.900 | tidak |
+| room_match | 0.021 | 0.083 | 0.900 | tidak |
 | rooms_pred | 22 | 42 | — | — |
 | rooms_gt | 48 | 48 | — | — |
 | wall_iou | 0.511 | 0.485 | 0.850 | tidak |
@@ -29,14 +29,14 @@ Dinding GT terlewat: 20 → 16; dinding palsu: 67 → 68.
 
 | Rata-rata (run berhenti = nilai terburuk) | Baseline | Akhir |
 |---|---|---|
-| wall_recall | 0.4912 | 0.4979 |
-| wall_precision | 0.5521 | 0.5485 |
-| wall_iou | 0.3096 | 0.3110 |
-| door_recall | 0.2579 | 0.2632 |
-| room_match | 0.0104 | 0.0229 |
-| gross_area_err | 0.6377 | 0.6173 |
+| wall_recall | 0.4912 | 0.4994 |
+| wall_precision | 0.5521 | 0.5512 |
+| wall_iou | 0.3096 | 0.3115 |
+| door_recall | 0.2579 | 0.2667 |
+| room_match | 0.0104 | 0.0278 |
+| gross_area_err | 0.6377 | 0.6070 |
 
-Skor ketahanan relatif (porsi metrik ≥ 0.9 × a00): 0.432 → 0.497. Varian lolos penuh (setiap metrik ≥ 0.9 × a00): 0/29 → 2/29.
+Skor ketahanan relatif (porsi metrik ≥ 0.9 × a00): 0.432 → 0.480. Varian lolos penuh (setiap metrik ≥ 0.9 × a00): 0/29 → 1/29.
 
 ## Perbaikan
 
@@ -45,7 +45,8 @@ Skor ketahanan relatif (porsi metrik ≥ 0.9 × a00): 0.432 → 0.497. Varian lo
 | 3 | Dinding satu sisi (garis tunggal yang kedua ujungnya bertemu garis tegak lurus) | **di-revert**: recall +3.2 poin tetapi presisi −6 poin (potongan sumbu grid, tepi tangga, jalur kabel); hanya 1 dari 9 dinding sasaran pulih karena garis mukanya sudah berpasangan |
 | 4 | Pasangan garis ganda yang terputus (overlap absolut ≥ 300 mm) | **dipertahankan**: Gatsu recall 0.766 → 0.779; rata-rata augmentasi `gross_area_err` 0.638 → 0.595 |
 | 4 | Muka dinding mempertahankan tebalnya | **di-revert**: kontur bangunan runtuh (`gross_area_err` 0.03 → 0.59) |
-| 5 | Ruang dipecah di leher < 300 mm (`form_rooms`) | **dipertahankan**: outdoor 3 → 10, ruang 23 → 42 (GT 48), `room_match` 0.021 → 0.042; tahap 5 berpindah ke kandidat lain (skor 0.871 vs 0.855): presisi dinding −2 poin |
+| 5 | Ruang dipecah di leher < 300 mm (`form_rooms`, hanya ruang di kontur luar sesudah fix pass) | **dipertahankan, menunggu keputusan pengguna**: outdoor 3 → 10, ruang 22 → 41 (GT 48), `room_match` 0.021 → 0.083; tahap 5 berpindah ke kandidat lain (skor 0.871 vs 0.855): presisi dinding −2 poin |
+| fix pass | Leher dipotong tanpa membungkus partisi tipis; pemecahan dibatasi ke kontur luar; pasangan silang antar-partisi ditolak; exception tahap jadi varian gagal | dinding identik dengan Task 5, `room_match` 0.042 → 0.083 |
 | 6 | Cable ladder (garis ganda ≥ 200 mm dengan rung) | **di-revert**: presisi +1.2 poin di Gatsu, tetapi pita luar bersirip ikut terbuang dan kontur runtuh (`gross_area_err` sampai 0.59) |
 
 ## Mode gagal yang tersisa

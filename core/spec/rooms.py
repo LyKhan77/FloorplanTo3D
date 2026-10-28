@@ -51,18 +51,18 @@ NECK_SPLIT_MM = 300  # narrower than any door or passage: free space this thin i
 
 def _split_necks(p: SPolygon) -> list[SPolygon]:
     """Cut a free-space piece where it narrows below NECK_SPLIT_MM (the sliver between a fin and the band lines,
-    a column set a few cm off a wall): each side of such a neck is its own room. Wider passages are kept."""
+    a column set a few cm off a wall): each side of such a neck is its own room. Only the neck itself is removed,
+    so a room never reaches through a thin divider and narrow alcoves stay with their room."""
     r = NECK_SPLIT_MM / 2
-    cores = [c for c in _parts(p.buffer(-r, join_style="mitre").buffer(r, join_style="mitre"))
-             if c.area >= MIN_ROOM_AREA_MM2]
+    opened = p.buffer(-r, join_style="mitre").buffer(r, join_style="mitre")
+    cores = [c for c in _parts(opened) if c.area >= MIN_ROOM_AREA_MM2]
     if len(cores) < 2:
         return [p]
-    out, taken = [], SPolygon()
-    for c in sorted(cores, key=lambda c: -c.area):  # each core takes back its own edge strip, the neck stays out
-        piece = p.intersection(c.buffer(r, join_style="mitre")).difference(taken)
-        out += [q for q in _parts(piece) if q.area >= MIN_ROOM_AREA_MM2]
-        taken = taken.union(piece)
-    return out or [p]
+    necks = [t for t in _parts(p.difference(opened)) if sum(t.buffer(1).intersects(c) for c in cores) >= 2]
+    if not necks:
+        return [p]
+    pieces = [q for q in _parts(p.difference(unary_union(necks))) if q.area >= MIN_ROOM_AREA_MM2]
+    return pieces or [p]
 
 
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
@@ -75,7 +75,11 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
     interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
-    pieces = [q for p in _parts(interior) for part in _split_necks(p)
+    # necks are cut only next to the outer contour (the outer band's bays, PRD/04 §2b); inner rooms keep their shape
+    reach = max((w.thickness for w in spec.walls), default=0) + 1
+    rings = [o.exterior for o in outlines]
+    pieces = [q for p in _parts(interior)
+              for part in (_split_necks(p) if any(ring.distance(p) <= reach for ring in rings) else [p])
               for q in _on_mm_grid(part.simplify(0))]  # simplify: collinear vertices
     rooms = [p for p in pieces if p.area >= MIN_ROOM_AREA_MM2 and _aspect(p) <= MAX_ASPECT]
     return rooms, outlines

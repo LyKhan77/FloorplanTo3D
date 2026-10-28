@@ -61,3 +61,11 @@ def test_two_adjacent_partitions_stay_two_walls():
     walls = s2_walls(strokes, S, 80, 450)
     assert sorted(round(w["c"]) for w in walls) == [104, 132]
 
+
+
+def test_staggered_faces_of_two_partitions_are_not_cross_paired():
+    """Final review I4: partition A (100/108) and partition B (128/136) broken at different places."""
+    strokes = [st("v", 100, 0, 350), st("v", 100, 380, 600), st("v", 108, 0, 200), st("v", 108, 420, 600),
+               st("v", 128, 400, 700), st("v", 136, 250, 700)]
+    walls = s2_walls(strokes, S, 80, 450)
+    assert all(w["thickness_mm"] < 200 for w in walls), [(w["c"], w["a"], w["b"], w["thickness_mm"]) for w in walls]

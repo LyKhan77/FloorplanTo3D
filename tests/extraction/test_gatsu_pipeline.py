@@ -30,7 +30,7 @@ FLOORS = {  # metric: (floor, "min" | "max"); NFR values where met (scale, wall 
     "wall_pos_median_mm": (50, "max"), "wall_pos_p95_mm": (150, "max"),
     "door_recall": (0.47, "min"), "door_width_ok": (0.36, "min"),
     "stair_dir_ok": (0.66, "min"), "wall_iou": (0.48, "min"),
-    "room_match": (0.04, "min"), "gross_area_err": (0.04, "max"),
+    "room_match": (0.08, "min"), "gross_area_err": (0.04, "max"),
 }
 TYPED_FLOOR = 4  # named GT rooms matched (IoU >= 0.5) with the right type; measured 4 of 17
 STAGES_1_5_S = 120

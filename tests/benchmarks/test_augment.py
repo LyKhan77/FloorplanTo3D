@@ -119,3 +119,13 @@ def test_absolute_means_count_stopped_runs_as_worst():
     m = absolute_means(rows)
     assert m["wall_recall"] == pytest.approx(0.4, abs=1e-4)
     assert m["gross_area_err"] == pytest.approx((0.1 + 0.3 + 1.0) / 3, abs=1e-4)
+
+
+def test_stage_exception_is_a_failed_variant(tmp_path):
+    """Final review I5: like the orchestrator, a stage that raises fails the variant, it does not stop the run."""
+    def boom(project, work, *a, **kw):
+        raise ValueError("cv2 broke")
+
+    v = {"id": "a09", "scale": 1.0, "jpeg_q": 95, "rotate_deg": 0.0, "margin_px": 0, "blur": 0.0, "noise": 0.0}
+    row = run_variant(v, tmp_path, base=None, stage_overrides={"02_grid": boom})
+    assert row["passed"] is False and "stage 2 failed" in row["reason"] and "ValueError" in row["reason"]

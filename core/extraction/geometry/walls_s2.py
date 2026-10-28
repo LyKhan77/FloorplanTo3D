@@ -33,6 +33,21 @@ def _wall(orient: str, c: float, a: float, b: float, thickness_mm: float, eviden
             "thickness_mm": round(thickness_mm), "strategy": "S2", "evidence": evidence}
 
 
+def _face_between(strokes: list[dict], i: int, j: int, s: float) -> bool:
+    """A parallel line strictly between strokes i and j that runs along both of them (in one or several pieces):
+    i and j are faces of two different walls, not one wall broken at different places."""
+    p, q = strokes[i], strokes[j]
+    lines: dict[float, list[dict]] = {}
+    for k, x in enumerate(strokes):
+        if k not in (i, j) and x["orient"] == p["orient"] and p["c"] < x["c"] < q["c"]:
+            lines.setdefault(round(x["c"]), []).append(x)
+
+    def runs_along(pieces: list[dict], y: dict) -> bool:
+        return sum(max(0.0, min(x["b"], y["b"]) - max(x["a"], y["a"])) for x in pieces) * s >= MIN_WALL_MM
+
+    return any(runs_along(pieces, p) and runs_along(pieces, q) for pieces in lines.values())
+
+
 def pair_strokes(strokes: list[dict], s: float, t_min_mm: float, t_max_mm: float) -> tuple[list[dict], list[list]]:
     """(walls, free intervals per stroke index)."""
     free = [[(x["a"], x["b"])] for x in strokes]
@@ -49,7 +64,8 @@ def pair_strokes(strokes: list[dict], s: float, t_min_mm: float, t_max_mm: float
             overlap = min(p["b"], q["b"]) - max(p["a"], q["a"])
             # faces broken at different places overlap only in part: an absolute overlap of one minimum wall
             # length makes them candidates; the per-interval assignment below still takes nearest gaps first
-            if overlap >= MIN_OVERLAP_FRAC * min(p["b"] - p["a"], q["b"] - q["a"]) or overlap * s >= MIN_WALL_MM:
+            if overlap >= MIN_OVERLAP_FRAC * min(p["b"] - p["a"], q["b"] - q["a"]) or (
+                    overlap * s >= MIN_WALL_MM and not _face_between(strokes, i, j, s)):
                 cands.append((g, p["c"], p["a"], i, j))
     walls = []
     for g, _, _, i, j in sorted(cands):

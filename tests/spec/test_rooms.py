@@ -78,3 +78,35 @@ def test_band_between_fins_forms_one_room_per_bay():
                     Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]})
     rooms, _ = form_rooms(s)  # the fins leave 50 mm to the band lines: three bays, not one room
     assert len(rooms) == 3
+
+
+def test_neck_split_never_wraps_around_a_thin_partition():
+    """Final review C1: a 100 mm partition stopping 200 mm short of the wall; no room may own space on both sides."""
+    from core.spec.models import Wall
+    from tests.spec.fixtures import two_room_spec
+
+    s = two_room_spec()
+    s.walls[4] = Wall(id="W5", a=(4990, 0), b=(4990, 5700), thickness=100, kind="interior")
+    rooms, _ = form_rooms(s)
+    for r in rooms:
+        xs = [x for x, _ in r.exterior.coords]
+        assert max(xs) <= 4940 or min(xs) >= 5040, list(r.exterior.coords)  # each room on one side of the faces
+
+
+def test_inner_rooms_joined_by_a_sliver_stay_one_room():
+    """Final review I3 / plan Review Focus 4: only rooms at the outer contour are split at necks."""
+    from shapely.geometry import box
+
+    from core.spec.models import Wall
+    from tests.spec.fixtures import two_room_spec
+
+    s = two_room_spec()
+    # an outer band 1500 mm deep around the two rooms keeps them away from the outline
+    s.walls += [Wall(id="W6", a=(-1500, -1500), b=(11500, -1500), thickness=200, kind="exterior"),
+                Wall(id="W7", a=(11500, -1500), b=(11500, 7500), thickness=200, kind="exterior"),
+                Wall(id="W8", a=(11500, 7500), b=(-1500, 7500), thickness=200, kind="exterior"),
+                Wall(id="W9", a=(-1500, 7500), b=(-1500, -1500), thickness=200, kind="exterior")]
+    s.walls[4] = Wall(id="W5", a=(4990, 0), b=(4990, 5700), thickness=100, kind="interior")
+    rooms, _ = form_rooms(s)
+    inner = [r for r in rooms if r.within(box(0, 0, 10000, 6000))]
+    assert len(inner) == 1  # the two inner halves joined through the 200 mm gap stay one room
