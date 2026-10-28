@@ -41,7 +41,7 @@ def spec_cv(wall_conf=0.4, door_conf=0.4, room_source="cv"):
 
 def test_schemas_and_effort():
     assert set(SCHEMAS) == {"T0", "T1", "T2", "T3"}
-    assert EFFORT == {"T0": "low", "T1": "none", "T2": "none", "T3": "none", "T4": "medium"}
+    assert EFFORT == {"T0": "none", "T1": "none", "T2": "none", "T3": "none", "T4": "medium"}
 
 
 def test_prompts_are_versioned_and_t1_t3_carry_the_frame():
@@ -148,6 +148,6 @@ def test_parse_prompt_llm_keeps_stated_fields_only():
                                      "floor_name": "Lantai 1", "site_type": "data_hall"})
     assert parse_prompt_llm(fake, "data hall lantai satu, dinding 4,5 meter") == \
         {"wall_height": 4500, "floor_name": "Lantai 1", "site_type": "data_hall"}
-    assert fake.calls[0]["effort"] == "low" and fake.calls[0]["temperature"] == 0
+    assert fake.calls[0]["effort"] == "none" and fake.calls[0]["temperature"] == 0
     assert parse_prompt_llm(FakeStrata(lambda m, kw: "nope"), "x") == {}
     assert parse_prompt_llm(fake, "") == {}
