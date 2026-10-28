@@ -85,3 +85,9 @@ def correction_ops(pred: Spec | None, gt: Spec) -> dict[str, int]:
 
 def correction_minutes(ops: dict[str, int]) -> float:
     return round(sum(SECONDS[k] * n for k, n in ops.items()) / 60, 1)
+
+
+def capped_minutes(pred: Spec | None, gt: Spec) -> float:
+    """Minutes to correct, never more than redrawing from scratch: a reading worse than nothing is redrawn."""
+    redraw = correction_minutes(correction_ops(None, gt))
+    return redraw if pred is None else min(redraw, correction_minutes(correction_ops(pred, gt)))

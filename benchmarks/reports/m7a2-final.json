@@ -1,11 +1,11 @@
 {
  "gatsu_minutes": [
   22.1,
-  21.8
+  22.1
  ],
- "augment_minutes": [
-  31.1,
-  30.6
+ "augment_minutes_capped": [
+  29.9,
+  30.0
  ],
  "gatsu_baseline": {
   "scale_err": 0.001276983240907618,
@@ -36,7 +36,7 @@
   "door_width_ok": 0.3684210526315789,
   "door_dir_ok": 0.2222222222222222,
   "room_match": 0.08333333333333333,
-  "rooms_pred": 50,
+  "rooms_pred": 41,
   "rooms_gt": 48,
   "area_err_max": 0.46750122058392735,
   "wall_iou": 0.48543836702135207,
@@ -55,12 +55,12 @@
   "correction_min": 31.1
  },
  "augment_means_final": {
-  "wall_recall": 0.5024,
-  "wall_precision": 0.5529,
-  "wall_iou": 0.3116,
-  "door_recall": 0.2754,
-  "room_match": 0.0347,
-  "gross_area_err": 0.2906,
-  "correction_min": 30.6
+  "wall_recall": 0.4994,
+  "wall_precision": 0.5512,
+  "wall_iou": 0.3115,
+  "door_recall": 0.2667,
+  "room_match": 0.0278,
+  "gross_area_err": 0.2973,
+  "correction_min": 30.0
  }
 }

@@ -39,3 +39,16 @@ def test_stopped_run_costs_a_full_redraw():
     assert ops["add_wall"] == len(gt.walls) and ops["add_opening"] == len(gt.openings)
     assert ops["set_room_type"] == 2 and ops["rename_room"] == 2
     assert correction_minutes(ops) > 0
+
+
+def test_minutes_never_exceed_a_full_redraw():
+    """Final review I3: a reading worse than nothing costs a redraw, not more."""
+    from benchmarks.correction_effort import capped_minutes
+
+    gt = spec_with_rooms()
+    junk = gt.model_copy(deep=True)
+    junk.walls = [Wall(id=f"W{i}", a=(i * 50, 20000), b=(i * 50 + 3000, 20000), thickness=100, kind="partition")
+                  for i in range(1, 200)]  # 199 false walls: 16.6 min of deleting
+    redraw = correction_minutes(correction_ops(None, gt))
+    assert capped_minutes(junk, gt) == redraw and capped_minutes(None, gt) == redraw
+    assert capped_minutes(gt, gt) == 0.0

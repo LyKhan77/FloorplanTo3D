@@ -76,13 +76,16 @@ def _closed(union):
     the nearest mass within 3 m, and each mass is closed (mitre) on its own. One missed stretch of outer wall no
     longer opens the building shell, and two separate masses are never bridged into one slab.
 
-    ponytail: a genuine recess narrower than 3 m is filled (gross area slightly high); rooms are unaffected because
-    they are cut by the real walls (dividers), not by this shell.
+    ponytail: a genuine recess narrower than 3 m is filled (gross area slightly high), and only gaps whose two ends
+    face each other are bridged (stubs offset across a facade jog stay open). Rooms never come from this shell:
+    form_rooms cuts them from the unclosed one.
     """
     r = OUTLINE_CLOSE_MM
     parts = _parts(union)
     shells = [SPolygon(p.exterior) for p in parts]
-    masses = [i for i, sh in enumerate(shells) if sh.area >= MASS_MIN_MM2
+    # a mass encloses space: an open strip of broken wall (however long) is a piece to bridge, not a mass
+    masses = [i for i, (sh, p) in enumerate(zip(shells, parts, strict=True))
+              if sh.area >= MASS_MIN_MM2 and sh.area - p.area >= MIN_ROOM_AREA_MM2
               and not any(j != i and shells[j].covers(sh) for j in range(len(shells)))]
     groups: dict[int, list] = {}
     for i, p in enumerate(parts):
@@ -94,17 +97,23 @@ def _closed(union):
     return unary_union(closed)
 
 
+def _masses(shells: list[SPolygon]) -> list[SPolygon]:
+    """Building masses: shells not inside another (lift shafts, free columns are islands), largest first."""
+    out = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
+    return sorted(out, key=lambda o: (-o.area, o.bounds))
+
+
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
     union = unary_union([wall_footprint(w, spec) for w in spec.walls] + cols)
     # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
     dividers = unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols)
-    shells = [SPolygon(p.exterior).simplify(0) for p in _parts(_closed(union))]  # closing adds collinear points
-    # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
-    outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
-    outlines.sort(key=lambda o: (-o.area, o.bounds))  # stable order, largest mass first (closing regroups pieces)
-    interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
+    # the outline (gross area, slabs) bridges gaps in the outer walls; rooms come only from what the walls enclose,
+    # so a porch or recess under 3 m never becomes a room the editor cannot delete
+    outlines = _masses([SPolygon(p.exterior).simplify(0) for p in _parts(_closed(union))])  # closing: collinear pts
+    drawn = _masses([SPolygon(p.exterior) for p in _parts(union)])
+    interior = unary_union(drawn).difference(dividers) if drawn else SPolygon()
     # necks are cut only next to the outer contour (the outer band's bays, PRD/04 §2b); inner rooms keep their shape
     reach = max((w.thickness for w in spec.walls), default=0) + 1
     rings = [o.exterior for o in outlines]

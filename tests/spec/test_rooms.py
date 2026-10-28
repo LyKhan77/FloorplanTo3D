@@ -151,15 +151,18 @@ def test_two_masses_4m_apart_stay_two_outlines():
     assert len(outlines) == 2
 
 
-def test_band_with_a_gap_still_forms_bays_not_slivers():
+def test_band_with_a_gap_keeps_its_outline_and_only_walled_bays():
+    """The outline (gross area) bridges the 2 m gap; rooms come only from space the drawn walls enclose (final
+    review I1: a room the closing invents cannot be deleted in the editor)."""
     from core.spec.models import Column
 
     walls = [_w(1, (0, 0), (6000, 0)), _w(2, (6000, 0), (6000, 1500)), _w(3, (6000, 1500), (4500, 1500)),
              _w(4, (2500, 1500), (0, 1500)), _w(5, (0, 1500), (0, 0))]  # 2 m of the band's top line missing
     fins = [Column(id="C1", center=(2000, 750), shape="rect", size=(400, 1200)),
             Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]
-    rooms, _ = form_rooms(_shell(walls, fins))
-    assert len(rooms) >= 3 and all(r.area >= 1_000_000 for r in rooms)
+    rooms, outlines = form_rooms(_shell(walls, fins))
+    assert outlines[0].area == pytest.approx(6_200 * 1_700, rel=0.01)
+    assert rooms == []  # the open band encloses nothing; the editor user closes the gap, then the bays form
 
 
 def test_annex_1_3m_from_the_building_stays_its_own_outline():
@@ -169,3 +172,19 @@ def test_annex_1_3m_from_the_building_stays_its_own_outline():
              enumerate(_ring([(13500, 1000), (16000, 1000), (16000, 3000), (13500, 3000)]))]
     _, outlines = form_rooms(_shell(main + annex))
     assert len(outlines) == 2
+
+
+def test_closing_never_turns_a_recess_into_a_room():
+    """Final review I1: rooms are cut from the drawn walls; the closed shell only sets the outline / gross area."""
+    walls = _ring([(0, 0), (4000, 0), (4000, 3000), (6500, 3000), (6500, 0), (12000, 0), (12000, 8000), (0, 8000)])
+    rooms, outlines = form_rooms(_shell(walls))  # a 2.5 m x 3 m entrance recess
+    assert len(rooms) == 1
+    assert outlines[0].area > rooms[0].area  # the outline may still bridge the recess mouth (gross area)
+
+
+def test_ring_broken_twice_is_still_closed():
+    """Final review I2: two 2 m gaps split the ring into open strips; no strip is a mass of its own."""
+    walls = [_w(1, (0, 0), (5000, 0)), _w(2, (7000, 0), (12000, 0)), _w(3, (12000, 0), (12000, 8000)),
+             _w(4, (12000, 8000), (7000, 8000)), _w(5, (5000, 8000), (0, 8000)), _w(6, (0, 8000), (0, 0))]
+    _, outlines = form_rooms(_shell(walls))  # two C halves of ~3.6 m² each: open strips, not masses
+    assert len(outlines) == 1 and outlines[0].area == pytest.approx(12_200 * 8_200, rel=0.01)

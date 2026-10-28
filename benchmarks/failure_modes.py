@@ -224,10 +224,10 @@ def main(argv: list[str] | None = None) -> dict:
     missed = classify_missed(gt, pred, binary, masks["clean"], to_px)
     false = classify_false(pred, gt, masks, texts, to_px)
     rooms = classify_rooms(gt, pred)
-    from benchmarks.correction_effort import correction_minutes, correction_ops
+    from benchmarks.correction_effort import capped_minutes, correction_ops
 
     ops = correction_ops(pred, gt)
-    effort = {"ops": ops, "minutes": correction_minutes(ops)}
+    effort = {"ops": ops, "minutes": capped_minutes(pred, gt)}
     doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms, "effort": effort}
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.with_suffix(".json").write_text(json.dumps(doc, indent=1))

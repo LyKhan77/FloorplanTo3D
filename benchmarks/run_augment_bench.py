@@ -22,7 +22,7 @@ import cv2
 import numpy as np
 
 from benchmarks.augment.variants import IDENTITY, VARIANTS, render_variant
-from benchmarks.correction_effort import correction_minutes, correction_ops
+from benchmarks.correction_effort import capped_minutes
 from benchmarks.extraction_metrics import LOWER_IS_BETTER, THRESHOLDS, evaluate
 from benchmarks.llm_items import GT_PATH, PLAN, run_stages
 from core.spec.models import Spec
@@ -124,7 +124,7 @@ def run_variant(v: dict, root: Path, base: dict | None, stage_overrides: dict | 
     _, results = run_stages(project, data, f"{v['id']}.jpg", stage_overrides)
     row = {"id": v["id"], "variant": v, "passed": False, "reason": None, "failed_metrics": [], "metrics": {},
            "seconds": round(time.monotonic() - t0, 1), "code": _code(),
-           "correction_min": correction_minutes(correction_ops(None, gt_for(v)))}  # stopped: a full redraw
+           "correction_min": capped_minutes(None, gt_for(v))}  # stopped: a full redraw
     for d, r in results.items():
         if r.get("status") == "failed" or (r.get("status") == "needs_attention" and d in ("01_preprocess", "02_grid")):
             row["reason"] = f"stage {int(d[:2])} {r['status']}: {r.get('message') or ''}".strip()
@@ -139,7 +139,7 @@ def run_variant(v: dict, root: Path, base: dict | None, stage_overrides: dict | 
     row["shift_mm"] = [dx, dy]
     aligned = translate(pred, dx, dy)
     row["metrics"] = {k: v for k, v in evaluate(aligned, gt).items() if k != "passed"}
-    row["correction_min"] = correction_minutes(correction_ops(aligned, gt))
+    row["correction_min"] = capped_minutes(aligned, gt)
     if base is None:
         row["passed"] = True
     else:
