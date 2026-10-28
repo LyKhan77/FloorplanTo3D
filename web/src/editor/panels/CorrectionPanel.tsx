@@ -1,10 +1,11 @@
 import { Button, Dropdown } from '@carbon/react'
 import { useState } from 'react'
-import type { MergeWalls, SetStair } from '../../types/ops'
+import type { SetStair } from '../../types/ops'
 import type { Opening, Spec, Stair, Wall } from '../../types/spec'
 import { distance } from '../lib/measure'
 import type { EditorOp } from '../ops/reducer'
 import { useEditorStore } from '../store'
+import { BulkWalls } from './BulkWalls'
 import { DeleteWithReason } from './DeleteWithReason'
 import { MmInput } from './MmInput'
 
@@ -145,14 +146,19 @@ export function CorrectionPanel() {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
   if (!view) return null
-  if (!selection.length) return <AddWallForm view={view} />
-  const walls = selection.map((id) => view.walls?.find((w) => w.id === id)).filter((w): w is Wall => !!w)
-  if (walls.length >= 2 && walls.length === selection.length) {
+  if (!selection.length) {
     return (
-      <Button size="sm" kind="tertiary"
-        onClick={() => apply({ op: 'merge_walls', ids: walls.map((w) => w.id) as MergeWalls['ids'], reason: 'gabung dinding kolinear' })}>Gabung</Button>
+      <>
+        <Button size="sm" kind="ghost" aria-label="Pilih dinding ragu (< 0.6)"
+          onClick={() => { if (!useEditorStore.getState().selectDoubtfulWalls()) useEditorStore.getState().setNotice({ kind: 'info', text: 'Tidak ada dinding ragu' }) }}>
+          Pilih dinding ragu (&lt; 0.6)
+        </Button>
+        <AddWallForm view={view} />
+      </>
     )
   }
+  const walls = selection.map((id) => view.walls?.find((w) => w.id === id)).filter((w): w is Wall => !!w)
+  if (walls.length >= 2 && walls.length === selection.length) return <BulkWalls walls={walls} />
   if (selection.length !== 1) return null
   const id = selection[0]
   const w = view.walls?.find((x) => x.id === id), d = view.openings?.find((x) => x.id === id), s = view.stairs?.find((x) => x.id === id)
