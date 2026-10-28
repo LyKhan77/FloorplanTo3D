@@ -30,7 +30,8 @@ def _call(job: tuple[Callable, int, dict]) -> dict:
 
 
 def run_sweep(fn: Callable[[int, dict], dict], params_list: list[dict], workers: int | None = None) -> list[dict]:
-    workers = workers or max(1, (os.cpu_count() or 2) - 1)
+    # SWEEP_WORKERS: a caller that already runs drawings in parallel (benchmarks) keeps each sweep in-process
+    workers = workers or int(os.environ.get("SWEEP_WORKERS") or 0) or max(1, (os.cpu_count() or 2) - 1)
     jobs = [(fn, i, p) for i, p in enumerate(params_list)]
     if workers == 1 or len(jobs) == 1:
         return [_call(j) for j in jobs]

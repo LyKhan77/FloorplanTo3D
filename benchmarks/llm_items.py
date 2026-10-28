@@ -37,8 +37,12 @@ T0_FIELDS = ("wall_height", "door_height", "wall_thickness", "floor_name", "site
 
 # --- the Gatsu run ------------------------------------------------------------------------------------------------
 
-def gatsu_stages(cache: Path = CACHE) -> Path:
-    """Stages folder of a stage 0-5 run of plan.jpeg; runs the stages only when the cache is missing."""
+STOP_ON_ATTENTION = ("01_preprocess", "02_grid")  # as the orchestrator: no scale or grid, nothing to extract
+
+
+def run_stages(project: Path, image_bytes: bytes, filename: str, overrides: dict | None = None) -> tuple[Path, dict]:
+    """Stages 0-5 of one image in a fresh project folder, like a dashboard run: (stages folder, result per stage).
+    Stops at a failed stage, or at needs_attention in stage 1-2. `overrides` replaces stage functions (tests)."""
     from core.extraction.stages import (
         stage_extract,
         stage_grid,
@@ -48,21 +52,30 @@ def gatsu_stages(cache: Path = CACHE) -> Path:
         stage_validate,
     )
 
+    st = project / "runs" / "r" / "stages"
+    (project / "input").mkdir(parents=True, exist_ok=True)
+    ext = Path(filename).suffix.lstrip(".").lower().replace("jpeg", "jpg")
+    (project / "input" / f"original.{ext}").write_bytes(image_bytes)
+    (project / "input" / "input.json").write_text(json.dumps({
+        "filename": filename, "sha256": hashlib.sha256(image_bytes).hexdigest(), "prompt": "", "params": {},
+        "page": None, "type": ext}))
+    steps = {"00_input": stage_input, "01_preprocess": stage_preprocess, "02_grid": stage_grid,
+             "03_extract": lambda p, w: stage_extract(p, w, 12), "04_rooms": stage_rooms,
+             "05_validate": lambda p, w: stage_validate(p, w, "r")} | (overrides or {})
+    results = {}
+    for d, fn in steps.items():
+        results[d] = r = fn(project, st / d)
+        if r.get("status") == "failed" or (r.get("status") == "needs_attention" and d in STOP_ON_ATTENTION):
+            break
+    return st, results
+
+
+def gatsu_stages(cache: Path = CACHE) -> Path:
+    """Stages folder of a stage 0-5 run of plan.jpeg; runs the stages only when the cache is missing."""
     st = cache / "runs" / "r" / "stages"
     if (st / "05_validate" / "chosen.json").exists():
         return st
-    data = PLAN.read_bytes()
-    (cache / "input").mkdir(parents=True, exist_ok=True)
-    (cache / "input" / "original.jpg").write_bytes(data)
-    (cache / "input" / "input.json").write_text(json.dumps({
-        "filename": PLAN.name, "sha256": hashlib.sha256(data).hexdigest(), "prompt": "", "params": {}, "page": None,
-        "type": "jpg"}))
-    steps = [("00_input", stage_input), ("01_preprocess", stage_preprocess), ("02_grid", stage_grid),
-             ("03_extract", lambda p, w: stage_extract(p, w, 12)), ("04_rooms", stage_rooms),
-             ("05_validate", lambda p, w: stage_validate(p, w, "r"))]
-    for d, fn in steps:
-        fn(cache, st / d)
-    return st
+    return run_stages(cache, PLAN.read_bytes(), PLAN.name)[0]
 
 
 def candidate_specs(st: Path) -> dict[int, Spec]:

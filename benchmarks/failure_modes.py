@@ -136,14 +136,15 @@ def classify_rooms(gt: Spec, pred: Spec) -> dict:
 
 # --- Gatsu run ----------------------------------------------------------------------------------------------------
 
-def _gatsu_inputs():
+def _gatsu_inputs(cache: Path | None = None):
     from benchmarks.llm_items import CACHE, GT_PATH, gatsu_stages
     from core.extraction.geometry.masks import build_masks
     from core.extraction.preprocess import binarize
     from core.extraction.rooms.overlay import px_from_mm
     from core.spec.store import SpecStore
 
-    st = gatsu_stages(CACHE)
+    run_dir = cache or CACHE
+    st = gatsu_stages(run_dir)
     grid = json.loads((st / "02_grid" / "grid.json").read_text())
     meta = json.loads((st / "01_preprocess" / "meta.json").read_text())
     ocr = json.loads((st / "02_grid" / "ocr.json").read_text())
@@ -162,7 +163,7 @@ def _gatsu_inputs():
                                                               d * (t["bbox"][0] + t["bbox"][2]) / 2 + e * (t["bbox"][1] + t["bbox"][3]) / 2 + f)}
              for t in ocr if t.get("cls") in ("annotation", "proposed")]
     gt = Spec.model_validate_json(GT_PATH.read_text())
-    pred = SpecStore(CACHE / "specs").load("HEAD")
+    pred = SpecStore(run_dir / "specs").load("HEAD")
     return gt, pred, page, binary, m, texts, px_from_mm(grid["px_to_mm"])
 
 
@@ -211,8 +212,14 @@ def report(name: str, metrics: dict, missed: list, false: list, rooms: dict) -> 
 def main(argv: list[str] | None = None) -> dict:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, required=True, help="path prefix, e.g. benchmarks/reports/m7a-baseline")
+    ap.add_argument("--cache", type=Path, default=None, help="Gatsu run folder (default benchmarks/.cache/gatsu)")
+    ap.add_argument("--fresh", action="store_true", help="rerun stages 0-5 with the current code")
     a = ap.parse_args(argv)
-    gt, pred, page, binary, masks, texts, to_px = _gatsu_inputs()
+    if a.fresh and a.cache:
+        import shutil
+
+        shutil.rmtree(a.cache, ignore_errors=True)
+    gt, pred, page, binary, masks, texts, to_px = _gatsu_inputs(a.cache)
     metrics = {k: v for k, v in evaluate(pred, gt).items() if k != "passed"}
     missed = classify_missed(gt, pred, binary, masks["clean"], to_px)
     false = classify_false(pred, gt, masks, texts, to_px)
