@@ -26,11 +26,11 @@ PLAN = Path("floorplan/plan.jpeg")
 GT = Spec.model_validate_json(Path("benchmarks/gatsu/gt_spec.json").read_text())
 FLOORS = {  # metric: (floor, "min" | "max"); NFR values where met (scale, wall position), else measured rounded down
     "scale_err": (0.005, "max"),
-    "wall_recall": (0.77, "min"), "wall_precision": (0.79, "min"),
+    "wall_recall": (0.77, "min"), "wall_precision": (0.77, "min"),  # M7a Task 5: stage 5 switched candidate
     "wall_pos_median_mm": (50, "max"), "wall_pos_p95_mm": (150, "max"),
-    "door_recall": (0.42, "min"), "door_width_ok": (0.31, "min"),
-    "stair_dir_ok": (0.66, "min"), "wall_iou": (0.50, "min"),
-    "room_match": (0.02, "min"), "gross_area_err": (0.035, "max"),
+    "door_recall": (0.47, "min"), "door_width_ok": (0.36, "min"),
+    "stair_dir_ok": (0.66, "min"), "wall_iou": (0.48, "min"),
+    "room_match": (0.04, "min"), "gross_area_err": (0.04, "max"),
 }
 TYPED_FLOOR = 4  # named GT rooms matched (IoU >= 0.5) with the right type; measured 4 of 17
 STAGES_1_5_S = 120

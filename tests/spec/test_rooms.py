@@ -48,3 +48,33 @@ def test_island_inside_room_is_not_a_building_outline():
     rooms, outlines = form_rooms(s)
     assert len(outlines) == 1
     assert len(rooms) == 3  # left (with column hole), right (with ring hole), inside the ring
+
+
+# --- rooms split at sub-passage necks (M7a Task 5) ------------------------------------------------------------------
+
+def test_split_necks_cuts_a_sliver_join():
+    from shapely.geometry import Polygon, box
+
+    from core.spec.rooms import _split_necks
+
+    dumbbell = box(0, 0, 3000, 2000).union(box(3000, 1000, 3500, 1100)).union(box(3500, 0, 6500, 2000))
+    parts = _split_necks(Polygon(dumbbell.exterior))
+    assert len(parts) == 2 and all(p.area > 5_900_000 for p in parts)
+    corridor = box(0, 0, 3000, 2000).union(box(3000, 500, 4000, 1500)).union(box(4000, 0, 7000, 2000))
+    assert len(_split_necks(Polygon(corridor.exterior))) == 1  # a 1 m corridor is a passage
+
+
+def test_band_between_fins_forms_one_room_per_bay():
+    from core.spec.models import Column, Wall
+    from core.spec.rooms import form_rooms
+    from tests.spec.fixtures import two_room_spec
+
+    s = two_room_spec().model_copy(update={"openings": [], "rooms": [], "walls": [
+        Wall(id="W1", a=(0, 0), b=(6000, 0), thickness=200, kind="exterior"),
+        Wall(id="W2", a=(6000, 0), b=(6000, 1500), thickness=200, kind="exterior"),
+        Wall(id="W3", a=(6000, 1500), b=(0, 1500), thickness=200, kind="exterior"),
+        Wall(id="W4", a=(0, 1500), b=(0, 0), thickness=200, kind="exterior")],
+        "columns": [Column(id="C1", center=(2000, 750), shape="rect", size=(400, 1200)),
+                    Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]})
+    rooms, _ = form_rooms(s)  # the fins leave 50 mm to the band lines: three bays, not one room
+    assert len(rooms) == 3

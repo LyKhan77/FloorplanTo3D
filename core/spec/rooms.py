@@ -46,6 +46,25 @@ def _on_mm_grid(poly: SPolygon) -> list[SPolygon]:
     return [poly] if rounded.is_valid else _parts(set_precision(poly, 1.0))
 
 
+NECK_SPLIT_MM = 300  # narrower than any door or passage: free space this thin is a sliver between solids
+
+
+def _split_necks(p: SPolygon) -> list[SPolygon]:
+    """Cut a free-space piece where it narrows below NECK_SPLIT_MM (the sliver between a fin and the band lines,
+    a column set a few cm off a wall): each side of such a neck is its own room. Wider passages are kept."""
+    r = NECK_SPLIT_MM / 2
+    cores = [c for c in _parts(p.buffer(-r, join_style="mitre").buffer(r, join_style="mitre"))
+             if c.area >= MIN_ROOM_AREA_MM2]
+    if len(cores) < 2:
+        return [p]
+    out, taken = [], SPolygon()
+    for c in sorted(cores, key=lambda c: -c.area):  # each core takes back its own edge strip, the neck stays out
+        piece = p.intersection(c.buffer(r, join_style="mitre")).difference(taken)
+        out += [q for q in _parts(piece) if q.area >= MIN_ROOM_AREA_MM2]
+        taken = taken.union(piece)
+    return out or [p]
+
+
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
@@ -56,7 +75,8 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
     interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
-    pieces = [q for p in _parts(interior) for q in _on_mm_grid(p.simplify(0))]  # simplify: collinear vertices
+    pieces = [q for p in _parts(interior) for part in _split_necks(p)
+              for q in _on_mm_grid(part.simplify(0))]  # simplify: collinear vertices
     rooms = [p for p in pieces if p.area >= MIN_ROOM_AREA_MM2 and _aspect(p) <= MAX_ASPECT]
     return rooms, outlines
 
