@@ -22,7 +22,7 @@ import numpy as np
 from benchmarks.correction_effort import capped_minutes
 from benchmarks.extraction_metrics import LOWER_IS_BETTER, THRESHOLDS, evaluate
 from benchmarks.llm_items import run_stages
-from benchmarks.run_augment_bench import SUMMARY_KEYS, absolute_means, best_shift, translate
+from benchmarks.run_augment_bench import SUMMARY_KEYS, absolute_means, best_shift
 from benchmarks.synth.perturb import draw_ops, load_base, no_ops, perturb
 from benchmarks.synth.render import render
 from core.spec.store import SpecStore
@@ -48,6 +48,14 @@ def variants(n: int = 20) -> list[dict]:
         [{"id": f"s{i:02d}", "seed": i, "ops": draw_ops(base, np.random.default_rng(i))} for i in range(1, n + 1)]
 
 
+def score(pred, gt) -> dict:
+    """Metrics in the variant's own frame (stage 2 reads it from axis A and the bottom axis, as the GT is drawn).
+    best_shift is reported only: a non-zero shift is a finding (a frame or a wall-face error), not a correction."""
+    return {"metrics": {k: m for k, m in evaluate(pred, gt).items() if k != "passed"},
+            "shift_mm": list(best_shift(pred, gt)),
+            "correction_min": capped_minutes(pred, gt), "correction_min_bulk": capped_minutes(pred, gt, bulk=True)}
+
+
 def run_variant(v: dict, root: Path, stage_overrides: dict | None = None) -> dict:
     """One variant from scratch in root/<id>; a stage that stops the run, or no saved spec, fails the variant."""
     project = root / v["id"]
@@ -71,13 +79,7 @@ def run_variant(v: dict, root: Path, stage_overrides: dict | None = None) -> dic
         if head is None:
             row["reason"] = f"stage 5 {results.get('05_validate', {}).get('status')}: no spec saved"
         else:
-            pred = SpecStore(project / "specs").load(head)
-            dx, dy = best_shift(pred, gt)
-            aligned = translate(pred, dx, dy)
-            row["shift_mm"] = [dx, dy]
-            row["metrics"] = {k: m for k, m in evaluate(aligned, gt).items() if k != "passed"}
-            row["correction_min"] = capped_minutes(aligned, gt)
-            row["correction_min_bulk"] = capped_minutes(aligned, gt, bulk=True)
+            row |= score(SpecStore(project / "specs").load(head), gt)
             row["passed"], row["failed_metrics"] = target_pass(row["metrics"])
             if not row["passed"]:
                 row["reason"] = "below 80% of target: " + ", ".join(row["failed_metrics"])
@@ -116,7 +118,7 @@ def markdown(name: str, rows: list[dict]) -> str:
              (f"Metrik yang paling sering gagal: {', '.join(f'{k} ({n})' for k, n in fails.most_common(6)) or '—'}. "
               f"Run yang berhenti: {', '.join(f'{k} ({n})' for k, n in stops.most_common()) or '—'}."), "",
              "| Varian | perubahan | lolos | " + " | ".join(SUMMARY_KEYS)
-             + " | koreksi (menit) | koreksi massal (menit) | geser (mm) | s | alasan |",
+             + " | koreksi (menit) | koreksi massal (menit) | geser terbaik (mm, diagnostik) | s | alasan |",
              "|" + "---|" * (8 + len(SUMMARY_KEYS))]
     for r in rows:
         m = r["metrics"]

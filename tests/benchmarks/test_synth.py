@@ -210,3 +210,64 @@ def test_stopped_variant_fails_with_reason(base, tmp_path):
     assert row["passed"] is False and "stage 2 failed" in row["reason"]
     assert row["correction_min"] == capped_minutes(None, gt)
     assert (tmp_path / "s01" / "input.png").exists()
+
+
+# --- final review fixes -----------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("seed", range(1, 6))
+def test_seed_alone_gives_the_benchmarked_variant(base, seed):
+    """Final review I1: tests that call perturb(base, seed) check the same GT the runner scores."""
+    from benchmarks.synth.perturb import draw_ops
+
+    a, _ = perturb(base, seed)
+    b, _ = perturb(base, seed, draw_ops(base, np.random.default_rng(seed)))
+    assert a.model_dump() == b.model_dump()
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_redrawn_door_types_fit_the_width(base, seed):
+    """Final review I2: leaves stay within PRD/04 §3.4's 500-1300 mm arc radius."""
+    s, _ = perturb(base, seed)
+    for o in s.openings:
+        if o.door_type == "double_swing":
+            assert o.width / 2 >= 500, o
+        if o.door_type == "single_swing":
+            assert o.width <= 1300, o
+
+
+def _stair_in_walls(spec):
+    from shapely.ops import unary_union
+
+    from core.spec.derive import wall_footprint
+
+    walls = unary_union([wall_footprint(w, spec) for w in spec.walls])
+    flights = unary_union([LineString([f.start, f.end]).buffer(f.width / 2, cap_style="flat")
+                           for st in spec.stairs for f in st.flights])
+    return flights.intersection(walls).area
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_stair_shift_never_pushes_treads_into_walls(base, seed):
+    """Final review I3: the stair shift never pushes treads further into walls, and no added partition crosses it."""
+    from benchmarks.synth.perturb import draw_ops
+
+    ops = draw_ops(base, np.random.default_rng(seed))
+    s, _ = perturb(base, seed, ops)
+    unshifted, _ = perturb(base, seed, ops | {"stair_shift": (0, 0)})
+    assert _stair_in_walls(s) <= _stair_in_walls(unshifted) + 1  # the shift itself adds no overlap
+    assert _stair_in_walls(s) <= 1.25 * _stair_in_walls(base)  # bays stretch flights a little, no more
+    flights = [LineString([f.start, f.end]).buffer(f.width / 2) for st in s.stairs for f in st.flights]
+    new = [w for w in s.walls if w.id not in {g.id for g in base.walls}]
+    assert not any(LineString([w.a, w.b]).intersects(f) for w in new for f in flights)
+
+
+def test_scoring_uses_the_known_frame(base):
+    """Final review I6: the variant's frame is known, so a 100 mm offset is scored, and the best shift is only
+    reported."""
+    from benchmarks.run_augment_bench import translate
+    from benchmarks.run_synth_bench import score
+
+    gt, _ = perturb(base, 0, no_ops(base))
+    out = score(translate(gt, 0, 100), gt)
+    assert out["metrics"]["wall_pos_median_mm"] >= 90
+    assert out["shift_mm"] == [0, -100]

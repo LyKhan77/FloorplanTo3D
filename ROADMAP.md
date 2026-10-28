@@ -589,19 +589,24 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 **Status M7b (2026-10-28), branch `m7b-synthetic`** (plan `docs/superpowers/plans/2026-10-28-m7b-synthetic-plans.md`, laporan `benchmarks/reports/m7b-final.md`):
 - **Alat:**
-  - `benchmarks/synth/perturb.py`: GT Gatsu diubah acak per seed (bay 0.75×–1.25×, cermin, −/+ partisi, tipe pintu, geser tangga), lalu ruang dibentuk ulang dari dinding dengan label GT;
+  - `benchmarks/synth/perturb.py`: GT Gatsu diubah acak per seed (bay 0.75×–1.25×, cermin, −/+ partisi, tipe pintu sesuai lebarnya, geser tangga yang tidak masuk ke dinding), lalu ruang dibentuk ulang dari dinding dengan label GT;
   - `benchmarks/synth/render.py`: render bergaya CAD (garis ganda, busur pintu, bulatan grid, rantai dimensi, anotasi MEP, panel terisi);
-  - `benchmarks/run_synth_bench.py`: stage 0–5 per varian, dinilai terhadap GT varian.
+  - `benchmarks/run_synth_bench.py`: stage 0–5 per varian, dinilai terhadap GT varian di frame-nya sendiri.
 - **Hasil (21 varian):** **lolos 0/20** terhadap "≥ 80 % target NFR" (target ≥ 70 % varian belum tercapai; tidak memblokir MVP).
   - Grid dan skala selalu terbaca benar (galat ≤ 0.06 %).
-  - Rata-rata: `wall_recall` 0.87, `wall_precision` 0.90, `door_recall` 0.36, `room_match` 0.05.
-  - Menit koreksi massal rata-rata 14.8 (13/20 varian ≤ 15).
+  - Rata-rata: `wall_recall` 0.87, `wall_precision` 0.93, `door_recall` 0.36, `room_match` 0.04.
+  - Menit koreksi massal rata-rata 14.6 (14/20 varian ≤ 15).
 - **Mode gagal teratas:**
-  - ruang menyatu lewat celah pintu (7–27 ruang vs 44–50);
+  - ruang menyatu lewat celah pintu (12–32 ruang vs 44–50);
   - pintu terlewat;
   - stage 5 memilih S1 alih-alih S2 pada 3/20 varian;
-  - kontur bangunan pecah menjadi dua massa pada 2/20 varian.
-- **Suite:** pytest 564 passed, 3 xfailed (tanpa `strata`); ruff bersih.
+  - kontur bangunan pecah atau menyusut pada 7/20 varian.
+- **Review akhir:** 3 Important ditambah 1 Minor yang dinaikkan, semuanya diperbaiki:
+  - test dan runner kini memakai GT varian yang sama;
+  - tipe pintu cocok dengan lebarnya;
+  - geser tangga tidak menambah tumpang tindih dengan dinding, dan partisi tidak memotong tangga;
+  - metrik dihitung tanpa geser penyelarasan.
+- **Suite:** pytest 610 passed, 3 xfailed (tanpa `strata`); ruff bersih.
 - **Batasan R-19:** gaya render adalah asumsi kita sendiri, dan lebih bersih daripada `plan.jpeg` (`s00`: recall 0.90 vs 0.77).
 
 ### Tugas — Deploy

@@ -10,8 +10,9 @@ from pathlib import Path
 
 import numpy as np
 from shapely.geometry import LineString, Point, Polygon
+from shapely.ops import unary_union
 
-from core.spec.derive import column_footprint, endpoint_connected
+from core.spec.derive import column_footprint, endpoint_connected, wall_footprint
 from core.spec.ids import take_id
 from core.spec.models import Spec, Wall
 from core.spec.rooms import RoomLabel, rebuild_rooms
@@ -19,6 +20,7 @@ from core.spec.rooms import RoomLabel, rebuild_rooms
 GT_PATH = Path("benchmarks/gatsu/gt_spec.json")
 SWING_TYPES = ("single_swing", "double_swing", "sliding")
 NEW_WALL_MM = 100
+LEAF_MIN_MM, LEAF_MAX_MM = 500, 1300
 END_MARGIN_MM = 50  # V008: an opening keeps 50 mm from each wall end
 MIN_SPLIT_ROOM_MM2 = 15_000_000
 
@@ -100,6 +102,16 @@ def _apply_bays(s: Spec, labels: list[RoomLabel], bays: list[int]) -> list[RoomL
     move = {**{("vertical", o): n for o, n in zip(ov, nv)}, **{("horizontal", o): n for o, n in zip(oh, nh)}}
     for a in s.grid.axes:
         a.offset = int(move[(a.orientation, a.offset)])
+    # a narrower bay narrows the stair across its flights too, or the treads run into the walls around them
+    for st in s.stairs:
+        for f in st.flights:
+            mid = ((f.start[0] + f.end[0]) / 2, (f.start[1] + f.end[1]) / 2)
+            across, fn = (0, fx) if abs(f.end[1] - f.start[1]) >= abs(f.end[0] - f.start[0]) else (1, fy)
+            half = f.width / 2
+            lo, hi = list(mid), list(mid)
+            lo[across] -= half
+            hi[across] += half
+            f.width = round(min(f.width, fn(hi[across]) - fn(lo[across])))
     return _remap(s, labels, lambda q: (fx(q[0]), fy(q[1])))
 
 
@@ -191,13 +203,36 @@ def _door_types(s: Spec, n: int, rng: np.random.Generator) -> None:
     doors = [o for o in s.openings if o.category == "door" and o.door_type in SWING_TYPES]
     for i in rng.permutation(len(doors))[:n]:
         o = doors[int(i)]
-        o.door_type = str(rng.choice(SWING_TYPES))
+        # a type the width allows: swing leaves of 500-1300 mm (PRD/04 §3.4)
+        fits = [t for t, ok in (("single_swing", o.width <= LEAF_MAX_MM), ("double_swing", o.width / 2 >= LEAF_MIN_MM),
+                                ("sliding", True)) if ok]
+        o.door_type = str(rng.choice(fits))
         if o.door_type == "double_swing":
             o.hinge, o.swing = "both", o.swing or "left"
         elif o.door_type == "single_swing":
             o.hinge, o.swing = str(rng.choice(["start", "end"])), o.swing or "left"
         else:
             o.hinge, o.swing = None, None
+
+
+def _stair_in_walls(s: Spec) -> float:
+    walls = unary_union([wall_footprint(w, s) for w in s.walls])
+    flights = unary_union([LineString([f.start, f.end]).buffer(f.width / 2, cap_style="flat")
+                           for st in s.stairs for f in st.flights])
+    return flights.intersection(walls).area
+
+
+def _shift_stairs_clear(s: Spec, dx: int, dy: int) -> tuple[int, int]:
+    """The largest of the shift, half of it, a quarter of it, or none, that does not push treads further into walls."""
+    before = _stair_in_walls(s)
+    for k in (1, 0.5, 0.25):
+        step = (round(dx * k / 50) * 50, round(dy * k / 50) * 50)
+        trial = s.model_copy(deep=True)
+        _shift_stairs(trial, *step)
+        if _stair_in_walls(trial) <= before + 1:
+            _shift_stairs(s, *step)
+            return step
+    return 0, 0
 
 
 def _shift_stairs(s: Spec, dx: int, dy: int) -> None:
@@ -208,8 +243,8 @@ def _shift_stairs(s: Spec, dx: int, dy: int) -> None:
 
 
 def perturb(base: Spec, seed: int, ops: dict | None = None) -> tuple[Spec, dict]:
-    rng = np.random.default_rng(seed)
-    ops = ops or draw_ops(base, rng)
+    ops = ops or draw_ops(base, np.random.default_rng(seed))
+    rng = np.random.default_rng(seed)  # the same choices whether the ops were passed in or drawn here
     s = base.model_copy(deep=True)
     labels = [RoomLabel(at=tuple(r.label_pos), name=r.name, type=r.type) for r in s.rooms if r.label_pos]
     if ops["bays"] != _bays(base):
@@ -217,10 +252,11 @@ def perturb(base: Spec, seed: int, ops: dict | None = None) -> tuple[Spec, dict]
     if ops["mirror"]:
         labels = _mirror(s, labels)
     _drop_partitions(s, ops["drop_partitions"], rng)
+    shifted = _shift_stairs_clear(s, *ops["stair_shift"])  # before partitions, which must not cross the stair
     s.meta.id_seq["R"] = 0
     s = _add_partitions(s, labels, ops["add_partitions"], rng)
     _door_types(s, ops["door_types"], rng)
-    _shift_stairs(s, *ops["stair_shift"])
     s.meta.id_seq["R"] = 0
     added = sum(w.id not in {b.id for b in base.walls} for w in s.walls)  # a room may have had no clean split
-    return rebuild_rooms(s.model_copy(update={"rooms": []}), labels), ops | {"added_partitions": added}
+    return (rebuild_rooms(s.model_copy(update={"rooms": []}), labels),
+            ops | {"added_partitions": added, "stair_shifted": shifted})
