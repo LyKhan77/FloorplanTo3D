@@ -26,7 +26,7 @@ PLAN = Path("floorplan/plan.jpeg")
 GT = Spec.model_validate_json(Path("benchmarks/gatsu/gt_spec.json").read_text())
 FLOORS = {  # metric: (floor, "min" | "max"); NFR values where met (scale, wall position), else measured rounded down
     "scale_err": (0.005, "max"),
-    "wall_recall": (0.76, "min"), "wall_precision": (0.79, "min"),
+    "wall_recall": (0.77, "min"), "wall_precision": (0.79, "min"),
     "wall_pos_median_mm": (50, "max"), "wall_pos_p95_mm": (150, "max"),
     "door_recall": (0.42, "min"), "door_width_ok": (0.31, "min"),
     "stair_dir_ok": (0.66, "min"), "wall_iou": (0.50, "min"),

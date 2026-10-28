@@ -47,7 +47,9 @@ def pair_strokes(strokes: list[dict], s: float, t_min_mm: float, t_max_mm: float
             if not t_min_mm / s <= g <= t_max_mm / s:
                 continue
             overlap = min(p["b"], q["b"]) - max(p["a"], q["a"])
-            if overlap >= MIN_OVERLAP_FRAC * min(p["b"] - p["a"], q["b"] - q["a"]):
+            # faces broken at different places overlap only in part: an absolute overlap of one minimum wall
+            # length makes them candidates; the per-interval assignment below still takes nearest gaps first
+            if overlap >= MIN_OVERLAP_FRAC * min(p["b"] - p["a"], q["b"] - q["a"]) or overlap * s >= MIN_WALL_MM:
                 cands.append((g, p["c"], p["a"], i, j))
     walls = []
     for g, _, _, i, j in sorted(cands):

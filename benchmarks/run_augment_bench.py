@@ -172,6 +172,20 @@ def robustness_score(rows: list[dict]) -> float:
     return sum((1 - len(r["failed_metrics"]) / n) if r["metrics"] and n else 0.0 for r in rest) / len(rest)
 
 
+MEAN_KEYS = ("wall_recall", "wall_precision", "wall_iou", "door_recall", "room_match", "gross_area_err")
+
+
+def absolute_means(rows: list[dict]) -> dict[str, float]:
+    """Mean of each metric over all variants (a00 included); a stopped run counts as the worst value (0, or 1 for
+    gross_area_err). The M7a gate: unlike the relative score, it does not penalise a better a00."""
+    out = {}
+    for k in MEAN_KEYS:
+        worst = 1.0 if k in LOWER_IS_BETTER else 0.0
+        vals = [r["metrics"][k] if r["metrics"] and r["metrics"].get(k) is not None else worst for r in rows]
+        out[k] = round(sum(vals) / len(vals), 4) if vals else worst
+    return out
+
+
 def _factor(v: dict) -> str:
     diff = [k for k in ("scale", "jpeg_q", "rotate_deg", "margin_px", "blur", "noise") if v[k] != IDENTITY[k]]
     return f"{diff[0]}={v[diff[0]]}" if len(diff) == 1 else "kombinasi" if diff else "identitas"
@@ -188,6 +202,8 @@ def markdown(name: str, rows: list[dict]) -> str:
     stops = Counter(r["reason"].split(":")[0] for r in rest if r["reason"] and not r["failed_metrics"])
     lines = [f"# Set augmentasi — {name}", "", (f"**Skor ketahanan: {robustness_score(rows):.3f}** (rata-rata porsi metrik "
              "yang ≥ 0.9 × a00 per varian; run yang berhenti = 0)."), "",
+             "**Rata-rata absolut (gerbang M7a, run berhenti = nilai terburuk):** "
+             + ", ".join(f"{k} {v:.4f}" for k, v in absolute_means(rows).items()), "",
              (f"**Lolos: {sum(r['passed'] for r in rest)}/{len(rest)} varian ({rate:.0%})** (a00 = gambar asli, pembanding; "
              "lolos = setiap metrik ≥ 0.9 × a00, atau ≤ a00 / 0.9 untuk metrik lower-is-better)."), "",
              (f"Metrik yang paling sering gagal: {', '.join(f'{k} ({n})' for k, n in fails.most_common(6)) or '—'}. "
@@ -234,7 +250,7 @@ def main(argv: list[str] | None = None) -> list[dict]:
     a.out.with_suffix(".md").write_text(markdown(a.out.name, ordered))
     rest = [r for r in ordered if r["id"] != "a00"]
     print(json.dumps({"passed": sum(r["passed"] for r in rest), "of": len(rest),
-                      "score": round(robustness_score(ordered), 3)}))
+                      "score": round(robustness_score(ordered), 3), "means": absolute_means(ordered)}))
     return ordered
 
 

@@ -44,3 +44,20 @@ def test_thick_unpaired_line_is_partition():
     part = [w for w in walls if w["orient"] == "h"]
     assert len(part) == 1 and part[0]["c"] == 300 and part[0]["thickness_mm"] == 100
     assert part[0]["evidence"]["unpaired"] is True
+
+
+# --- fragmented double lines (M7a Task 4) ---------------------------------------------------------------------------
+
+def test_fragmented_faces_pair_into_one_wall():
+    # both faces drawn, broken at different places (Gatsu W53): no pair of pieces overlaps 60% of the shorter one
+    strokes = [st("h", 100, 224, 611), st("h", 100, 622, 741), st("h", 112, 280, 524), st("h", 112, 553, 667)]
+    walls = s2_walls(strokes, S, 80, 450)
+    assert len(walls) == 1 and walls[0]["c"] == pytest.approx(106)
+    assert walls[0]["a"] <= 280 and walls[0]["b"] >= 667
+
+
+def test_two_adjacent_partitions_stay_two_walls():
+    strokes = [st("v", 100, 0, 300), st("v", 108, 0, 300), st("v", 128, 0, 300), st("v", 136, 0, 300)]
+    walls = s2_walls(strokes, S, 80, 450)
+    assert sorted(round(w["c"]) for w in walls) == [104, 132]
+

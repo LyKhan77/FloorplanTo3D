@@ -2,6 +2,8 @@
 
 **Skor ketahanan: 0.432** (rata-rata porsi metrik yang ≥ 0.9 × a00 per varian; run yang berhenti = 0).
 
+**Rata-rata absolut (gerbang M7a, run berhenti = nilai terburuk):** wall_recall 0.4912, wall_precision 0.5521, wall_iou 0.3096, door_recall 0.2579, room_match 0.0104, gross_area_err 0.6377
+
 **Lolos: 0/29 varian (0%)** (a00 = gambar asli, pembanding; lolos = setiap metrik ≥ 0.9 × a00, atau ≤ a00 / 0.9 untuk metrik lower-is-better).
 
 Metrik yang paling sering gagal: gross_area_err (22), door_dir_ok (21), stair_dir_ok (19), stair_risers_ok (19), door_width_ok (17), room_match (14). Run yang berhenti: stage 2 needs_attention (2), stage 4 failed (1).

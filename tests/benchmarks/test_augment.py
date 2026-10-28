@@ -108,3 +108,14 @@ def test_robustness_score():
             {"id": "a01", "metrics": {"wall_recall": 0.8}, "failed_metrics": ["wall_precision"]},
             {"id": "a02", "metrics": {}, "failed_metrics": []}]  # stopped run
     assert robustness_score(rows) == (0.5 + 0.0) / 2
+
+
+def test_absolute_means_count_stopped_runs_as_worst():
+    from benchmarks.run_augment_bench import absolute_means
+
+    rows = [{"id": "a00", "metrics": {"wall_recall": 0.8, "gross_area_err": 0.1}},
+            {"id": "a01", "metrics": {"wall_recall": 0.4, "gross_area_err": 0.3}},
+            {"id": "a02", "metrics": {}}]  # stopped
+    m = absolute_means(rows)
+    assert m["wall_recall"] == pytest.approx(0.4, abs=1e-4)
+    assert m["gross_area_err"] == pytest.approx((0.1 + 0.3 + 1.0) / 3, abs=1e-4)
