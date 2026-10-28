@@ -4,13 +4,15 @@ import { useEffect } from 'react'
 import { Plane, Raycaster, Vector2, Vector3 } from 'three'
 import { fromThree, toThree } from '../lib/coords'
 import { roundHalfEven } from '../lib/geom'
+import { ignoredTarget } from '../lib/keys'
 import { gridIntersections, nearestSnap } from '../lib/measure'
 import { useEditorStore } from '../store'
 
 const floor = new Plane(new Vector3(0, 1, 0), 0)
 type Pt = [number, number]
 
-/** Top mode: two clicks fill the add-wall draft (snap to grid crossings and wall ends within 10 px, else 100 mm). */
+/** Top mode: two clicks fill the add-wall draft (snap to grid crossings and wall ends within 10 px, else 100 mm);
+ * Enter adds the wall and starts the next at its end, Esc stops. */
 export function AddWallTool() {
   const { gl, camera } = useThree()
   const draft = useEditorStore((s) => s.wallDraft)
@@ -36,9 +38,11 @@ export function AddWallTool() {
       s.setWallDraft(!d.a || d.b ? { a: p } : { ...d, b: p })
     }
     const key = (e: KeyboardEvent) => {
+      const s = useEditorStore.getState()
+      if (e.key === 'Enter' && !ignoredTarget(e.target as Element | null)) s.commitWallDraft()
       if (e.key !== 'Escape') return
-      useEditorStore.getState().setWallDraft({})
-      useEditorStore.getState().setTool('select')
+      s.setWallDraft({})
+      s.setTool('select')
     }
     el.addEventListener('click', click)
     window.addEventListener('keydown', key)

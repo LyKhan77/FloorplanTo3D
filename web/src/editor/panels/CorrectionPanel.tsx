@@ -1,7 +1,7 @@
 import { Button, Dropdown } from '@carbon/react'
 import { useState } from 'react'
 import type { SetStair } from '../../types/ops'
-import type { Opening, Spec, Stair, Wall } from '../../types/spec'
+import type { Opening, Stair, Wall } from '../../types/spec'
 import { distance } from '../lib/measure'
 import type { EditorOp } from '../ops/reducer'
 import { useEditorStore } from '../store'
@@ -102,11 +102,11 @@ function StairForm({ s }: { s: Stair }) {
   )
 }
 
-function AddWallForm({ view }: { view: Spec }) {
+function AddWallForm() {
   const draft = useEditorStore((s) => s.wallDraft)
   const setDraft = useEditorStore((s) => s.setWallDraft)
-  const [thickness, setThickness] = useState(view.meta.defaults?.wall_thickness ?? 150)
-  const [kind, setKind] = useState<(typeof KINDS)[number]>('partition')
+  const spec = useEditorStore((s) => s.wallSpec)
+  const setSpec = useEditorStore((s) => s.setWallSpec)
   const pt = (k: 'a' | 'b', i: 0 | 1, v: number) => {
     const p = [...(draft[k] ?? [0, 0])] as Pt
     p[i] = v
@@ -119,22 +119,18 @@ function AddWallForm({ view }: { view: Spec }) {
       <Button size="sm" kind="ghost" onClick={() => { const s = useEditorStore.getState(); s.setMode('top'); s.setTool('add-wall') }}>
         Klik dua titik
       </Button>
+      <p className="helper">Enter: simpan dan lanjut dari titik akhir · Esc: berhenti</p>
       <div className="editor-grid2">
         <MmInput id="aw-ax" label="a.x (mm)" value={a?.[0]} min={-FAR} max={FAR} onCommit={(v) => pt('a', 0, v)} />
         <MmInput id="aw-ay" label="a.y (mm)" value={a?.[1]} min={-FAR} max={FAR} onCommit={(v) => pt('a', 1, v)} />
         <MmInput id="aw-bx" label="b.x (mm)" value={b?.[0]} min={-FAR} max={FAR} onCommit={(v) => pt('b', 0, v)} />
         <MmInput id="aw-by" label="b.y (mm)" value={b?.[1]} min={-FAR} max={FAR} onCommit={(v) => pt('b', 1, v)} />
       </div>
-      <MmInput id="aw-t" label="Tebal dinding baru (mm)" value={thickness} min={10} max={2000} onCommit={setThickness} />
-      <Dropdown id="aw-kind" titleText="Kind dinding baru" label="Kind" size="sm" items={[...KINDS]} selectedItem={kind}
-        onChange={({ selectedItem }) => setKind(selectedItem ?? 'partition')} />
+      <MmInput id="aw-t" label="Tebal dinding baru (mm)" value={spec.thickness} min={10} max={2000} onCommit={(thickness) => setSpec({ ...spec, thickness })} />
+      <Dropdown id="aw-kind" titleText="Kind dinding baru" label="Kind" size="sm" items={[...KINDS]} selectedItem={spec.kind}
+        onChange={({ selectedItem }) => setSpec({ ...spec, kind: selectedItem ?? 'partition' })} />
       <Button size="sm" kind="tertiary" disabled={!a || !b || (a[0] === b[0] && a[1] === b[1])}
-        onClick={() => {
-          if (apply({ op: 'add_wall', a: a!, b: b!, thickness, kind })) {
-            setDraft({})
-            useEditorStore.getState().setTool('select')
-          }
-        }}>
+        onClick={() => useEditorStore.getState().commitWallDraft()}>
         Tambah dinding
       </Button>
     </>
@@ -153,7 +149,7 @@ export function CorrectionPanel() {
           onClick={() => { if (!useEditorStore.getState().selectDoubtfulWalls()) useEditorStore.getState().setNotice({ kind: 'info', text: 'Tidak ada dinding ragu' }) }}>
           Pilih dinding ragu (&lt; 0.6)
         </Button>
-        <AddWallForm view={view} />
+        <AddWallForm />
       </>
     )
   }

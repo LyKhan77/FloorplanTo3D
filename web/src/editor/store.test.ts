@@ -127,4 +127,30 @@ describe('useEditorStore', () => {
     st().markSaved(saved)
     expect(st()).toMatchObject({ ops: [], past: [], future: [], baseVersion: 2, base: saved, view: saved })
   })
+
+  describe('commitWallDraft', () => {
+    it('adds the wall and starts the next one at b', () => {
+      st().setTool('add-wall')
+      st().setWallDraft({ a: [0, 0], b: [3000, 0] })
+      expect(st().commitWallDraft()).toBe(true)
+      expect(st().view!.walls!.at(-1)).toMatchObject({ a: [0, 0], b: [3000, 0], thickness: gt.meta.defaults!.wall_thickness, kind: 'partition' })
+      expect(st().wallDraft).toEqual({ a: [3000, 0] })
+      expect(st().tool).toBe('add-wall')
+    })
+
+    it('no op for a zero-length or half draft', () => {
+      st().setWallDraft({ a: [5, 5], b: [5, 5] })
+      expect(st().commitWallDraft()).toBe(false)
+      st().setWallDraft({ a: [5, 5] })
+      expect(st().commitWallDraft()).toBe(false)
+      expect(st().ops).toEqual([])
+    })
+
+    it('uses the chosen thickness and kind', () => {
+      st().setWallSpec({ thickness: 200, kind: 'exterior' })
+      st().setWallDraft({ a: [0, 0], b: [0, 4000] })
+      st().commitWallDraft()
+      expect(st().ops).toEqual([{ op: 'add_wall', a: [0, 0], b: [0, 4000], thickness: 200, kind: 'exterior' }])
+    })
+  })
 })

@@ -76,6 +76,14 @@ describe('CorrectionPanel', () => {
     type('b.y (mm)', '0')
     fireEvent.click(screen.getByRole('button', { name: 'Tambah dinding' }))
     expect(st().ops).toEqual([{ op: 'add_wall', a: [0, 0], b: [3000, 0], thickness: gt.meta.defaults!.wall_thickness, kind: 'partition' }])
+    // chained: the next wall starts at b and the tool stays on
+    expect(st().wallDraft).toEqual({ a: [3000, 0] })
+  })
+
+  it('new-wall thickness and kind live in the store', () => {
+    render(<CorrectionPanel />)
+    type('Tebal dinding baru (mm)', '250')
+    expect(st().wallSpec).toEqual({ thickness: 250, kind: 'partition' })
   })
 
   it('editing a wall created by split shows the save-first notice', () => {

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Template } from '../api/types'
-import type { Spec } from '../types/spec'
+import type { Spec, Wall } from '../types/spec'
 import { pushOp } from './ops/compose'
 import { allIds } from './ops/ids'
 import { applyOps, type EditorOp, type OpFailure } from './ops/reducer'
@@ -48,6 +48,7 @@ interface EditorState {
   dragging: Template | null
   gizmo: Gizmo
   wallDraft: { a?: [number, number]; b?: [number, number] }
+  wallSpec: { thickness: number; kind: Wall['kind'] }
   focus: [number, number] | null
   saving: boolean
   load(projectId: string, spec: Spec): void
@@ -76,6 +77,8 @@ interface EditorState {
   setDragging(t: Template | null): void
   setGizmo(g: Gizmo): void
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
+  setWallSpec(w: { thickness: number; kind: Wall['kind'] }): void
+  commitWallDraft(): boolean
   setFocus(p: [number, number] | null): void
   takeFocus(): [number, number] | null
   setSaving(on: boolean): void
@@ -114,9 +117,11 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, focus: null, saving: false,
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, wallSpec: { thickness: 150, kind: 'partition' }, focus: null,
+    saving: false,
 
-    load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {} }),
+    load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {},
+      wallSpec: { thickness: spec.meta.defaults?.wall_thickness ?? 150, kind: 'partition' } }),
     apply: (op) => get().applyMany([op]),
     applyMany: (list) => {
       const { base, saving } = get()
@@ -180,6 +185,15 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setDragging: (dragging) => set({ dragging }),
     setGizmo: (gizmo) => set({ gizmo }),
     setWallDraft: (wallDraft) => set({ wallDraft }),
+    setWallSpec: (wallSpec) => set({ wallSpec }),
+    commitWallDraft: () => {
+      const { wallDraft: { a, b }, wallSpec, apply } = get()
+      if (!a || !b || (a[0] === b[0] && a[1] === b[1])) return false
+      if (!apply({ op: 'add_wall', a, b, ...wallSpec })) return false
+      // chained drawing: the next wall starts where this one ended
+      set({ wallDraft: { a: b } })
+      return true
+    },
     setFocus: (focus) => set({ focus }),
     setSaving: (saving) => set({ saving }),
     takeFocus: () => {
