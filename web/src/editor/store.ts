@@ -57,7 +57,6 @@ interface EditorState {
   undo(): void
   redo(): void
   select(ids: string[], additive?: boolean): void
-  selectDoubtfulWalls(threshold?: number): number
   setTool(tool: Tool): void
   setMode(mode: Mode): void
   toggleLayer(layer: Layer): void
@@ -153,13 +152,6 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       set({ ...derived(base, future[0], selection), past: [...past, ops], future: future.slice(1) })
     },
     select: (ids, additive) => set((s) => ({ selection: additive ? [...new Set([...s.selection, ...ids])] : ids })),
-    selectDoubtfulWalls: (threshold = 0.6) => {
-      // only the extractor's own guesses: an edited wall is a person's decision
-      const ids = (get().view?.walls ?? [])
-        .filter((w) => w.provenance?.source === 'cv' && (w.provenance.confidence ?? 1) < threshold).map((w) => w.id)
-      set({ selection: ids })
-      return ids.length
-    },
     setTool: (tool) => set({ tool }),
     setMode: (mode) => set({ mode }),
     toggleLayer: (layer) => set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),

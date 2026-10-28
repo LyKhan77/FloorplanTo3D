@@ -142,17 +142,7 @@ export function CorrectionPanel() {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
   if (!view) return null
-  if (!selection.length) {
-    return (
-      <>
-        <Button size="sm" kind="ghost" aria-label="Pilih dinding ragu (< 0.6)"
-          onClick={() => { if (!useEditorStore.getState().selectDoubtfulWalls()) useEditorStore.getState().setNotice({ kind: 'info', text: 'Tidak ada dinding ragu' }) }}>
-          Pilih dinding ragu (&lt; 0.6)
-        </Button>
-        <AddWallForm />
-      </>
-    )
-  }
+  if (!selection.length) return <AddWallForm />
   const walls = selection.map((id) => view.walls?.find((w) => w.id === id)).filter((w): w is Wall => !!w)
   if (walls.length >= 2 && walls.length === selection.length) return <BulkWalls walls={walls} />
   if (selection.length !== 1) return null

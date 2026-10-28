@@ -9,16 +9,6 @@ const gt = gtJson as unknown as Spec
 const st = () => useEditorStore.getState()
 const ids = () => st().view!.walls!.map((w) => w.id)
 
-function spec(): Spec {
-  const s = structuredClone(gt)
-  const prov = { W1: ['cv', 0.3], W2: ['cv', 0.5], W3: ['cv', 0.8], W4: ['editor', 0.2] } as const
-  for (const w of s.walls!) {
-    const p = prov[w.id as keyof typeof prov]
-    if (p) w.provenance = { source: p[0], confidence: p[1] }
-  }
-  return s
-}
-
 function deleteSelected(name: string) {
   render(<CorrectionPanel />)
   fireEvent.click(screen.getByRole('combobox', { name: /Alasan hapus/ }))
@@ -27,7 +17,7 @@ function deleteSelected(name: string) {
 }
 
 describe('BulkWalls', () => {
-  beforeEach(() => st().load('p1', spec()))
+  beforeEach(() => st().load('p1', gt))
 
   it('deletes every selected wall in one undo step', () => {
     act(() => st().select(['W1', 'W2']))
@@ -48,16 +38,5 @@ describe('BulkWalls', () => {
     act(() => st().select(['W1', 'W2', 'R1']))
     render(<CorrectionPanel />)
     expect(screen.queryByRole('button', { name: /Hapus \d+ dinding/ })).toBeNull()
-  })
-
-  it('selectDoubtfulWalls picks cv walls under 0.6 only', () => {
-    expect(st().selectDoubtfulWalls()).toBe(2)
-    expect(st().selection).toEqual(['W1', 'W2'])
-  })
-
-  it('empty selection offers the doubtful-walls button', () => {
-    render(<CorrectionPanel />)
-    fireEvent.click(screen.getByRole('button', { name: 'Pilih dinding ragu (< 0.6)' }))
-    expect(st().selection).toEqual(['W1', 'W2'])
   })
 })
