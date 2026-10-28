@@ -30,10 +30,10 @@
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.3333333333333333,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.004647367674187605
+   "gross_area_err": 0.0033347523768979628
   },
-  "seconds": 71.7,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 49.3,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.7,
   "shift_mm": [
    0,
@@ -74,17 +74,17 @@
    "door_width_ok": 0.0,
    "door_dir_ok": 0.0,
    "room_match": 0.0,
-   "rooms_pred": 11,
+   "rooms_pred": 10,
    "rooms_gt": 48,
    "area_err_max": null,
    "wall_iou": 0.020553124363253548,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.3333333333333333,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.8241805023414218
+   "gross_area_err": 0.8301050092237832
   },
-  "seconds": 142.9,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 101.8,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 40.4,
   "shift_mm": [
    0,
@@ -133,8 +133,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.000851426138782493
   },
-  "seconds": 171.8,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 116.4,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 50.1,
   "shift_mm": [
    0,
@@ -181,8 +181,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.009081878813679589
   },
-  "seconds": 152.1,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 107.0,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.7,
   "shift_mm": [
    0,
@@ -224,8 +224,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0034411806442458752
   },
-  "seconds": 185.7,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 128.1,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 24.3,
   "shift_mm": [
    0,
@@ -269,8 +269,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.006119625372499016
   },
-  "seconds": 214.4,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 146.1,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 25.7,
   "shift_mm": [
    0,
@@ -303,17 +303,17 @@
    "door_width_ok": 0.2631578947368421,
    "door_dir_ok": 0.16666666666666666,
    "room_match": 0.0625,
-   "rooms_pred": 45,
+   "rooms_pred": 44,
    "rooms_gt": 48,
    "area_err_max": 0.8821888145647038,
    "wall_iou": 0.507113790976986,
    "stair_risers_ok": 0.3333333333333333,
    "stair_dir_ok": 1.0,
    "stair_pos_ok": 0.3333333333333333,
-   "gross_area_err": 0.003086419753086436
+   "gross_area_err": 0.002234993614303943
   },
-  "seconds": 205.4,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 141.9,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.7,
   "shift_mm": [
    0,
@@ -355,8 +355,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0007272598268766286
   },
-  "seconds": 226.4,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 157.5,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.0,
   "shift_mm": [
    0,
@@ -375,34 +375,35 @@
    "noise": 0.0
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: door_width_ok, room_match, wall_recall",
+  "reason": "metrics below 0.9 x a00: door_dir_ok, room_match, stair_dir_ok, wall_recall",
   "failed_metrics": [
-   "door_width_ok",
+   "door_dir_ok",
    "room_match",
+   "stair_dir_ok",
    "wall_recall"
   ],
   "metrics": {
    "scale_err": 0.00042372749876190373,
-   "wall_recall": 0.6500707911998108,
-   "wall_precision": 0.7759517980691558,
-   "wall_pos_median_mm": 18.0,
-   "wall_pos_p95_mm": 98.0,
-   "door_recall": 0.3157894736842105,
-   "door_width_ok": 0.15789473684210525,
-   "door_dir_ok": 0.16666666666666666,
+   "wall_recall": 0.6553822308790687,
+   "wall_precision": 0.7305458862923857,
+   "wall_pos_median_mm": 20.0,
+   "wall_pos_p95_mm": 91.0,
+   "door_recall": 0.3684210526315789,
+   "door_width_ok": 0.21052631578947367,
+   "door_dir_ok": 0.1111111111111111,
    "room_match": 0.041666666666666664,
-   "rooms_pred": 38,
+   "rooms_pred": 40,
    "rooms_gt": 48,
-   "area_err_max": 0.5476775882905868,
-   "wall_iou": 0.46555821088792615,
-   "stair_risers_ok": 0.3333333333333333,
-   "stair_dir_ok": 1.0,
+   "area_err_max": 0.4733834586466165,
+   "wall_iou": 0.4418978035829218,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.0,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.002731658861926997
+   "gross_area_err": 0.001685114233007034
   },
-  "seconds": 210.0,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 25.6,
+  "seconds": 145.7,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 27.4,
   "shift_mm": [
    0,
    0
@@ -440,19 +441,19 @@
    "door_recall": 0.2631578947368421,
    "door_width_ok": 0.10526315789473684,
    "door_dir_ok": 0.05555555555555555,
-   "room_match": 0.041666666666666664,
-   "rooms_pred": 38,
+   "room_match": 0.0,
+   "rooms_pred": 31,
    "rooms_gt": 48,
    "area_err_max": 0.4507514025567921,
    "wall_iou": 0.4010086749985744,
    "stair_risers_ok": 0.3333333333333333,
    "stair_dir_ok": 0.6666666666666666,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.0052327231446006196
+   "gross_area_err": 0.025702426564495548
   },
-  "seconds": 181.2,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 29.4,
+  "seconds": 122.6,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 29.7,
   "shift_mm": [
    0,
    0
@@ -470,8 +471,9 @@
    "noise": 0.0
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: wall_iou, wall_pos_median_mm, wall_recall",
+  "reason": "metrics below 0.9 x a00: gross_area_err, wall_iou, wall_pos_median_mm, wall_recall",
   "failed_metrics": [
+   "gross_area_err",
    "wall_iou",
    "wall_pos_median_mm",
    "wall_recall"
@@ -495,8 +497,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0038846317581950735
   },
-  "seconds": 186.7,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 128.9,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 25.6,
   "shift_mm": [
    -50,
@@ -534,18 +536,18 @@
    "door_recall": 0.3684210526315789,
    "door_width_ok": 0.21052631578947367,
    "door_dir_ok": 0.1111111111111111,
-   "room_match": 0.08333333333333333,
-   "rooms_pred": 27,
+   "room_match": 0.0625,
+   "rooms_pred": 36,
    "rooms_gt": 48,
    "area_err_max": 0.36433612903225804,
    "wall_iou": 0.32175906547522853,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.0,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.025489570029799923
+   "gross_area_err": 0.42315879097488296
   },
-  "seconds": 182.9,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 134.0,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 28.3,
   "shift_mm": [
    0,
@@ -585,18 +587,18 @@
    "door_width_ok": 0.15789473684210525,
    "door_dir_ok": 0.1111111111111111,
    "room_match": 0.020833333333333332,
-   "rooms_pred": 29,
+   "rooms_pred": 32,
    "rooms_gt": 48,
    "area_err_max": 0.4618293019405868,
    "wall_iou": 0.3319708683167991,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.3333333333333333,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.2976089115935859
+   "gross_area_err": 0.3356570171704272
   },
-  "seconds": 170.3,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 27.8,
+  "seconds": 124.2,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 27.7,
   "shift_mm": [
    0,
    0
@@ -641,8 +643,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0011884489853837786
   },
-  "seconds": 183.0,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 132.4,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 26.9,
   "shift_mm": [
    0,
@@ -661,8 +663,9 @@
    "noise": 0.0
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: room_match, stair_dir_ok, wall_pos_p95_mm",
+  "reason": "metrics below 0.9 x a00: gross_area_err, room_match, stair_dir_ok, wall_pos_p95_mm",
   "failed_metrics": [
+   "gross_area_err",
    "room_match",
    "stair_dir_ok",
    "wall_pos_p95_mm"
@@ -677,17 +680,17 @@
    "door_width_ok": 0.3157894736842105,
    "door_dir_ok": 0.2777777777777778,
    "room_match": 0.041666666666666664,
-   "rooms_pred": 43,
+   "rooms_pred": 42,
    "rooms_gt": 48,
    "area_err_max": 0.794431371400969,
    "wall_iou": 0.46745210305731927,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.0,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.00021285653469562324
+   "gross_area_err": 0.005924506882361345
   },
-  "seconds": 156.3,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 109.3,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.1,
   "shift_mm": [
    0,
@@ -727,8 +730,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0034943947779197304
   },
-  "seconds": 179.9,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 131.2,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.4,
   "shift_mm": [
    0,
@@ -770,8 +773,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.0036717752234994502
   },
-  "seconds": 193.2,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 128.3,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.2,
   "shift_mm": [
    0,
@@ -822,8 +825,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.19038243224066986
   },
-  "seconds": 245.2,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 162.4,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 35.4,
   "shift_mm": [
    0,
@@ -842,10 +845,11 @@
    "noise": 4.0
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: door_dir_ok, door_width_ok, wall_pos_p95_mm",
+  "reason": "metrics below 0.9 x a00: door_dir_ok, door_width_ok, gross_area_err, wall_pos_p95_mm",
   "failed_metrics": [
    "door_dir_ok",
    "door_width_ok",
+   "gross_area_err",
    "wall_pos_p95_mm"
   ],
   "metrics": {
@@ -867,8 +871,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.005126294877252708
   },
-  "seconds": 185.6,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 124.2,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 26.8,
   "shift_mm": [
    0,
@@ -908,10 +912,10 @@
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.6666666666666666,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.007308074357882795
+   "gross_area_err": 0.007290336313324843
   },
-  "seconds": 211.6,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 134.6,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 26.8,
   "shift_mm": [
    0,
@@ -963,8 +967,8 @@
    "stair_pos_ok": 0.0,
    "gross_area_err": 0.9987051227472683
   },
-  "seconds": 80.8,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 48.9,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 39.2,
   "shift_mm": [
    0,
@@ -1006,17 +1010,17 @@
    "door_width_ok": 0.0,
    "door_dir_ok": 0.0,
    "room_match": 0.0,
-   "rooms_pred": 27,
+   "rooms_pred": 32,
    "rooms_gt": 48,
    "area_err_max": null,
    "wall_iou": 0.027272011593679472,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.6666666666666666,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.23955229175535692
+   "gross_area_err": 0.6195366822761459
   },
-  "seconds": 163.3,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 113.7,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 50.5,
   "shift_mm": [
    0,
@@ -1038,8 +1042,8 @@
   "reason": "stage 4 failed: tidak ada kandidat yang bisa dirakit menjadi spec",
   "failed_metrics": [],
   "metrics": {},
-  "seconds": 41.9,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 20.8,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 39.0
  },
  {
@@ -1054,7 +1058,7 @@
    "id": "a23"
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: door_dir_ok, door_recall, door_width_ok, gross_area_err, room_match, wall_iou, wall_pos_p95_mm, wall_precision, wall_recall",
+  "reason": "metrics below 0.9 x a00: door_dir_ok, door_recall, door_width_ok, gross_area_err, room_match, wall_iou, wall_pos_median_mm, wall_pos_p95_mm, wall_precision, wall_recall",
   "failed_metrics": [
    "door_dir_ok",
    "door_recall",
@@ -1062,32 +1066,33 @@
    "gross_area_err",
    "room_match",
    "wall_iou",
+   "wall_pos_median_mm",
    "wall_pos_p95_mm",
    "wall_precision",
    "wall_recall"
   ],
   "metrics": {
    "scale_err": 0.0010116103806174336,
-   "wall_recall": 0.03953557439967607,
-   "wall_precision": 0.0547487170656258,
-   "wall_pos_median_mm": 25.0,
-   "wall_pos_p95_mm": 117.0,
+   "wall_recall": 0.05542880682917331,
+   "wall_precision": 0.07056887797325116,
+   "wall_pos_median_mm": 79.0,
+   "wall_pos_p95_mm": 122.0,
    "door_recall": 0.0,
    "door_width_ok": 0.0,
    "door_dir_ok": 0.0,
    "room_match": 0.0,
-   "rooms_pred": 26,
+   "rooms_pred": 36,
    "rooms_gt": 48,
-   "area_err_max": 0.40285336119818876,
-   "wall_iou": 0.04475872590650255,
-   "stair_risers_ok": 0.6666666666666666,
+   "area_err_max": 0.39884804173960803,
+   "wall_iou": 0.052073472958938126,
+   "stair_risers_ok": 0.3333333333333333,
    "stair_dir_ok": 0.6666666666666666,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.2837554987938129
+   "gross_area_err": 0.35529303249609767
   },
-  "seconds": 148.7,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 52.2,
+  "seconds": 98.3,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 50.8,
   "shift_mm": [
    0,
    0
@@ -1105,41 +1110,36 @@
    "id": "a24"
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: door_dir_ok, door_recall, door_width_ok, gross_area_err, room_match, wall_iou, wall_pos_median_mm, wall_pos_p95_mm, wall_precision, wall_recall",
+  "reason": "metrics below 0.9 x a00: gross_area_err, wall_iou, wall_pos_median_mm, wall_pos_p95_mm, wall_recall",
   "failed_metrics": [
-   "door_dir_ok",
-   "door_recall",
-   "door_width_ok",
    "gross_area_err",
-   "room_match",
    "wall_iou",
    "wall_pos_median_mm",
    "wall_pos_p95_mm",
-   "wall_precision",
    "wall_recall"
   ],
   "metrics": {
    "scale_err": 0.0013738346497725355,
-   "wall_recall": 0.5314000467596856,
-   "wall_precision": 0.6835065922663951,
+   "wall_recall": 0.5513697861573879,
+   "wall_precision": 0.7418804252785465,
    "wall_pos_median_mm": 61.0,
    "wall_pos_p95_mm": 122.0,
-   "door_recall": 0.15789473684210525,
-   "door_width_ok": 0.05263157894736842,
-   "door_dir_ok": 0.0,
-   "room_match": 0.020833333333333332,
-   "rooms_pred": 27,
+   "door_recall": 0.3157894736842105,
+   "door_width_ok": 0.21052631578947367,
+   "door_dir_ok": 0.16666666666666666,
+   "room_match": 0.08333333333333333,
+   "rooms_pred": 36,
    "rooms_gt": 48,
-   "area_err_max": 0.47063591397849464,
-   "wall_iou": 0.29202078223565525,
+   "area_err_max": 0.281598187622284,
+   "wall_iou": 0.29625880187539205,
    "stair_risers_ok": 0.0,
-   "stair_dir_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.3333333333333333,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.019866609904924164
+   "gross_area_err": 0.5308464594863062
   },
-  "seconds": 156.7,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 30.1,
+  "seconds": 105.2,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 26.2,
   "shift_mm": [
    0,
    -150
@@ -1160,8 +1160,8 @@
   "reason": "stage 2 needs_attention: Skala tidak dapat ditentukan, isi skala manual",
   "failed_metrics": [],
   "metrics": {},
-  "seconds": 7.9,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 4.3,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 39.0
  },
  {
@@ -1197,18 +1197,18 @@
    "door_width_ok": 0.15789473684210525,
    "door_dir_ok": 0.1111111111111111,
    "room_match": 0.041666666666666664,
-   "rooms_pred": 28,
+   "rooms_pred": 33,
    "rooms_gt": 48,
-   "area_err_max": 0.3642213431405878,
+   "area_err_max": 0.5821794356707977,
    "wall_iou": 0.37177454735993326,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.0,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.025418617851568116
+   "gross_area_err": 0.47066127430112104
   },
-  "seconds": 161.1,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 25.8,
+  "seconds": 104.6,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 26.1,
   "shift_mm": [
    0,
    0
@@ -1226,38 +1226,41 @@
    "id": "a27"
   },
   "passed": false,
-  "reason": "metrics below 0.9 x a00: gross_area_err, room_match, stair_dir_ok, wall_iou, wall_recall",
+  "reason": "metrics below 0.9 x a00: door_dir_ok, door_width_ok, gross_area_err, room_match, stair_dir_ok, wall_iou, wall_pos_median_mm, wall_recall",
   "failed_metrics": [
+   "door_dir_ok",
+   "door_width_ok",
    "gross_area_err",
    "room_match",
    "stair_dir_ok",
    "wall_iou",
+   "wall_pos_median_mm",
    "wall_recall"
   ],
   "metrics": {
    "scale_err": 0.000815970534710166,
-   "wall_recall": 0.6267394891675768,
-   "wall_precision": 0.7051313719205882,
-   "wall_pos_median_mm": 24.0,
-   "wall_pos_p95_mm": 96.0,
-   "door_recall": 0.42105263157894735,
-   "door_width_ok": 0.21052631578947367,
-   "door_dir_ok": 0.16666666666666666,
-   "room_match": 0.020833333333333332,
-   "rooms_pred": 37,
+   "wall_recall": 0.5897965363339226,
+   "wall_precision": 0.7453295054266182,
+   "wall_pos_median_mm": 35.0,
+   "wall_pos_p95_mm": 114.0,
+   "door_recall": 0.3157894736842105,
+   "door_width_ok": 0.15789473684210525,
+   "door_dir_ok": 0.1111111111111111,
+   "room_match": 0.0,
+   "rooms_pred": 41,
    "rooms_gt": 48,
-   "area_err_max": 0.46652335848898685,
-   "wall_iou": 0.39453307194826,
+   "area_err_max": 0.8384200697211155,
+   "wall_iou": 0.35781094170205974,
    "stair_risers_ok": 0.0,
    "stair_dir_ok": 0.0,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.02289981552433654
+   "gross_area_err": 0.47098055910316444
   },
-  "seconds": 147.7,
-  "code": "9cc5df4+be58cecf",
-  "correction_min": 27.9,
+  "seconds": 98.0,
+  "code": "5b22de8+ce37a1c4",
+  "correction_min": 26.5,
   "shift_mm": [
-   -50,
+   0,
    0
   ]
  },
@@ -1276,8 +1279,8 @@
   "reason": "stage 2 needs_attention: Skala tidak dapat ditentukan, isi skala manual",
   "failed_metrics": [],
   "metrics": {},
-  "seconds": 25.5,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 11.3,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 39.0
  },
  {
@@ -1308,18 +1311,18 @@
    "door_recall": 0.3684210526315789,
    "door_width_ok": 0.21052631578947367,
    "door_dir_ok": 0.1111111111111111,
-   "room_match": 0.041666666666666664,
-   "rooms_pred": 44,
+   "room_match": 0.0,
+   "rooms_pred": 37,
    "rooms_gt": 48,
    "area_err_max": 0.4590367577178945,
    "wall_iou": 0.43473253086427627,
    "stair_risers_ok": 0.3333333333333333,
    "stair_dir_ok": 0.6666666666666666,
    "stair_pos_ok": 0.0,
-   "gross_area_err": 0.012984248616432412
+   "gross_area_err": 0.41005037604654465
   },
-  "seconds": 90.1,
-  "code": "9cc5df4+be58cecf",
+  "seconds": 52.0,
+  "code": "5b22de8+ce37a1c4",
   "correction_min": 23.7,
   "shift_mm": [
    0,

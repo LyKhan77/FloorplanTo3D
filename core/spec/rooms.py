@@ -66,17 +66,32 @@ def _split_necks(p: SPolygon) -> list[SPolygon]:
 
 
 OUTLINE_CLOSE_MM = 1500  # gaps in the outer walls up to 2 x 1500 mm are bridged when taking the building shell
+MASS_MIN_MM2 = 2_000_000  # a closed shell this big is a building mass of its own (Gatsu's capacitor annex: ~3 m²)
 
 
 def _closed(union):
-    """The wall/column union with gaps up to 3 m closed (mitre closing), so one missed stretch of outer wall does
-    not open the building shell; recesses and gaps between masses wider than that stay.
+    """The wall/column union with gaps up to 3 m closed, one building mass at a time.
 
-    ponytail: a genuine recess or courtyard narrower than 3 m is filled into the outline (gross area slightly high);
-    rooms are unaffected because they are cut by the real walls (dividers), not by this shell.
+    A mass is a closed shell of at least MASS_MIN_MM2; every other piece (a stretch of a broken outer wall) joins
+    the nearest mass within 3 m, and each mass is closed (mitre) on its own. One missed stretch of outer wall no
+    longer opens the building shell, and two separate masses are never bridged into one slab.
+
+    ponytail: a genuine recess narrower than 3 m is filled (gross area slightly high); rooms are unaffected because
+    they are cut by the real walls (dividers), not by this shell.
     """
     r = OUTLINE_CLOSE_MM
-    return unary_union([union, union.buffer(r, join_style="mitre").buffer(-r, join_style="mitre")])
+    parts = _parts(union)
+    shells = [SPolygon(p.exterior) for p in parts]
+    masses = [i for i, sh in enumerate(shells) if sh.area >= MASS_MIN_MM2
+              and not any(j != i and shells[j].covers(sh) for j in range(len(shells)))]
+    groups: dict[int, list] = {}
+    for i, p in enumerate(parts):
+        near = min(masses, key=lambda m: shells[m].distance(p), default=None)
+        key = near if near is not None and shells[near].distance(p) <= 2 * r else -1  # -1: loose pieces together
+        groups.setdefault(key, []).append(p)
+    closed = [unary_union([g, g.buffer(r, join_style="mitre").buffer(-r, join_style="mitre")])
+              for g in (unary_union(ps) for ps in groups.values())]
+    return unary_union(closed)
 
 
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:

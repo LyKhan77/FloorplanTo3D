@@ -160,3 +160,12 @@ def test_band_with_a_gap_still_forms_bays_not_slivers():
             Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]
     rooms, _ = form_rooms(_shell(walls, fins))
     assert len(rooms) >= 3 and all(r.area >= 1_000_000 for r in rooms)
+
+
+def test_annex_1_3m_from_the_building_stays_its_own_outline():
+    """Gatsu's capacitor room: a small closed mass 1.3 m off the main wall; closing must not bridge them."""
+    main = _ring([(0, 0), (12000, 0), (12000, 8000), (0, 8000)])
+    annex = [w.model_copy(update={"id": f"W{20 + i}"}) for i, w in
+             enumerate(_ring([(13500, 1000), (16000, 1000), (16000, 3000), (13500, 3000)]))]
+    _, outlines = form_rooms(_shell(main + annex))
+    assert len(outlines) == 2
