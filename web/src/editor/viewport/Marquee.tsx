@@ -1,12 +1,13 @@
 import { useEffect, useState, type RefObject } from 'react'
 import { Vector3, type Camera } from 'three'
 import { toThree } from '../lib/coords'
+import { idsInRect } from '../lib/rectPick'
 import { useEditorStore } from '../store'
 import { gizmoState } from './gizmoState'
 
 type Rect = { x0: number; y0: number; x1: number; y1: number }
 
-/** Top mode + select tool: left-drag on the canvas selects objects whose position falls in the box (Shift adds). */
+/** Top mode + select tool: left-drag on the canvas selects walls fully inside the box and objects whose position falls in it (Shift adds). */
 export function Marquee({ wrap, camera }: { wrap: RefObject<HTMLDivElement | null>; camera: { current: Camera | null } }) {
   const [rect, setRect] = useState<Rect | null>(null)
   useEffect(() => {
@@ -37,11 +38,10 @@ export function Marquee({ wrap, camera }: { wrap: RefObject<HTMLDivElement | nul
       const { width, height } = el.getBoundingClientRect()
       const [xa, xb] = [Math.min(r.x0, r.x1), Math.max(r.x0, r.x1)], [ya, yb] = [Math.min(r.y0, r.y1), Math.max(r.y0, r.y1)]
       const s = useEditorStore.getState()
-      const ids = (s.view?.objects ?? []).filter((o) => {
-        const p = new Vector3(...toThree(o.position)).project(camera.current!)
-        const sx = ((p.x + 1) / 2) * width, sy = ((1 - p.y) / 2) * height
-        return sx >= xa && sx <= xb && sy >= ya && sy <= yb
-      }).map((o) => o.id)
+      const ids = s.view ? idsInRect(s.view, { xa, xb, ya, yb }, (q) => {
+        const p = new Vector3(...toThree(q)).project(camera.current!)
+        return [((p.x + 1) / 2) * width, ((1 - p.y) / 2) * height]
+      }) : []
       const additive = e.shiftKey
       // after the click that ends this drag, which would otherwise select the floor under the cursor
       setTimeout(() => useEditorStore.getState().select(ids, additive), 0)
