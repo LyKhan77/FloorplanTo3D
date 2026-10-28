@@ -224,12 +224,19 @@ def main(argv: list[str] | None = None) -> dict:
     missed = classify_missed(gt, pred, binary, masks["clean"], to_px)
     false = classify_false(pred, gt, masks, texts, to_px)
     rooms = classify_rooms(gt, pred)
-    doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms}
+    from benchmarks.correction_effort import correction_minutes, correction_ops
+
+    ops = correction_ops(pred, gt)
+    effort = {"ops": ops, "minutes": correction_minutes(ops)}
+    doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms, "effort": effort}
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.with_suffix(".json").write_text(json.dumps(doc, indent=1))
-    a.out.with_suffix(".md").write_text(report(a.out.name, metrics, missed, false, rooms))
+    a.out.with_suffix(".md").write_text(report(a.out.name, metrics, missed, false, rooms)
+                                        + f"\n**Upaya koreksi:** {effort['minutes']} menit "
+                                        + f"({', '.join(f'{k} {n}' for k, n in ops.items() if n)}).\n")
     cv2.imwrite(str(a.out.with_suffix(".png")), _overlay(page, gt, pred, missed, false, to_px))
-    print(json.dumps({"missed": Counter(r["mode"] for r in missed), "false": Counter(r["region"] for r in false),
+    print(json.dumps({"minutes": effort["minutes"], "missed": Counter(r["mode"] for r in missed),
+                      "false": Counter(r["region"] for r in false),
                       "rooms": {k: v for k, v in rooms.items() if k != "merged"}}))
     return doc
 

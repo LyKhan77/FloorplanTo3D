@@ -22,6 +22,7 @@ import cv2
 import numpy as np
 
 from benchmarks.augment.variants import IDENTITY, VARIANTS, render_variant
+from benchmarks.correction_effort import correction_minutes, correction_ops
 from benchmarks.extraction_metrics import LOWER_IS_BETTER, THRESHOLDS, evaluate
 from benchmarks.llm_items import GT_PATH, PLAN, run_stages
 from core.spec.models import Spec
@@ -122,7 +123,8 @@ def run_variant(v: dict, root: Path, base: dict | None, stage_overrides: dict | 
     data = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 100])[1].tobytes()
     _, results = run_stages(project, data, f"{v['id']}.jpg", stage_overrides)
     row = {"id": v["id"], "variant": v, "passed": False, "reason": None, "failed_metrics": [], "metrics": {},
-           "seconds": round(time.monotonic() - t0, 1), "code": _code()}
+           "seconds": round(time.monotonic() - t0, 1), "code": _code(),
+           "correction_min": correction_minutes(correction_ops(None, gt_for(v)))}  # stopped: a full redraw
     for d, r in results.items():
         if r.get("status") == "failed" or (r.get("status") == "needs_attention" and d in ("01_preprocess", "02_grid")):
             row["reason"] = f"stage {int(d[:2])} {r['status']}: {r.get('message') or ''}".strip()
@@ -135,7 +137,9 @@ def run_variant(v: dict, root: Path, base: dict | None, stage_overrides: dict | 
     pred = SpecStore(project / "specs").load(head)
     dx, dy = best_shift(pred, gt)
     row["shift_mm"] = [dx, dy]
-    row["metrics"] = {k: v for k, v in evaluate(translate(pred, dx, dy), gt).items() if k != "passed"}
+    aligned = translate(pred, dx, dy)
+    row["metrics"] = {k: v for k, v in evaluate(aligned, gt).items() if k != "passed"}
+    row["correction_min"] = correction_minutes(correction_ops(aligned, gt))
     if base is None:
         row["passed"] = True
     else:
@@ -183,6 +187,9 @@ def absolute_means(rows: list[dict]) -> dict[str, float]:
         worst = 1.0 if k in LOWER_IS_BETTER else 0.0
         vals = [r["metrics"][k] if r["metrics"] and r["metrics"].get(k) is not None else worst for r in rows]
         out[k] = round(sum(vals) / len(vals), 4) if vals else worst
+    minutes = [r["correction_min"] for r in rows if r.get("correction_min") is not None]
+    if minutes:
+        out["correction_min"] = round(sum(minutes) / len(minutes), 1)
     return out
 
 
@@ -208,13 +215,13 @@ def markdown(name: str, rows: list[dict]) -> str:
              "lolos = setiap metrik ≥ 0.9 × a00, atau ≤ a00 / 0.9 untuk metrik lower-is-better)."), "",
              (f"Metrik yang paling sering gagal: {', '.join(f'{k} ({n})' for k, n in fails.most_common(6)) or '—'}. "
              f"Run yang berhenti: {', '.join(f'{k} ({n})' for k, n in stops.most_common()) or '—'}."), "",
-             "| Varian | faktor | lolos | " + " | ".join(SUMMARY_KEYS) + " | geser (mm) | s | alasan |",
-             "|" + "---|" * (6 + len(SUMMARY_KEYS))]
+             "| Varian | faktor | lolos | " + " | ".join(SUMMARY_KEYS) + " | koreksi (menit) | geser (mm) | s | alasan |",
+             "|" + "---|" * (7 + len(SUMMARY_KEYS))]
     for r in rows:
         v, m = r["variant"], r["metrics"]
         lines.append(f"| {r['id']} | {_factor(v)} | {'ya' if r['passed'] else 'tidak'} | "
                      + " | ".join(_fmt(m.get(k)) for k in SUMMARY_KEYS)
-                     + f" | {r.get('shift_mm') or ''} | {r['seconds']} | {r['reason'] or ''} |")
+                     + f" | {r.get('correction_min', '—')} | {r.get('shift_mm') or ''} | {r['seconds']} | {r['reason'] or ''} |")
     return "\n".join(lines) + "\n"
 
 

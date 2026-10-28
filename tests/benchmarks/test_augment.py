@@ -129,3 +129,11 @@ def test_stage_exception_is_a_failed_variant(tmp_path):
     v = {"id": "a09", "scale": 1.0, "jpeg_q": 95, "rotate_deg": 0.0, "margin_px": 0, "blur": 0.0, "noise": 0.0}
     row = run_variant(v, tmp_path, base=None, stage_overrides={"02_grid": boom})
     assert row["passed"] is False and "stage 2 failed" in row["reason"] and "ValueError" in row["reason"]
+
+
+def test_absolute_means_include_correction_minutes():
+    from benchmarks.run_augment_bench import absolute_means
+
+    rows = [{"id": "a00", "metrics": {"wall_recall": 0.8}, "correction_min": 10.0},
+            {"id": "a01", "metrics": {}, "correction_min": 40.0}]  # stopped: a full redraw
+    assert absolute_means(rows)["correction_min"] == pytest.approx(25.0)
