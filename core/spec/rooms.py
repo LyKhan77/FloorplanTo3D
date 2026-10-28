@@ -65,13 +65,27 @@ def _split_necks(p: SPolygon) -> list[SPolygon]:
     return pieces or [p]
 
 
+OUTLINE_CLOSE_MM = 1500  # gaps in the outer walls up to 2 x 1500 mm are bridged when taking the building shell
+
+
+def _closed(union):
+    """The wall/column union with gaps up to 3 m closed (mitre closing), so one missed stretch of outer wall does
+    not open the building shell; recesses and gaps between masses wider than that stay.
+
+    ponytail: a genuine recess or courtyard narrower than 3 m is filled into the outline (gross area slightly high);
+    rooms are unaffected because they are cut by the real walls (dividers), not by this shell.
+    """
+    r = OUTLINE_CLOSE_MM
+    return unary_union([union, union.buffer(r, join_style="mitre").buffer(-r, join_style="mitre")])
+
+
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
     union = unary_union([wall_footprint(w, spec) for w in spec.walls] + cols)
     # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
     dividers = unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols)
-    shells = [SPolygon(p.exterior) for p in _parts(union)]
+    shells = [SPolygon(p.exterior) for p in _parts(_closed(union))]
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
     interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()

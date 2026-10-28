@@ -110,3 +110,53 @@ def test_inner_rooms_joined_by_a_sliver_stay_one_room():
     rooms, _ = form_rooms(s)
     inner = [r for r in rooms if r.within(box(0, 0, 10000, 6000))]
     assert len(inner) == 1  # the two inner halves joined through the 200 mm gap stay one room
+
+
+# --- building outline bridges gaps (M7a-2 Task 2) -------------------------------------------------------------------
+
+def _shell(walls, columns=()):
+    from tests.spec.fixtures import two_room_spec
+
+    return two_room_spec().model_copy(update={"walls": walls, "columns": list(columns), "openings": [], "rooms": []})
+
+
+def _w(i, a, b, kind="exterior"):
+    from core.spec.models import Wall
+
+    return Wall(id=f"W{i}", a=a, b=b, thickness=200, kind=kind)
+
+
+def _ring(points):
+    return [_w(i + 1, points[i], points[(i + 1) % len(points)]) for i in range(len(points))]
+
+
+def test_outline_bridges_a_2m_gap_in_the_outer_wall():
+    walls = [_w(1, (0, 0), (12000, 0)), _w(2, (12000, 0), (12000, 8000)), _w(3, (12000, 8000), (7000, 8000)),
+             _w(4, (5000, 8000), (0, 8000)), _w(5, (0, 8000), (0, 0))]  # 2 m of the top wall missing
+    _, outlines = form_rooms(_shell(walls))
+    assert len(outlines) == 1 and outlines[0].area == pytest.approx(12_200 * 8_200, rel=0.01)
+
+
+def test_outline_keeps_a_4m_recess():
+    walls = _ring([(0, 0), (4000, 0), (4000, 2000), (8000, 2000), (8000, 0), (12000, 0), (12000, 8000), (0, 8000)])
+    _, outlines = form_rooms(_shell(walls))
+    assert outlines[0].area == pytest.approx(12_200 * 8_200 - 3_800 * 2_000, rel=0.01)
+
+
+def test_two_masses_4m_apart_stay_two_outlines():
+    a = _ring([(0, 0), (4000, 0), (4000, 4000), (0, 4000)])
+    b = [w.model_copy(update={"id": f"W{10 + i}", "a": (w.a[0] + 8000, w.a[1]), "b": (w.b[0] + 8000, w.b[1])})
+         for i, w in enumerate(a)]
+    _, outlines = form_rooms(_shell(a + b))
+    assert len(outlines) == 2
+
+
+def test_band_with_a_gap_still_forms_bays_not_slivers():
+    from core.spec.models import Column
+
+    walls = [_w(1, (0, 0), (6000, 0)), _w(2, (6000, 0), (6000, 1500)), _w(3, (6000, 1500), (4500, 1500)),
+             _w(4, (2500, 1500), (0, 1500)), _w(5, (0, 1500), (0, 0))]  # 2 m of the band's top line missing
+    fins = [Column(id="C1", center=(2000, 750), shape="rect", size=(400, 1200)),
+            Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]
+    rooms, _ = form_rooms(_shell(walls, fins))
+    assert len(rooms) >= 3 and all(r.area >= 1_000_000 for r in rooms)
