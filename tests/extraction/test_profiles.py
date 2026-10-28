@@ -76,3 +76,18 @@ def test_run_without_params_is_a_conflict(tmp_path):
     write_json(st.projects_dir / "p" / "runs" / "r" / "stages" / "05_validate" / "chosen.json", {"index": 0, "params": None})
     with pytest.raises(ProfileConflict):
         save_profile(st, "x", ref)
+
+
+def test_gatsu_style_profile_is_valid():
+    """benchmarks/gatsu/style_profile.json: the shape save_profile writes; copied to DATA_DIR/profiles it seeds
+    the sweep with Gatsu's chosen parameters first."""
+    import json
+    from pathlib import Path
+
+    from core.extraction.geometry.sweep import sweep_params
+    from core.extraction.profiles import PARAM_KEYS
+
+    p = json.loads(Path("benchmarks/gatsu/style_profile.json").read_text())
+    assert {"profile_id", "name", "params", "from_run", "created_at"} <= p.keys() and p["profile_id"] == "gatsu"
+    assert set(p["params"]) == set(PARAM_KEYS)
+    assert sweep_params(12, p["params"])[0] == p["params"]

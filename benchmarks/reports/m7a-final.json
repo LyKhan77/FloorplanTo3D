@@ -1,0 +1,148 @@
+{
+ "gatsu_baseline": {
+  "scale_err": 0.001276983240907618,
+  "wall_recall": 0.7662311279858441,
+  "wall_precision": 0.7997874693076812,
+  "wall_pos_median_mm": 18.0,
+  "wall_pos_p95_mm": 113.0,
+  "door_recall": 0.42105263157894735,
+  "door_width_ok": 0.3157894736842105,
+  "door_dir_ok": 0.16666666666666666,
+  "room_match": 0.020833333333333332,
+  "rooms_pred": 22,
+  "rooms_gt": 48,
+  "area_err_max": 0.7460622184664027,
+  "wall_iou": 0.5110114825077328,
+  "stair_risers_ok": 0.3333333333333333,
+  "stair_dir_ok": 1.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": 0.030172413793103432
+ },
+ "gatsu_final": {
+  "scale_err": 0.001276983240907618,
+  "wall_recall": 0.7717447326772319,
+  "wall_precision": 0.7725405075914248,
+  "wall_pos_median_mm": 17.0,
+  "wall_pos_p95_mm": 113.0,
+  "door_recall": 0.47368421052631576,
+  "door_width_ok": 0.3684210526315789,
+  "door_dir_ok": 0.2222222222222222,
+  "room_match": 0.041666666666666664,
+  "rooms_pred": 42,
+  "rooms_gt": 48,
+  "area_err_max": 0.46750122058392735,
+  "wall_iou": 0.48543836702135207,
+  "stair_risers_ok": 0.0,
+  "stair_dir_ok": 1.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": 0.038012629487725186
+ },
+ "rooms_baseline": {
+  "inner_gt": 23,
+  "inner_matched": 8,
+  "outdoor_gt": 25,
+  "outdoor_matched": 3,
+  "merged": [
+   [
+    "R1",
+    "R6",
+    "R7"
+   ],
+   [
+    "R10",
+    "R19",
+    "R21"
+   ],
+   [
+    "R23",
+    "R27"
+   ],
+   [
+    "R16",
+    "R2",
+    "R22",
+    "R25",
+    "R29",
+    "R3",
+    "R33",
+    "R43",
+    "R47",
+    "R48",
+    "R5"
+   ],
+   [
+    "R32",
+    "R34"
+   ],
+   [
+    "R37",
+    "R41"
+   ],
+   [
+    "R38",
+    "R42",
+    "R46"
+   ]
+  ]
+ },
+ "rooms_final": {
+  "inner_gt": 23,
+  "inner_matched": 7,
+  "outdoor_gt": 25,
+  "outdoor_matched": 10,
+  "merged": [
+   [
+    "R2",
+    "R22",
+    "R3"
+   ],
+   [
+    "R14",
+    "R27"
+   ],
+   [
+    "R16",
+    "R23",
+    "R25",
+    "R29",
+    "R31",
+    "R33"
+   ],
+   [
+    "R32",
+    "R34"
+   ],
+   [
+    "R38",
+    "R42",
+    "R46"
+   ],
+   [
+    "R37",
+    "R41"
+   ],
+   [
+    "R43",
+    "R47"
+   ]
+  ]
+ },
+ "augment_means_baseline": {
+  "wall_recall": 0.4912,
+  "wall_precision": 0.5521,
+  "wall_iou": 0.3096,
+  "door_recall": 0.2579,
+  "room_match": 0.0104,
+  "gross_area_err": 0.6377
+ },
+ "augment_means_final": {
+  "wall_recall": 0.4979,
+  "wall_precision": 0.5485,
+  "wall_iou": 0.311,
+  "door_recall": 0.2632,
+  "room_match": 0.0229,
+  "gross_area_err": 0.6173
+ },
+ "augment_score_baseline": 0.4323607427055703,
+ "augment_score_final": 0.4971264367816092
+}

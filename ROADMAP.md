@@ -515,11 +515,31 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 **Tujuan:** membuktikan pipeline tahan terhadap variasi gambar walaupun hanya ada satu denah nyata, lalu men-deploy-nya.
 
 ### Tugas — Ketahanan
-- [ ] **Set augmentasi** (`benchmarks/augment/`, 1 hari): ±30 varian `plan.jpeg` (resolusi 0.6×–2×, JPEG q 40–95, rotasi ±2°, crop margin, blur/noise ringan). GT ditransformasi dengan matriks yang sama. Jalankan benchmark, lalu analisis mode gagal.
+- [x] **Set augmentasi** (`benchmarks/augment/`, 1 hari): ±30 varian `plan.jpeg` (resolusi 0.6×–2×, JPEG q 40–95, rotasi ±2°, crop margin, blur/noise ringan). GT ditransformasi dengan matriks yang sama. Jalankan benchmark, lalu analisis mode gagal.
 - [ ] **Denah sintetis** (`benchmarks/synth/`, P1, 3 hari): ubah GT Gatsu secara acak (jarak grid, partisi tambah/hapus, cermin, campuran tipe pintu, posisi tangga), lalu render 2D bergaya denah CAD (dinding garis ganda, busur pintu, bulatan grid, teks dimensi, anotasi MEP acak, simbol panel terisi). GT tiap varian otomatis diketahui.
-- [ ] Perbaikan ekstraktor yang **umum**, bukan hardcode untuk Gatsu. Tiap perbaikan diikuti regresi terhadap semua set.
-- [ ] Simpan style profile Gatsu.
+- [~] Perbaikan ekstraktor yang **umum**, bukan hardcode untuk Gatsu. Tiap perbaikan diikuti regresi terhadap semua set.
+- [x] Simpan style profile Gatsu (`benchmarks/gatsu/style_profile.json`).
 - [ ] Bila denah nyata baru datang selama M7: buat GT ringkas dengan `gt_author.py` dan masukkan ke benchmark.
+
+**Status M7a (2026-10-28), branch `m7-hardening`** (plan `docs/superpowers/plans/2026-10-28-m7a-robustness-accuracy.md`, laporan `benchmarks/reports/m7a-final.md`):
+- **Alat ukur:**
+  - `benchmarks/failure_modes.py`: atribusi galat Gatsu (dinding terlewat per mode, dinding palsu per wilayah, ruang dalam/outdoor);
+  - `benchmarks/run_augment_bench.py`: 30 varian (a00 + 19 satu-faktor + 10 kombinasi), penyelarasan frame lewat phase correlation, dan skor relatif terhadap a00 (keputusan pengguna) plus rata-rata absolut sebagai gerbang.
+- **Perbaikan yang bertahan:**
+  - pasangan garis ganda yang terputus: Gatsu `wall_recall` 0.766 → 0.779;
+  - pemecahan ruang di leher < 300 mm: ruang 22 → 42 (GT 48), `outdoor` 3 → 10 cocok, `room_match` 0.021 → 0.042.
+- **Perbaikan yang di-revert lewat gerbang:**
+  - dinding satu sisi (presisi −6 poin);
+  - muka mempertahankan tebal (kontur runtuh);
+  - cable ladder (kontur runtuh).
+- **Gatsu akhir:** `wall_recall` 0.772, `wall_precision` 0.773, `door_recall` 0.47, `room_match` 0.04, `gross_area_err` 0.038.
+- **Augmentasi:** lolos penuh 0 → 2 dari 29, skor relatif 0.432 → 0.497, rata-rata `room_match` 0.010 → 0.023.
+- **Kriteria selesai 1–2 belum terpenuhi.** Mode gagal utama yang tersisa:
+  1. kontur bangunan rapuh: satu dinding pita hilang membuat `gross_area_err` sekitar 0.6;
+  2. resolusi ≤ 0.75× gagal total;
+  3. pemilihan kandidat tahap 5 tidak stabil;
+  4. ruang dalam bocor lewat dinding yang terlewat.
+- **Suite:** pytest 489 passed, 3 xfailed (tanpa `strata`); Vitest 161 passed; ruff, oxlint, dan build bersih.
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
