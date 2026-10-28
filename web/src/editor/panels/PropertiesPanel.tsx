@@ -16,12 +16,14 @@ const ROOM_TYPES = [
 ] as const
 
 type Picked =
-  | { kind: 'wall'; items: Wall[] } | { kind: 'room'; item: Room } | { kind: 'door'; item: Opening }
+  | { kind: 'wall'; items: Wall[] } | { kind: 'room'; item: Room } | { kind: 'rooms'; items: Room[] } | { kind: 'door'; item: Opening }
   | { kind: 'stair'; item: Stair } | { kind: 'column'; item: Column } | { kind: 'object'; item: PlacedObject }
 
 function pick(view: Spec, ids: string[]): Picked | null {
   const walls = ids.map((id) => view.walls?.find((w) => w.id === id))
   if (walls.length && walls.every(Boolean)) return { kind: 'wall', items: walls as Wall[] }
+  const rooms = ids.map((id) => view.rooms?.find((r) => r.id === id))
+  if (rooms.length >= 2 && rooms.every(Boolean)) return { kind: 'rooms', items: rooms as Room[] }
   if (ids.length !== 1) return null
   const id = ids[0]
   const find = <T extends { id: string }>(xs: T[] | undefined) => xs?.find((x) => x.id === id)
@@ -100,9 +102,25 @@ function RoomProps({ room }: { room: Room }) {
   )
 }
 
+function RoomsBulk({ items }: { items: Room[] }) {
+  const applyMany = useEditorStore((s) => s.applyMany)
+  const types = [...new Set(items.map((r) => r.type))]
+  return (
+    <>
+      <h4 className="editor-panel__title">{items.length} ruang terseleksi</h4>
+      <Dropdown key={types.join()} id="rooms-type" titleText="Tipe semua ruang" label={types.length === 1 ? (types[0] ?? 'Pilih tipe') : 'Campuran'}
+        size="sm" items={[...ROOM_TYPES]} selectedItem={null}
+        onChange={({ selectedItem: t }) => {
+          if (t) applyMany(items.filter((r) => r.type !== t).map((r) => ({ op: 'set_room_type' as const, id: r.id, type: t })))
+        }} />
+    </>
+  )
+}
+
 function Body({ picked, view, templates }: { picked: Picked; view: Spec; templates: Template[] }) {
   switch (picked.kind) {
     case 'wall': return <WallProps items={picked.items} view={view} />
+    case 'rooms': return <RoomsBulk items={picked.items} />
     case 'room': return <RoomProps key={`${picked.item.id}:${picked.item.name}`} room={picked.item} />
     case 'door': {
       const d = picked.item

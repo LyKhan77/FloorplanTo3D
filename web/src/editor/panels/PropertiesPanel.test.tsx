@@ -103,4 +103,35 @@ describe('LayersPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /R\. MEETING/ }))
     expect(st().selection).toEqual([meeting.id])
   })
+
+  describe('room bulk type', () => {
+    const pickType = (t: string) => {
+      fireEvent.click(screen.getByRole('combobox', { name: /Tipe semua ruang/ }))
+      fireEvent.click(screen.getByRole('option', { name: t }))
+    }
+    const typeOf = (id: string) => st().view!.rooms!.find((r) => r.id === id)!.type
+
+    it('sets one type on every selected room in one undo step', () => {
+      act(() => st().select(['R1', 'R2']))
+      render(<PropertiesPanel />)
+      expect(screen.getByText('2 ruang terseleksi')).toBeInTheDocument()
+      pickType('storage')
+      expect([typeOf('R1'), typeOf('R2')]).toEqual(['storage', 'storage'])
+      act(() => st().undo())
+      expect([typeOf('R1'), typeOf('R2')]).toEqual(['outdoor', 'outdoor'])
+    })
+
+    it('skips rooms already of that type', () => {
+      act(() => { st().apply({ op: 'set_room_type', id: 'R2', type: 'office' }); st().select(['R1', 'R2']) })
+      render(<PropertiesPanel />)
+      pickType('office')
+      expect(st().ops).toEqual([{ op: 'set_room_type', id: 'R2', type: 'office' }, { op: 'set_room_type', id: 'R1', type: 'office' }])
+    })
+
+    it('mixed selection shows no room bulk control', () => {
+      act(() => st().select(['R1', 'R2', 'W1']))
+      render(<PropertiesPanel />)
+      expect(screen.queryByRole('combobox', { name: /Tipe semua ruang/ })).toBeNull()
+    })
+  })
 })
