@@ -566,6 +566,26 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - kalibrasi model waktu dengan satu sesi koreksi nyata.
 - **Suite:** pytest 507 passed, 3 xfailed (tanpa `strata`); Vitest 161 passed; ruff, oxlint, dan build bersih.
 
+**Status M7a-3 (2026-10-28), branch `m7a3-bulk-editor`** (plan `docs/superpowers/plans/2026-10-28-m7a3-bulk-editor.md`, panduan kalibrasi `docs/calibration-correction.md`):
+- **Aksi massal editor.** Semua aksi memakai op yang sudah ada lewat `applyMany`, sehingga satu Ctrl+Z membatalkan seluruh aksi.
+  - Marquee (mode Top) ikut menyeleksi dinding yang kedua ujungnya ada di dalam kotak.
+  - Seleksi ≥ 2 dinding menampilkan "Hapus N dinding" dengan satu alasan. Notice menyebut pintu dan jendela yang ikut terhapus.
+  - Seleksi ≥ 2 ruang menampilkan "Tipe semua ruang"; ruang yang sudah bertipe sama dilewati.
+  - Tambah dinding berantai: Enter menyimpan dinding dan memulai dinding berikutnya dari titik akhir; Esc berhenti.
+- **Tombol "Pilih dinding ragu (< 0.6)" dibatalkan.** Pada Gatsu, 71 dinding CV berkeyakinan < 0.6, dan 41 di antaranya dinding asli. Presisinya 42 %, sama dengan tebakan acak (44 %). Hapus massal atas pilihan ini akan membuang dinding asli.
+- **Menit koreksi (model, belum dikalibrasi):**
+  - Gatsu: 22.1 menit satu-per-satu → **14.4 menit dengan aksi massal**;
+  - rata-rata augmentasi: 30.0 → 19.2 menit;
+  - **kriteria ≤ 15 menit terpenuhi menurut model**, menunggu satu sesi koreksi berwaktu (`docs/calibration-correction.md`).
+- **E2E (Playwright, project `plan-9ccb`):**
+  - marquee menyeleksi 26 dinding, lalu "Hapus 26 dinding" dengan notice 2 pintu;
+  - satu Ctrl+Z mengembalikan semuanya, dan redo menerapkannya lagi;
+  - tipe `outdoor` diset sekaligus pada 3 ruang;
+  - 3 dinding berantai dengan Enter, lalu Esc kembali ke Select;
+  - Save menjadi v3 ("Edit editor: 32 op") tanpa masalah validasi.
+- **Catatan benchmark:** `failure_modes --fresh` tanpa `--cache` tidak menjalankan ulang stage dan memakai cache lama. Untuk angka baru, pakai `--cache` ke folder baru.
+- **Suite:** pytest 512 passed, 3 xfailed (tanpa `strata`); Vitest 173 passed; ruff, oxlint, dan build bersih.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
