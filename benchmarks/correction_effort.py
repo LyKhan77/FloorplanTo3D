@@ -4,6 +4,9 @@ the GT — MVP success criterion #2 ("sisa galat terkoreksi lewat panel koreksi 
 Rooms have no geometry operation of their own: the editor forms rooms from walls, so adding and deleting walls
 fixes their shape; only their type and name are set by hand. The seconds per operation are a stated model, to be
 calibrated with a timed editor session.
+
+The bulk model (M7a-3) prices the editor's bulk actions: one delete for every selected false wall, one room-type
+action per target type, and chained wall drawing (one click and Enter per wall).
 """
 
 import numpy as np
@@ -15,6 +18,8 @@ from core.spec.models import Spec
 
 SECONDS = {"delete_wall": 5, "add_wall": 20, "delete_opening": 5, "add_opening": 15, "set_door": 10,
            "set_room_type": 8, "rename_room": 8, "set_stair": 20}
+# per action + per element selected: delete N walls, set the type of N rooms in G groups; chained add per wall
+BULK_SECONDS = {"action": 10, "select": 2, "add_wall": 10}
 DOOR_MATCH_MM, DOOR_WIDTH_MM, STAIR_MATCH_MM = 500, 100, 1000
 
 
@@ -45,6 +50,7 @@ def _door_ops(pred: Spec, gt: Spec) -> dict[str, int]:
 def _room_ops(pred: Spec, gt: Spec) -> dict[str, int]:
     shapes = [(r, Polygon(r.polygon, r.holes)) for r in pred.rooms]
     types = names = 0
+    groups = set()
     for g in gt.rooms:
         gs = Polygon(g.polygon, g.holes)
         best = None
@@ -53,9 +59,11 @@ def _room_ops(pred: Spec, gt: Spec) -> dict[str, int]:
             if inter and inter / gs.union(ps).area >= 0.5:
                 best = r
                 break
-        types += g.type != "other" and (best is None or best.type != g.type)
+        if g.type != "other" and (best is None or best.type != g.type):
+            types += 1
+            groups.add(g.type)
         names += bool(g.name) and (best is None or best.name != g.name)
-    return {"set_room_type": types, "rename_room": names}
+    return {"set_room_type": types, "room_type_groups": len(groups), "rename_room": names}
 
 
 def _stair_ops(pred: Spec, gt: Spec) -> int:
@@ -76,6 +84,7 @@ def correction_ops(pred: Spec | None, gt: Spec) -> dict[str, int]:
         return {"delete_wall": 0, "add_wall": len(gt.walls), "delete_opening": 0,
                 "add_opening": sum(o.category == "door" for o in gt.openings), "set_door": 0,
                 "set_room_type": sum(r.type != "other" for r in gt.rooms),
+                "room_type_groups": len({r.type for r in gt.rooms if r.type != "other"}),
                 "rename_room": sum(bool(r.name) for r in gt.rooms),
                 "set_stair": sum(len(s.flights) for s in gt.stairs)}
     return {"delete_wall": sum(wall_coverage(w, gt.walls) < 0.5 for w in pred.walls),
@@ -83,11 +92,17 @@ def correction_ops(pred: Spec | None, gt: Spec) -> dict[str, int]:
             **_door_ops(pred, gt), **_room_ops(pred, gt), "set_stair": _stair_ops(pred, gt)}
 
 
-def correction_minutes(ops: dict[str, int]) -> float:
-    return round(sum(SECONDS[k] * n for k, n in ops.items()) / 60, 1)
+def correction_minutes(ops: dict[str, int], bulk: bool = False) -> float:
+    priced = {k for k in SECONDS if not (bulk and k in ("delete_wall", "set_room_type", "add_wall"))}
+    seconds = sum(SECONDS[k] * n for k, n in ops.items() if k in priced)
+    if bulk:
+        b, dw, rt = BULK_SECONDS, ops.get("delete_wall", 0), ops.get("set_room_type", 0)
+        seconds += ((b["action"] if dw else 0) + b["select"] * dw + b["action"] * ops.get("room_type_groups", 0)
+                    + b["select"] * rt + b["add_wall"] * ops.get("add_wall", 0))
+    return round(seconds / 60, 1)
 
 
-def capped_minutes(pred: Spec | None, gt: Spec) -> float:
+def capped_minutes(pred: Spec | None, gt: Spec, bulk: bool = False) -> float:
     """Minutes to correct, never more than redrawing from scratch: a reading worse than nothing is redrawn."""
-    redraw = correction_minutes(correction_ops(None, gt))
-    return redraw if pred is None else min(redraw, correction_minutes(correction_ops(pred, gt)))
+    redraw = correction_minutes(correction_ops(None, gt), bulk)
+    return redraw if pred is None else min(redraw, correction_minutes(correction_ops(pred, gt), bulk))

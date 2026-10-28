@@ -22,7 +22,7 @@ def test_ops_count_each_kind():
     pred.rooms[0].type = "other"
     ops = correction_ops(pred, gt)
     assert {k: v for k, v in ops.items() if v} == {"add_wall": 1, "delete_wall": 1, "add_opening": 1,
-                                                    "set_room_type": 1}
+                                                    "set_room_type": 1, "room_type_groups": 1}
     assert correction_minutes(ops) == round((20 + 5 + 15 + 8) / 60, 1)  # 0.8
 
 
@@ -52,3 +52,29 @@ def test_minutes_never_exceed_a_full_redraw():
     redraw = correction_minutes(correction_ops(None, gt))
     assert capped_minutes(junk, gt) == redraw and capped_minutes(None, gt) == redraw
     assert capped_minutes(gt, gt) == 0.0
+
+
+def test_bulk_model():
+    ops = {"delete_wall": 68, "add_wall": 16, "set_room_type": 31, "room_type_groups": 5, "add_opening": 2,
+           "delete_opening": 0, "set_door": 0, "rename_room": 0, "set_stair": 0}
+    assert correction_minutes(ops, bulk=True) == round((10 + 2 * 68 + 16 * 10 + 10 * 5 + 2 * 31 + 2 * 15) / 60, 1)
+    assert correction_minutes({**ops, "delete_wall": 0}, bulk=True) == round((16 * 10 + 10 * 5 + 2 * 31 + 2 * 15) / 60, 1)
+
+
+def test_room_type_groups_counted():
+    gt = spec_with_rooms()
+    pred = gt.model_copy(deep=True)
+    for r in pred.rooms:
+        r.type = "other"
+    gt.rooms[1].type = gt.rooms[0].type  # both GT rooms want the same type: one bulk action
+    ops = correction_ops(pred, gt)
+    assert ops["set_room_type"] == 2 and ops["room_type_groups"] == 1
+
+
+def test_bulk_minutes_capped_and_reported_beside_one_by_one():
+    from benchmarks.correction_effort import capped_minutes
+
+    gt = spec_with_rooms()
+    redraw = correction_minutes(correction_ops(None, gt), bulk=True)
+    assert capped_minutes(None, gt, bulk=True) == redraw <= capped_minutes(None, gt)
+    assert capped_minutes(gt, gt, bulk=True) == 0.0
