@@ -1,7 +1,7 @@
 [
  {
   "element": "W1",
-  "evidence": "Element W1\n- length: 32921 mm, thickness: 89 mm (stroke 6.9 px), orientation: horizontal\n- connects to walls at ends: start=W55, end=W35\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: \"CB\" (other class)\n- parallel partner line found: yes\n- CV confidence: 0.75",
+  "evidence": "Element W1\n- length: 32921 mm, thickness: 89 mm (stroke 6.9 px), orientation: horizontal\n- connects to walls at ends: start=W55, end=W70\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: \"CB\" (other class)\n- parallel partner line found: yes\n- CV confidence: 0.75",
   "label": "",
   "answer": {
    "id": "W1",
@@ -11,15 +11,15 @@
   "context": "T1-001_ctx.png"
  },
  {
-  "element": "W76",
-  "evidence": "Element W76\n- length: 387 mm, thickness: 142 mm (stroke 11.0 px), orientation: horizontal\n- connects to walls at ends: start=none, end=W77\n- passes through dense-hatch area: no (0% of length)\n- nearest text within 600 mm: none\n- parallel partner line found: yes\n- CV confidence: 0.44",
+  "element": "W43",
+  "evidence": "Element W43\n- length: 3955 mm, thickness: 138 mm (stroke 10.7 px), orientation: horizontal\n- connects to walls at ends: start=none, end=W49\n- passes through dense-hatch area: no (15% of length)\n- nearest text within 600 mm: \"CAPASITOR\" (room_label class)\n- parallel partner line found: yes\n- CV confidence: 0.18",
   "label": "",
   "answer": {
-   "id": "W76",
+   "id": "W43",
    "verdict": "wall"
   },
-  "image": "T1-006.png",
-  "context": "T1-006_ctx.png"
+  "image": "T1-003.png",
+  "context": "T1-003_ctx.png"
  },
  {
   "element": "W4",

@@ -2,7 +2,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D13",
+  "element": "D14",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -21,7 +21,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D15",
+  "element": "D16",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -40,7 +40,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D16",
+  "element": "D17",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -59,7 +59,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D19",
+  "element": "D20",
   "baseline": {
    "is_door": true,
    "door_type": "double_swing",
@@ -78,7 +78,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D20",
+  "element": "D21",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -97,7 +97,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D21",
+  "element": "D22",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -116,7 +116,7 @@
  {
   "task": "T2",
   "candidate": 1,
-  "element": "D7",
+  "element": "D5",
   "baseline": {
    "is_door": true,
    "door_type": "single_swing",
@@ -135,7 +135,7 @@
  {
   "task": "T2",
   "candidate": 1,
-  "element": "D11",
+  "element": "D9",
   "baseline": {
    "is_door": true,
    "door_type": "double_swing",
@@ -211,7 +211,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D8",
+  "element": "D7",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -235,7 +235,7 @@
    "is_door": true,
    "door_type": "single_swing",
    "hinge": "end",
-   "swing": "left"
+   "swing": "right"
   },
   "fewshot": false,
   "label": {
@@ -249,7 +249,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D22",
+  "element": "D15",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -287,7 +287,7 @@
  {
   "task": "T2",
   "candidate": 0,
-  "element": "D30",
+  "element": "D26",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -305,8 +305,8 @@
  },
  {
   "task": "T2",
-  "candidate": 1,
-  "element": "D2",
+  "candidate": 0,
+  "element": "D31",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -325,7 +325,7 @@
  {
   "task": "T2",
   "candidate": 1,
-  "element": "D4",
+  "element": "D1",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -344,10 +344,29 @@
  {
   "task": "T2",
   "candidate": 1,
-  "element": "D18",
+  "element": "D6",
   "baseline": {
    "is_door": true,
-   "door_type": "opening",
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "fewshot": false,
+  "label": {
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "id": "T2-019"
+ },
+ {
+  "task": "T2",
+  "candidate": 2,
+  "element": "D14",
+  "baseline": {
+   "is_door": true,
+   "door_type": "sliding",
    "hinge": null,
    "swing": null
   },
@@ -358,7 +377,7 @@
    "hinge": null,
    "swing": null
   },
-  "id": "T2-019"
+  "id": "T2-020"
  },
  {
   "task": "T2",
@@ -377,7 +396,7 @@
    "hinge": null,
    "swing": null
   },
-  "id": "T2-020"
+  "id": "T2-021"
  },
  {
   "task": "T2",
@@ -396,7 +415,7 @@
    "hinge": null,
    "swing": null
   },
-  "id": "T2-021"
+  "id": "T2-022"
  },
  {
   "task": "T2",
@@ -415,31 +434,12 @@
    "hinge": null,
    "swing": null
   },
-  "id": "T2-022"
- },
- {
-  "task": "T2",
-  "candidate": 4,
-  "element": "D24",
-  "baseline": {
-   "is_door": true,
-   "door_type": "sliding",
-   "hinge": null,
-   "swing": null
-  },
-  "fewshot": false,
-  "label": {
-   "is_door": false,
-   "door_type": null,
-   "hinge": null,
-   "swing": null
-  },
   "id": "T2-023"
  },
  {
   "task": "T2",
   "candidate": 5,
-  "element": "D2",
+  "element": "D1",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -458,7 +458,7 @@
  {
   "task": "T2",
   "candidate": 5,
-  "element": "D17",
+  "element": "D16",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -477,7 +477,7 @@
  {
   "task": "T2",
   "candidate": 5,
-  "element": "D24",
+  "element": "D23",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -496,7 +496,7 @@
  {
   "task": "T2",
   "candidate": 5,
-  "element": "D27",
+  "element": "D26",
   "baseline": {
    "is_door": true,
    "door_type": "opening",
@@ -514,13 +514,13 @@
  },
  {
   "task": "T2",
-  "candidate": 7,
-  "element": "D20",
+  "candidate": 8,
+  "element": "D3",
   "baseline": {
    "is_door": true,
-   "door_type": "opening",
-   "hinge": null,
-   "swing": null
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
   },
   "fewshot": false,
   "label": {
