@@ -47,13 +47,17 @@ def _reasoning(effort: str) -> dict:
 
 class StrataClient:
     def __init__(self, base_url: str, model: str, timeout_s: float, http_client: httpx.Client | None = None,
-                 use_response_format: bool = USE_RESPONSE_FORMAT):
+                 use_response_format: bool = USE_RESPONSE_FORMAT, api_key: str = ""):
         self.model, self.timeout_s = model, timeout_s
         self.root = base_url.removesuffix("/").removesuffix("/v1")
         self.use_response_format = use_response_format
         self._http = http_client
-        self._sdk = openai.OpenAI(base_url=base_url, api_key="none", timeout=timeout_s, max_retries=0,
+        self._sdk = openai.OpenAI(base_url=base_url, api_key=api_key or "none", timeout=timeout_s, max_retries=0,
                                   http_client=http_client)
+
+    @classmethod
+    def from_settings(cls, s) -> "StrataClient":
+        return cls(s.strata_base_url, s.strata_model, s.strata_timeout_s, api_key=s.strata_api_key)
 
     def health(self, timeout_s: float = 3.0) -> bool:
         try:

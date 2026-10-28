@@ -65,7 +65,7 @@ def stage_review(project_dir: Path, work: Path, run_id: str, settings: Settings,
     st = work.parent
     if version is None or not (st / "01_preprocess" / "page.png").exists() or not (st / "02_grid" / "grid.json").exists():
         return _skip("no_artifacts")
-    client = client or StrataClient(settings.strata_base_url, settings.strata_model, settings.strata_timeout_s)
+    client = client or StrataClient.from_settings(settings)
     if not client.health():
         return _skip("strata_unavailable")
     if progress:

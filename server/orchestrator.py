@@ -81,7 +81,7 @@ class StageContext:
 # --- default stage implementations ------------------------------------------------------------------------------
 
 def _strata(settings: Settings) -> StrataClient:
-    return StrataClient(settings.strata_base_url, settings.strata_model, settings.strata_timeout_s)
+    return StrataClient.from_settings(settings)
 
 
 def _use_strata(ctx: StageContext) -> bool:

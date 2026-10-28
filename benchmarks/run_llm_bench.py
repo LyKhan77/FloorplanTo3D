@@ -179,7 +179,7 @@ def main(argv: list[str] | None = None) -> dict:
     ap.add_argument("--fake-oracle", action="store_true", help="tests only: answers = labels, Strata is not called")
     a = ap.parse_args(argv)
     s = load_settings()
-    client = None if a.fake_oracle else StrataClient(s.strata_base_url, s.strata_model, s.strata_timeout_s)
+    client = None if a.fake_oracle else StrataClient.from_settings(s)
     meta = {"model": s.strata_model, "prompt": a.prompt, "votes": a.votes, "evidence": not a.no_evidence,
             "fewshot": not a.no_fewshot}
     if a.task in ("T4", "e2e"):

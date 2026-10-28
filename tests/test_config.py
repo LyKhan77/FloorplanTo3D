@@ -29,3 +29,11 @@ def test_blender_bin_resolves_symlink(tmp_path):
     link = tmp_path / "blender"
     link.symlink_to(real)
     assert load_settings({"BLENDER_BIN": str(link)}).blender_bin == str(real.resolve())
+
+
+def test_strata_api_key_is_read_and_never_printed():
+    """The DGX Strata server (2026-10-28) rejects chat calls without a bearer key."""
+    assert load_settings({}).strata_api_key == ""
+    s = load_settings({"STRATA_API_KEY": "sk-test-123"})
+    assert s.strata_api_key == "sk-test-123"
+    assert "sk-test-123" not in repr(s)

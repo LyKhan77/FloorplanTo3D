@@ -65,7 +65,7 @@ class FakeStrata:
 @pytest.fixture
 def strata_live() -> StrataClient:
     s = load_settings()
-    client = StrataClient(s.strata_base_url, s.strata_model, s.strata_timeout_s)
+    client = StrataClient.from_settings(s)
     if not client.health():
         pytest.skip("Strata not reachable")
     return client

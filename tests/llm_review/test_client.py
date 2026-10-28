@@ -147,3 +147,23 @@ def test_transport_errors_are_flagged():
     r = make_client([httpx.ConnectError("refused")]).ask_json(MSGS, T1Like, effort="none", temperature=0)
     assert r.transport is True
     assert make_client([completion("x")] * 3).ask_json(MSGS, T1Like, effort="none", temperature=0).transport is False
+
+
+def test_api_key_is_sent_as_bearer():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.headers.get("authorization"))
+        return httpx.Response(200, json=completion('{"id": "W7", "verdict": "wall"}'))
+
+    c = StrataClient("http://strata.test/v1", "m", 5, http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+                     api_key="sk-test-123")
+    c.ask_json(MSGS, T1Like, effort="low", temperature=0)
+    assert seen == ["Bearer sk-test-123"]
+
+
+def test_from_settings_carries_the_key():
+    from core.config import load_settings
+
+    c = StrataClient.from_settings(load_settings({"STRATA_API_KEY": "sk-test-123", "STRATA_MODEL": "m2"}))
+    assert c.model == "m2" and c._sdk.api_key == "sk-test-123"
