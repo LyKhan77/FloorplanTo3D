@@ -533,7 +533,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - muka mempertahankan tebal (kontur runtuh);
   - cable ladder (kontur runtuh).
 - **Gatsu akhir:** `wall_recall` 0.772, `wall_precision` 0.773, `door_recall` 0.47, `room_match` 0.083, `gross_area_err` 0.038.
-- **Regresi yang diterima, menunggu keputusan pengguna.** Task 5 gagal gerbang 2, karena tahap 5 berpindah ke kandidat lain dengan skor hampir sama:
+- **Regresi yang diterima pengguna (2026-10-28).** Task 5 gagal gerbang 2, karena tahap 5 berpindah ke kandidat lain dengan skor hampir sama:
   - `wall_precision` 0.794 → 0.773;
   - `wall_iou` 0.510 → 0.485;
   - `stair_risers_ok` 0.33 → 0;

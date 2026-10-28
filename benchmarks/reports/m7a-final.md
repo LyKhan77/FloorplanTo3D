@@ -45,7 +45,7 @@ Skor ketahanan relatif (porsi metrik ≥ 0.9 × a00): 0.432 → 0.480. Varian lo
 | 3 | Dinding satu sisi (garis tunggal yang kedua ujungnya bertemu garis tegak lurus) | **di-revert**: recall +3.2 poin tetapi presisi −6 poin (potongan sumbu grid, tepi tangga, jalur kabel); hanya 1 dari 9 dinding sasaran pulih karena garis mukanya sudah berpasangan |
 | 4 | Pasangan garis ganda yang terputus (overlap absolut ≥ 300 mm) | **dipertahankan**: Gatsu recall 0.766 → 0.779; rata-rata augmentasi `gross_area_err` 0.638 → 0.595 |
 | 4 | Muka dinding mempertahankan tebalnya | **di-revert**: kontur bangunan runtuh (`gross_area_err` 0.03 → 0.59) |
-| 5 | Ruang dipecah di leher < 300 mm (`form_rooms`, hanya ruang di kontur luar sesudah fix pass) | **dipertahankan, menunggu keputusan pengguna**: outdoor 3 → 10, ruang 22 → 41 (GT 48), `room_match` 0.021 → 0.083; tahap 5 berpindah ke kandidat lain (skor 0.871 vs 0.855): presisi dinding −2 poin |
+| 5 | Ruang dipecah di leher < 300 mm (`form_rooms`, hanya ruang di kontur luar sesudah fix pass) | **dipertahankan (diterima pengguna 2026-10-28)**: outdoor 3 → 10, ruang 22 → 41 (GT 48), `room_match` 0.021 → 0.083; tahap 5 berpindah ke kandidat lain (skor 0.871 vs 0.855): presisi dinding −2 poin |
 | fix pass | Leher dipotong tanpa membungkus partisi tipis; pemecahan dibatasi ke kontur luar; pasangan silang antar-partisi ditolak; exception tahap jadi varian gagal | dinding identik dengan Task 5, `room_match` 0.042 → 0.083 |
 | 6 | Cable ladder (garis ganda ≥ 200 mm dengan rung) | **di-revert**: presisi +1.2 poin di Gatsu, tetapi pita luar bersirip ikut terbuang dan kontur runtuh (`gross_area_err` sampai 0.59) |
 
