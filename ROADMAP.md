@@ -609,6 +609,12 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Suite:** pytest 610 passed, 3 xfailed (tanpa `strata`); ruff bersih.
 - **Batasan R-19:** gaya render adalah asumsi kita sendiri, dan lebih bersih daripada `plan.jpeg` (`s00`: recall 0.90 vs 0.77).
 
+**Strata DGX (2026-10-28)** (`benchmarks/DECISIONS.md` "Strata DGX"):
+- **Server:** pipeline pindah ke Strata `Qwen3.8-Flash-Next` NVFP4 di server DGX, dengan `STRATA_API_KEY` di `.env`.
+- **Hasil gerbang:** T0 (0.99) dan T3 (0.85) lolos. T1 (presisi hapus ≤ 0.86) dan T2 (engsel 0.60) belum lolos, jadi set aktif tetap `T0,T3`.
+- **T0 dipercepat:** effort `none`, 49 s → 2.2 s per panggilan, akurasi sama.
+- **E2E T3 di Gatsu:** Δ 0 pada semua metrik; tahap 6 selesai dalam 0.6 s.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.

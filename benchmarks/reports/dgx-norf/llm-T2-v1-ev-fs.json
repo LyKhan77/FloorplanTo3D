@@ -1,0 +1,53 @@
+{
+ "model": "Qwen3.8-Flash-Next",
+ "prompt": "v1",
+ "votes": 3,
+ "evidence": true,
+ "fewshot": true,
+ "task": "T2",
+ "n": 24,
+ "invalid_rate": 0.0,
+ "per_field": {
+  "is_door": 0.6666666666666666,
+  "door_type": 1.0,
+  "hinge": 0.8,
+  "swing": 0.8
+ },
+ "baseline_per_field": {
+  "is_door": 0.20833333333333334,
+  "door_type": 1.0,
+  "hinge": 0.8,
+  "swing": 0.8
+ },
+ "accuracy": 0.5833333333333334,
+ "baseline_accuracy": 0.125,
+ "confusion": {
+  "hinge": {
+   "end": {
+    "end": 2,
+    "start": 1
+   },
+   "start": {
+    "start": 1
+   },
+   "both": {
+    "both": 1
+   }
+  },
+  "swing": {
+   "right": {
+    "right": 3,
+    "left": 1
+   },
+   "left": {
+    "left": 1
+   }
+  }
+ },
+ "passes": false,
+ "latency": {
+  "calls": 56,
+  "mean_ms": 24143,
+  "p90_ms": 27111
+ }
+}

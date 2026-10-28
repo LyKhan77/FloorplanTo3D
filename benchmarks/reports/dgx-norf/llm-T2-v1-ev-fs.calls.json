@@ -1,0 +1,510 @@
+{
+ "answers": {
+  "T2-003": {
+   "id": "D17",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "right"
+  },
+  "T2-005": {
+   "id": "D21",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "T2-006": {
+   "id": "D22",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-007": {
+   "id": "D5",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "right"
+  },
+  "T2-008": {
+   "id": "D9",
+   "is_door": true,
+   "door_type": "double_swing",
+   "hinge": "both",
+   "swing": "right"
+  },
+  "T2-010": {
+   "id": "D3",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-011": {
+   "id": "D5",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-012": {
+   "id": "D7",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-013": {
+   "id": "D10",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-014": {
+   "id": "D15",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-015": {
+   "id": "D24",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-016": {
+   "id": "D26",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-017": {
+   "id": "D31",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-018": {
+   "id": "D1",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-019": {
+   "id": "D6",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  },
+  "T2-020": {
+   "id": "D14",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-021": {
+   "id": "D2",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-022": {
+   "id": "D6",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "start",
+   "swing": "left"
+  },
+  "T2-023": {
+   "id": "D19",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-024": {
+   "id": "D1",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-025": {
+   "id": "D16",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-026": {
+   "id": "D23",
+   "is_door": true,
+   "door_type": "opening",
+   "hinge": null,
+   "swing": null
+  },
+  "T2-027": {
+   "id": "D26",
+   "is_door": false,
+   "door_type": null,
+   "hinge": null,
+   "swing": null
+  },
+  "T2-028": {
+   "id": "D3",
+   "is_door": true,
+   "door_type": "single_swing",
+   "hinge": "end",
+   "swing": "left"
+  }
+ },
+ "calls": [
+  {
+   "id": "T2-003",
+   "latency_ms": 30039,
+   "valid": true,
+   "raw": "{\"id\": \"D17\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-003",
+   "latency_ms": 25103,
+   "valid": true,
+   "raw": "{\"id\": \"D17\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-005",
+   "latency_ms": 24652,
+   "valid": true,
+   "raw": "{\"id\": \"D21\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-005",
+   "latency_ms": 24975,
+   "valid": true,
+   "raw": "{\"id\": \"D21\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-005",
+   "latency_ms": 20836,
+   "valid": true,
+   "raw": "{\"id\": \"D21\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-006",
+   "latency_ms": 27293,
+   "valid": true,
+   "raw": "{\"id\": \"D22\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-006",
+   "latency_ms": 23556,
+   "valid": true,
+   "raw": "{\"id\": \"D22\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-007",
+   "latency_ms": 25594,
+   "valid": true,
+   "raw": "{\"id\": \"D5\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-007",
+   "latency_ms": 26408,
+   "valid": true,
+   "raw": "{\"id\": \"D5\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-007",
+   "latency_ms": 24219,
+   "valid": true,
+   "raw": "{\"id\": \"D5\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-008",
+   "latency_ms": 27111,
+   "valid": true,
+   "raw": "{\"id\": \"D9\", \"is_door\": true, \"door_type\": \"double_swing\", \"hinge\": \"both\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-008",
+   "latency_ms": 26299,
+   "valid": true,
+   "raw": "{\"id\": \"D9\", \"is_door\": true, \"door_type\": \"double_swing\", \"hinge\": \"both\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-010",
+   "latency_ms": 23102,
+   "valid": true,
+   "raw": "{\"id\": \"D3\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-010",
+   "latency_ms": 24045,
+   "valid": true,
+   "raw": "{\"id\": \"D3\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-011",
+   "latency_ms": 24904,
+   "valid": true,
+   "raw": "{\"id\": \"D5\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-011",
+   "latency_ms": 24188,
+   "valid": true,
+   "raw": "{\"id\": \"D5\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-012",
+   "latency_ms": 23527,
+   "valid": true,
+   "raw": "{\"id\": \"D7\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-012",
+   "latency_ms": 26271,
+   "valid": true,
+   "raw": "{\"id\": \"D7\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-012",
+   "latency_ms": 23827,
+   "valid": true,
+   "raw": "{\"id\": \"D7\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-013",
+   "latency_ms": 25281,
+   "valid": true,
+   "raw": "{\"id\": \"D10\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-013",
+   "latency_ms": 23294,
+   "valid": true,
+   "raw": "{\"id\": \"D10\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"right\"}"
+  },
+  {
+   "id": "T2-013",
+   "latency_ms": 23162,
+   "valid": true,
+   "raw": "{\"id\": \"D10\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-014",
+   "latency_ms": 23156,
+   "valid": true,
+   "raw": "{\"id\": \"D15\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-014",
+   "latency_ms": 26205,
+   "valid": true,
+   "raw": "{\"id\": \"D15\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-015",
+   "latency_ms": 24993,
+   "valid": true,
+   "raw": "{\"id\": \"D24\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-015",
+   "latency_ms": 23471,
+   "valid": true,
+   "raw": "{\"id\": \"D24\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-016",
+   "latency_ms": 26318,
+   "valid": true,
+   "raw": "{\"id\": \"D26\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-016",
+   "latency_ms": 24735,
+   "valid": true,
+   "raw": "{\"id\": \"D26\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-017",
+   "latency_ms": 21444,
+   "valid": true,
+   "raw": "{\"id\": \"D31\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-017",
+   "latency_ms": 23458,
+   "valid": true,
+   "raw": "{\"id\": \"D31\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-018",
+   "latency_ms": 25997,
+   "valid": true,
+   "raw": "{\"id\": \"D1\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-018",
+   "latency_ms": 27508,
+   "valid": true,
+   "raw": "{\"id\": \"D1\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-018",
+   "latency_ms": 22001,
+   "valid": true,
+   "raw": "{\"id\": \"D1\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-019",
+   "latency_ms": 21698,
+   "valid": true,
+   "raw": "{\"id\": \"D6\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-019",
+   "latency_ms": 25637,
+   "valid": true,
+   "raw": "{\"id\": \"D6\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-019",
+   "latency_ms": 25269,
+   "valid": true,
+   "raw": "{\"id\": \"D6\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-020",
+   "latency_ms": 23052,
+   "valid": true,
+   "raw": "{\"id\": \"D14\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-020",
+   "latency_ms": 28479,
+   "valid": true,
+   "raw": "{\"id\": \"D14\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-021",
+   "latency_ms": 22313,
+   "valid": true,
+   "raw": "{\"id\": \"D2\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-021",
+   "latency_ms": 21428,
+   "valid": true,
+   "raw": "{\"id\": \"D2\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-022",
+   "latency_ms": 21820,
+   "valid": true,
+   "raw": "{\"id\": \"D6\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-022",
+   "latency_ms": 27214,
+   "valid": true,
+   "raw": "{\"id\": \"D6\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"start\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-023",
+   "latency_ms": 25840,
+   "valid": true,
+   "raw": "{\"id\": \"D19\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-023",
+   "latency_ms": 23864,
+   "valid": true,
+   "raw": "{\"id\": \"D19\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-024",
+   "latency_ms": 23720,
+   "valid": true,
+   "raw": "{\"id\": \"D1\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-024",
+   "latency_ms": 24690,
+   "valid": true,
+   "raw": "{\"id\": \"D1\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-025",
+   "latency_ms": 23669,
+   "valid": true,
+   "raw": "{\"id\": \"D16\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-025",
+   "latency_ms": 23021,
+   "valid": true,
+   "raw": "{\"id\": \"D16\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-025",
+   "latency_ms": 23212,
+   "valid": true,
+   "raw": "{\"id\": \"D16\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-026",
+   "latency_ms": 21515,
+   "valid": true,
+   "raw": "{\"id\": \"D23\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-026",
+   "latency_ms": 21502,
+   "valid": true,
+   "raw": "{\"id\": \"D23\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-026",
+   "latency_ms": 20594,
+   "valid": true,
+   "raw": "{\"id\": \"D23\", \"is_door\": true, \"door_type\": \"opening\", \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-027",
+   "latency_ms": 21494,
+   "valid": true,
+   "raw": "{\"id\": \"D26\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-027",
+   "latency_ms": 21457,
+   "valid": true,
+   "raw": "{\"id\": \"D26\", \"is_door\": false, \"door_type\": null, \"hinge\": null, \"swing\": null}"
+  },
+  {
+   "id": "T2-028",
+   "latency_ms": 21812,
+   "valid": true,
+   "raw": "{\"id\": \"D3\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  },
+  {
+   "id": "T2-028",
+   "latency_ms": 21758,
+   "valid": true,
+   "raw": "{\"id\": \"D3\", \"is_door\": true, \"door_type\": \"single_swing\", \"hinge\": \"end\", \"swing\": \"left\"}"
+  }
+ ]
+}

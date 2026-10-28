@@ -1,0 +1,346 @@
+{
+ "answers": {
+  "T3-004": {
+   "id": "R22",
+   "type": "meeting",
+   "name_normalized": "R MEETING"
+  },
+  "T3-006": {
+   "id": "R22",
+   "type": "meeting",
+   "name_normalized": "R MEET1NG"
+  },
+  "T3-007": {
+   "id": "R24",
+   "type": "storage",
+   "name_normalized": "GUDANG"
+  },
+  "T3-008": {
+   "id": "R24",
+   "type": "storage",
+   "name_normalized": "GUDNG"
+  },
+  "T3-009": {
+   "id": "R24",
+   "type": "storage",
+   "name_normalized": "GUADNG"
+  },
+  "T3-010": {
+   "id": "R32",
+   "type": "mdf",
+   "name_normalized": "MDF ROOM"
+  },
+  "T3-011": {
+   "id": "R32",
+   "type": "mdf",
+   "name_normalized": "MDF OOM"
+  },
+  "T3-012": {
+   "id": "R32",
+   "type": "mdf",
+   "name_normalized": "MDFR OOM"
+  },
+  "T3-013": {
+   "id": "R32",
+   "type": "mdf",
+   "name_normalized": "MDF R0OM"
+  },
+  "T3-014": {
+   "id": "R34",
+   "type": "ahu_room",
+   "name_normalized": "AHU ROOM"
+  },
+  "T3-015": {
+   "id": "R34",
+   "type": "ahu_room",
+   "name_normalized": "AHU OOM"
+  },
+  "T3-016": {
+   "id": "R34",
+   "type": "ahu_room",
+   "name_normalized": "AHUR OOM"
+  },
+  "T3-017": {
+   "id": "R34",
+   "type": "ahu_room",
+   "name_normalized": "AHU R0OM"
+  },
+  "T3-018": {
+   "id": "R29",
+   "type": "other",
+   "name_normalized": "GALERY"
+  },
+  "T3-019": {
+   "id": "R29",
+   "type": "corridor",
+   "name_normalized": "GALRY"
+  },
+  "T3-020": {
+   "id": "R29",
+   "type": "other",
+   "name_normalized": "GAELRY"
+  },
+  "T3-021": {
+   "id": "R36",
+   "type": "capacitor_room",
+   "name_normalized": "CAPASITOR ROOM"
+  },
+  "T3-022": {
+   "id": "R36",
+   "type": "capacitor_room",
+   "name_normalized": "CAPASITR ROOM"
+  },
+  "T3-023": {
+   "id": "R36",
+   "type": "capacitor_room",
+   "name_normalized": "CAPASIOTR ROOM"
+  },
+  "T3-024": {
+   "id": "R36",
+   "type": "capacitor_room",
+   "name_normalized": "CAPASITOR ROOM"
+  }
+ },
+ "calls": [
+  {
+   "id": "T3-004",
+   "latency_ms": 9226,
+   "valid": true,
+   "raw": "{\"id\": \"R22\", \"type\": \"meeting\", \"name_normalized\": \"R MEETING\"}"
+  },
+  {
+   "id": "T3-004",
+   "latency_ms": 8155,
+   "valid": true,
+   "raw": "{\"id\": \"R22\", \"type\": \"meeting\", \"name_normalized\": \"R MEETING\"}"
+  },
+  {
+   "id": "T3-006",
+   "latency_ms": 26481,
+   "valid": true,
+   "raw": "{\"id\": \"R22\", \"type\": \"meeting\", \"name_normalized\": \"R MEET1NG\"}"
+  },
+  {
+   "id": "T3-006",
+   "latency_ms": 23863,
+   "valid": true,
+   "raw": "{\"id\": \"R22\", \"type\": \"meeting\", \"name_normalized\": \"R MEET1NG\"}"
+  },
+  {
+   "id": "T3-007",
+   "latency_ms": 25885,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUDANG\"}"
+  },
+  {
+   "id": "T3-007",
+   "latency_ms": 44747,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUDANG\"}"
+  },
+  {
+   "id": "T3-008",
+   "latency_ms": 14320,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUDNG\"}"
+  },
+  {
+   "id": "T3-008",
+   "latency_ms": 49414,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUDNG\"}"
+  },
+  {
+   "id": "T3-009",
+   "latency_ms": 14328,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUADNG\"}"
+  },
+  {
+   "id": "T3-009",
+   "latency_ms": 12176,
+   "valid": true,
+   "raw": "{\"id\": \"R24\", \"type\": \"storage\", \"name_normalized\": \"GUADNG\"}"
+  },
+  {
+   "id": "T3-010",
+   "latency_ms": 13358,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF ROOM\"}"
+  },
+  {
+   "id": "T3-010",
+   "latency_ms": 23983,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF ROOM\"}"
+  },
+  {
+   "id": "T3-011",
+   "latency_ms": 14139,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF OOM\"}"
+  },
+  {
+   "id": "T3-011",
+   "latency_ms": 12506,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF OOM\"}"
+  },
+  {
+   "id": "T3-012",
+   "latency_ms": 13895,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDFR OOM\"}"
+  },
+  {
+   "id": "T3-012",
+   "latency_ms": 35835,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDFR OOM\"}"
+  },
+  {
+   "id": "T3-013",
+   "latency_ms": 25547,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF R0OM\"}"
+  },
+  {
+   "id": "T3-013",
+   "latency_ms": 58793,
+   "valid": true,
+   "raw": "{\"id\": \"R32\", \"type\": \"mdf\", \"name_normalized\": \"MDF R0OM\"}"
+  },
+  {
+   "id": "T3-014",
+   "latency_ms": 25980,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU ROOM\"}"
+  },
+  {
+   "id": "T3-014",
+   "latency_ms": 12023,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU ROOM\"}"
+  },
+  {
+   "id": "T3-015",
+   "latency_ms": 26416,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU OOM\"}"
+  },
+  {
+   "id": "T3-015",
+   "latency_ms": 107085,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU OOM\"}"
+  },
+  {
+   "id": "T3-016",
+   "latency_ms": 14106,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHUR OOM\"}"
+  },
+  {
+   "id": "T3-016",
+   "latency_ms": 34445,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHUR OOM\"}"
+  },
+  {
+   "id": "T3-017",
+   "latency_ms": 14495,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU R0OM\"}"
+  },
+  {
+   "id": "T3-017",
+   "latency_ms": 11877,
+   "valid": true,
+   "raw": "{\"id\": \"R34\", \"type\": \"ahu_room\", \"name_normalized\": \"AHU R0OM\"}"
+  },
+  {
+   "id": "T3-018",
+   "latency_ms": 13777,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"other\", \"name_normalized\": \"GALERY\"}"
+  },
+  {
+   "id": "T3-018",
+   "latency_ms": 55940,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"other\", \"name_normalized\": \"GALERY\"}"
+  },
+  {
+   "id": "T3-019",
+   "latency_ms": 14323,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"corridor\", \"name_normalized\": \"GALRY\"}"
+  },
+  {
+   "id": "T3-019",
+   "latency_ms": 25363,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"corridor\", \"name_normalized\": \"GALRY\"}"
+  },
+  {
+   "id": "T3-020",
+   "latency_ms": 13889,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"other\", \"name_normalized\": \"GAELRY\"}"
+  },
+  {
+   "id": "T3-020",
+   "latency_ms": 69302,
+   "valid": true,
+   "raw": "{\"id\": \"R29\", \"type\": \"other\", \"name_normalized\": \"GAELRY\"}"
+  },
+  {
+   "id": "T3-021",
+   "latency_ms": 25616,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITOR ROOM\"}"
+  },
+  {
+   "id": "T3-021",
+   "latency_ms": 37811,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITOR ROOM\"}"
+  },
+  {
+   "id": "T3-022",
+   "latency_ms": 13997,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITR ROOM\"}"
+  },
+  {
+   "id": "T3-022",
+   "latency_ms": 22428,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITR ROOM\"}"
+  },
+  {
+   "id": "T3-023",
+   "latency_ms": 58484,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASIOTR ROOM\"}"
+  },
+  {
+   "id": "T3-023",
+   "latency_ms": 11869,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASIOTR ROOM\"}"
+  },
+  {
+   "id": "T3-024",
+   "latency_ms": 26099,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITOR ROOM\"}"
+  },
+  {
+   "id": "T3-024",
+   "latency_ms": 11375,
+   "valid": true,
+   "raw": "{\"id\": \"R36\", \"type\": \"capacitor_room\", \"name_normalized\": \"CAPASITOR ROOM\"}"
+  }
+ ]
+}

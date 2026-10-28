@@ -1,0 +1,213 @@
+{
+ "answers": {
+  "T0-001": {
+   "wall_height": 4500,
+   "door_height": 2400,
+   "floor_name": "Lantai 1",
+   "site_type": "data_center"
+  },
+  "T0-002": {
+   "wall_height": 4000,
+   "floor_name": "Lantai 2",
+   "site_type": "data_center"
+  },
+  "T0-003": {
+   "wall_thickness": 200,
+   "floor_name": "Lantai 3"
+  },
+  "T0-004": {
+   "wall_height": 3200,
+   "floor_name": "Basement"
+  },
+  "T0-005": {
+   "door_height": 2100,
+   "floor_name": "Lantai 5",
+   "site_type": "office"
+  },
+  "T0-006": {
+   "wall_height": 5000,
+   "floor_name": "Lantai 2",
+   "site_type": "data_center"
+  },
+  "T0-007": {},
+  "T0-008": {
+   "floor_name": "Lantai 4",
+   "site_type": "data_center"
+  },
+  "T0-009": {
+   "wall_height": 4500,
+   "wall_thickness": 150
+  },
+  "T0-010": {
+   "wall_height": 4500,
+   "floor_name": "Lantai 3"
+  },
+  "T0-011": {
+   "wall_height": 6000,
+   "floor_name": "Lantai 2",
+   "site_type": "data_center"
+  },
+  "T0-012": {
+   "wall_height": 3000,
+   "door_height": 2200
+  },
+  "T0-013": {
+   "wall_thickness": 200,
+   "floor_name": "Lantai 1",
+   "site_type": "data_center"
+  },
+  "T0-014": {
+   "floor_name": "Lantai 7",
+   "site_type": "office"
+  },
+  "T0-015": {
+   "wall_height": 4500,
+   "floor_name": "Lantai 2"
+  },
+  "T0-016": {
+   "wall_height": 3500,
+   "door_height": 2100,
+   "floor_name": "Lantai 2"
+  },
+  "T0-017": {
+   "wall_thickness": 100,
+   "floor_name": "Mezzanine"
+  },
+  "T0-018": {
+   "wall_height": 5000,
+   "floor_name": "Lantai 1",
+   "site_type": "data_center"
+  },
+  "T0-019": {
+   "door_height": 2400,
+   "floor_name": "Lantai 2",
+   "site_type": "data_center"
+  },
+  "T0-020": {
+   "floor_name": "Lantai 3",
+   "site_type": "mixed"
+  }
+ },
+ "calls": [
+  {
+   "id": "T0-001",
+   "latency_ms": 43433,
+   "valid": true,
+   "raw": "{\"wall_height\": 4500, \"door_height\": 2400, \"wall_thickness\": null, \"floor_name\": \"Lantai 1\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-002",
+   "latency_ms": 50109,
+   "valid": true,
+   "raw": "{\"wall_height\": 4000, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-003",
+   "latency_ms": 82537,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": 200, \"floor_name\": \"Lantai 3\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-004",
+   "latency_ms": 65955,
+   "valid": true,
+   "raw": "{\"wall_height\": 3200, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Basement\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-005",
+   "latency_ms": 64930,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": 2100, \"wall_thickness\": null, \"floor_name\": \"Lantai 5\", \"site_type\": \"office\"}"
+  },
+  {
+   "id": "T0-006",
+   "latency_ms": 60360,
+   "valid": true,
+   "raw": "{\"wall_height\": 5000, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-007",
+   "latency_ms": 36457,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": null, \"site_type\": null}"
+  },
+  {
+   "id": "T0-008",
+   "latency_ms": 50085,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 4\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-009",
+   "latency_ms": 37563,
+   "valid": true,
+   "raw": "{\"wall_height\": 4500, \"door_height\": null, \"wall_thickness\": 150, \"floor_name\": null, \"site_type\": null}"
+  },
+  {
+   "id": "T0-010",
+   "latency_ms": 57709,
+   "valid": true,
+   "raw": "{\"wall_height\": 4500, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 3\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-011",
+   "latency_ms": 62977,
+   "valid": true,
+   "raw": "{\"wall_height\": 6000, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-012",
+   "latency_ms": 74428,
+   "valid": true,
+   "raw": "{\"wall_height\": 3000, \"door_height\": 2200, \"wall_thickness\": null, \"floor_name\": null, \"site_type\": null}"
+  },
+  {
+   "id": "T0-013",
+   "latency_ms": 84413,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": 200, \"floor_name\": \"Lantai 1\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-014",
+   "latency_ms": 37414,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 7\", \"site_type\": \"office\"}"
+  },
+  {
+   "id": "T0-015",
+   "latency_ms": 83418,
+   "valid": true,
+   "raw": "{\"wall_height\": 4500, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-016",
+   "latency_ms": 52563,
+   "valid": true,
+   "raw": "{\"wall_height\": 3500, \"door_height\": 2100, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-017",
+   "latency_ms": 117419,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": 100, \"floor_name\": \"Mezzanine\", \"site_type\": null}"
+  },
+  {
+   "id": "T0-018",
+   "latency_ms": 49436,
+   "valid": true,
+   "raw": "{\"wall_height\": 5000, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 1\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-019",
+   "latency_ms": 47647,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": 2400, \"wall_thickness\": null, \"floor_name\": \"Lantai 2\", \"site_type\": \"data_center\"}"
+  },
+  {
+   "id": "T0-020",
+   "latency_ms": 45579,
+   "valid": true,
+   "raw": "{\"wall_height\": null, \"door_height\": null, \"wall_thickness\": null, \"floor_name\": \"Lantai 3\", \"site_type\": \"mixed\"}"
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "model": "Qwen3.8-Flash-Next",
+ "prompt": "v1",
+ "votes": 3,
+ "evidence": true,
+ "fewshot": true,
+ "task": "T0",
+ "n": 20,
+ "invalid_rate": 0.0,
+ "accuracy": 0.99,
+ "baseline_accuracy": 0.78,
+ "passes": true,
+ "latency": {
+  "calls": 20,
+  "mean_ms": 48912,
+  "p90_ms": 65664
+ }
+}

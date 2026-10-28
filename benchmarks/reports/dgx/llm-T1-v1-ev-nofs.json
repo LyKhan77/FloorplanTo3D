@@ -1,0 +1,30 @@
+{
+ "model": "Qwen3.8-Flash-Next",
+ "prompt": "v1",
+ "votes": 3,
+ "evidence": true,
+ "fewshot": false,
+ "task": "T1",
+ "n": 96,
+ "invalid_rate": 0.0,
+ "accuracy": 0.5520833333333334,
+ "baseline_accuracy": 0.5833333333333334,
+ "delete_precision": 0.8571428571428571,
+ "f1_annotation": 0.21818181818181817,
+ "confusion": {
+  "wall": {
+   "wall": 47,
+   "annotation": 1
+  },
+  "annotation": {
+   "wall": 42,
+   "annotation": 6
+  }
+ },
+ "passes": false,
+ "latency": {
+  "calls": 201,
+  "mean_ms": 3873,
+  "p90_ms": 4101
+ }
+}

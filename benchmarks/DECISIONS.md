@@ -41,3 +41,26 @@ Yang perlu dicoba lagi sebelum T1 diaktifkan:
 - **T1 berhati-hati.** Pada varian aktif, Strata menandai 15 dari 48 anotasi (recall 0.31) dan tidak pernah menandai dinding asli. Selebihnya tetap ditangani gerbang skor validator di tahap 6.
 - **T2 punya sinyal berguna di luar syarat PRD.** Strata mengenali deteksi pintu palsu jauh lebih baik dari CV (is_door 0.96 vs 0.21 tanpa bukti teks). Namun syarat §7.2 untuk T2 adalah engsel dan arah, dan di sana Strata tidak lebih baik dari CV pada 5 pintu asli. Mengaktifkan T2 hanya untuk menghapus pintu palsu butuh syarat baru, yang menjadi keputusan pemilik produk.
 - **n kecil.** GT Gatsu punya 19 pintu, dan CV hanya menemukan sekitar 8 pada jarak ≤ 300 mm, sehingga target T2 ≥ 20 tidak tercapai. T3 tepat 20 item setelah label yang bukan nama ruang dibuang.
+
+## Strata DGX (2026-10-28): `Qwen3.8-Flash-Next` NVFP4 di server DGX
+
+Server Strata lokal (`qwen3.8-flash-next-iq2_xs`) dihentikan; pipeline kini memakai server DGX (`STRATA_BASE_URL`, `STRATA_API_KEY` di `.env`). Item T1/T2 dibangun ulang dari run tahap 5 saat ini, karena ID elemen item M6 berasal dari run sebelum M7a. Laporan: `benchmarks/reports/dgx/` (dengan json_schema), `dgx-norf/` (tanpa), dan `dgx-t0-none/`.
+
+| Tugas | Konfigurasi pipeline | Hasil DGX | Pembanding | Gerbang §7.2 | Latensi rata-rata |
+|---|---|---|---|---|---|
+| T0 | effort `none` | 0.99 | aturan 0.78 | lolos | 2.2 s (effort `low`: 49 s) |
+| T1 | tanpa few-shot | 0.552, presisi hapus 0.857 | CV 0.583 | **gagal** | 3.9 s |
+| T1 | dengan few-shot (pembanding) | 0.771 / 0.833, presisi hapus 0.81 / 0.85 | CV 0.583 | gagal | 13.8 s |
+| T2 | few-shot | 0.50 / 0.58 (is_door 0.63, engsel 0.60) | CV 0.125 (engsel 0.80) | gagal | 24.7 s |
+| T3 | few-shot | 0.85 | leksikon 0.75 | lolos | 19.8 s |
+| e2e T3 | — | Δ 0 semua metrik, 0 perubahan | tanpa Strata | lolos | tahap 6: 0.6 s |
+
+Angka "x / y" adalah run dengan / tanpa json_schema.
+
+**Set aktif tetap `LLM_TASKS_ENABLED=T0,T3`.**
+
+Keputusan:
+- **T0 memakai effort `none`.** Akurasinya sama dengan `low`, dan 20× lebih cepat.
+- **json_schema tetap aktif (`STRATA_RESPONSE_FORMAT=1`).** Mematikannya mempercepat panggilan kecil (5.2 s → 0.8 s), tetapi tidak mempercepat prompt benchmark yang berisi gambar, dan akurasinya setara. Waktu panggilan didominasi prefill gambar dan few-shot: T1 tanpa few-shot 3.9 s, dengan few-shot 13.8 s.
+- **T1 tetap nonaktif.** Tanpa few-shot, model ini lebih buruk dari CV (0.552 vs 0.583). Dengan few-shot akurasinya naik ke 0.77–0.83, tetapi presisi hapusnya 0.81–0.85, di bawah syarat 0.90, sehingga ia akan menghapus dinding asli.
+- **T2 tetap nonaktif.** `is_door` jauh di atas CV (0.63 vs 0.21), tetapi engsel lebih buruk (0.60 vs 0.80), dan syarat §7.2 adalah engsel/arah.
