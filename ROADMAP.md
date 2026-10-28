@@ -568,7 +568,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 **Status M7a-3 (2026-10-28), branch `m7a3-bulk-editor`** (plan `docs/superpowers/plans/2026-10-28-m7a3-bulk-editor.md`, panduan kalibrasi `docs/calibration-correction.md`):
 - **Aksi massal editor.** Semua aksi memakai op yang sudah ada lewat `applyMany`, sehingga satu Ctrl+Z membatalkan seluruh aksi.
-  - Marquee (mode Top) ikut menyeleksi dinding yang kedua ujungnya ada di dalam kotak.
+  - Marquee (mode Top) ikut menyeleksi dinding yang kedua ujungnya ada di dalam kotak. Layer yang disembunyikan tidak ikut terseleksi: sembunyikan Objects untuk memilih dinding saja.
   - Seleksi ≥ 2 dinding menampilkan "Hapus N dinding" dengan satu alasan. Notice menyebut pintu dan jendela yang ikut terhapus.
   - Seleksi ≥ 2 ruang menampilkan "Tipe semua ruang"; ruang yang sudah bertipe sama dilewati.
   - Tambah dinding berantai: Enter menyimpan dinding dan memulai dinding berikutnya dari titik akhir; Esc berhenti.
@@ -584,7 +584,8 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - 3 dinding berantai dengan Enter, lalu Esc kembali ke Select;
   - Save menjadi v3 ("Edit editor: 32 op") tanpa masalah validasi.
 - **Catatan benchmark:** `failure_modes --fresh` tanpa `--cache` tidak menjalankan ulang stage dan memakai cache lama. Untuk angka baru, pakai `--cache` ke folder baru.
-- **Suite:** pytest 512 passed, 3 xfailed (tanpa `strata`); Vitest 173 passed; ruff, oxlint, dan build bersih.
+- **Review akhir:** 2 Important diperbaiki: marquee mengikuti layer yang tampil, dan draft dinding berantai dibuang saat keluar dari tool tambah dinding.
+- **Suite:** pytest 512 passed, 3 xfailed (tanpa `strata`); Vitest 176 passed; ruff, oxlint, dan build bersih.
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.

@@ -76,8 +76,8 @@ describe('CorrectionPanel', () => {
     type('b.y (mm)', '0')
     fireEvent.click(screen.getByRole('button', { name: 'Tambah dinding' }))
     expect(st().ops).toEqual([{ op: 'add_wall', a: [0, 0], b: [3000, 0], thickness: gt.meta.defaults!.wall_thickness, kind: 'partition' }])
-    // chained: the next wall starts at b and the tool stays on
-    expect(st().wallDraft).toEqual({ a: [3000, 0] })
+    // typed with the select tool: no chain, the form clears
+    expect(st().wallDraft).toEqual({})
   })
 
   it('new-wall thickness and kind live in the store', () => {

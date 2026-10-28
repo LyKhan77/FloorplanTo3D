@@ -41,7 +41,7 @@ export function Marquee({ wrap, camera }: { wrap: RefObject<HTMLDivElement | nul
       const ids = s.view ? idsInRect(s.view, { xa, xb, ya, yb }, (q) => {
         const p = new Vector3(...toThree(q)).project(camera.current!)
         return [((p.x + 1) / 2) * width, ((1 - p.y) / 2) * height]
-      }) : []
+      }, s.layers) : []
       const additive = e.shiftKey
       // after the click that ends this drag, which would otherwise select the floor under the cursor
       setTimeout(() => useEditorStore.getState().select(ids, additive), 0)

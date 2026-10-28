@@ -19,3 +19,13 @@ describe('idsInRect', () => {
     expect(idsInRect(view, { xa: 1000, xb: 2000, ya: 1000, yb: 2000 }, id2)).toEqual([])
   })
 })
+
+const box = { xa: -10, xb: 200, ya: -10, yb: 200 }
+const view2 = spec({ walls: [wall('W1', [0, 0], [100, 0])], objects: [obj('O1', [50, 50, 0])] })
+
+describe('idsInRect with layers', () => {
+  it('a hidden layer is not picked, so hiding objects gives a walls-only marquee', () => {
+    expect(idsInRect(view2, box, id2, { walls: true, objects: false })).toEqual(['W1'])
+    expect(idsInRect(view2, box, id2, { walls: false, objects: true })).toEqual(['O1'])
+  })
+})

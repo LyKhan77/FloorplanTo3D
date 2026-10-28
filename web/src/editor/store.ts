@@ -152,8 +152,9 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       set({ ...derived(base, future[0], selection), past: [...past, ops], future: future.slice(1) })
     },
     select: (ids, additive) => set((s) => ({ selection: additive ? [...new Set([...s.selection, ...ids])] : ids })),
-    setTool: (tool) => set({ tool }),
-    setMode: (mode) => set({ mode }),
+    // leaving the add-wall tool (or its top view) ends the chain, so a later wall never starts at an old point
+    setTool: (tool) => set((s) => ({ tool, ...(s.tool === 'add-wall' && tool !== 'add-wall' ? { wallDraft: {} } : {}) })),
+    setMode: (mode) => set((s) => ({ mode, ...(s.tool === 'add-wall' && mode !== s.mode ? { wallDraft: {} } : {}) })),
     toggleLayer: (layer) => set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
     setSnap: (snap) => set({ snap }),
     setCutaway: (cutaway) => set({ cutaway }),
@@ -182,8 +183,8 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       const { wallDraft: { a, b }, wallSpec, apply } = get()
       if (!a || !b || (a[0] === b[0] && a[1] === b[1])) return false
       if (!apply({ op: 'add_wall', a, b, ...wallSpec })) return false
-      // chained drawing: the next wall starts where this one ended
-      set({ wallDraft: { a: b } })
+      // chained drawing: the next wall starts where this one ended (only while the add-wall tool is on)
+      set({ wallDraft: get().tool === 'add-wall' ? { a: b } : {} })
       return true
     },
     setFocus: (focus) => set({ focus }),

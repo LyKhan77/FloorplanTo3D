@@ -146,6 +146,26 @@ describe('useEditorStore', () => {
       expect(st().ops).toEqual([])
     })
 
+    it('leaving the add-wall tool drops the chained draft', () => {
+      st().setMode('top')
+      st().setTool('add-wall')
+      st().setWallDraft({ a: [0, 0], b: [3000, 0] })
+      st().commitWallDraft()
+      st().setTool('select')
+      expect(st().wallDraft).toEqual({})
+      st().setTool('add-wall')
+      st().setWallDraft({ a: [0, 0] })
+      st().setMode('orbit')
+      expect(st().wallDraft).toEqual({})
+    })
+
+    it('panel add with the select tool does not chain', () => {
+      st().setTool('select')
+      st().setWallDraft({ a: [0, 0], b: [3000, 0] })
+      expect(st().commitWallDraft()).toBe(true)
+      expect(st().wallDraft).toEqual({})
+    })
+
     it('uses the chosen thickness and kind', () => {
       st().setWallSpec({ thickness: 200, kind: 'exterior' })
       st().setWallDraft({ a: [0, 0], b: [0, 4000] })
