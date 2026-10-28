@@ -173,3 +173,40 @@ def test_stage2_reads_the_rendered_grid(stage2):
     assert axes("vertical") == list("ABCDEF")
     assert sorted(axes("horizontal")) == ["1", "2", "3"]
     assert abs(grid["mm_per_px"] / 25.0 - 1) <= 0.005
+
+
+# --- runner -----------------------------------------------------------------------------------------------------
+
+def test_target_pass_uses_80_percent_of_nfr():
+    from benchmarks.run_synth_bench import target_pass
+
+    ok = {"wall_recall": 0.76, "wall_precision": 0.76, "wall_iou": 0.68, "door_recall": 0.72, "room_match": 0.72,
+          "gross_area_err": 0.0125}
+    assert target_pass(ok) == (True, [])
+    assert target_pass({**ok, "room_match": 0.71}) == (False, ["room_match"])
+    assert target_pass({**ok, "gross_area_err": 0.013})[1] == ["gross_area_err"]
+    assert target_pass({k: v for k, v in ok.items() if k != "door_recall"}) == (False, ["door_recall"])
+
+
+def test_variants_start_with_the_unchanged_render(base):
+    from benchmarks.run_synth_bench import variants
+
+    vs = variants(3)
+    assert [v["id"] for v in vs] == ["s00", "s01", "s02", "s03"]
+    assert vs[0]["ops"] == no_ops(base)
+    assert vs[1]["ops"] != no_ops(base)
+
+
+def test_stopped_variant_fails_with_reason(base, tmp_path):
+    from benchmarks.correction_effort import capped_minutes
+    from benchmarks.run_synth_bench import run_variant, variants
+
+    def boom(project, work, *a, **kw):
+        raise ValueError("x")
+
+    v = variants(1)[1]
+    row = run_variant(v, tmp_path, {"02_grid": boom})
+    gt, _ = perturb(base, v["seed"], v["ops"])
+    assert row["passed"] is False and "stage 2 failed" in row["reason"]
+    assert row["correction_min"] == capped_minutes(None, gt)
+    assert (tmp_path / "s01" / "input.png").exists()
