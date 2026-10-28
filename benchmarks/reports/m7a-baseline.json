@@ -1,0 +1,815 @@
+{
+ "metrics": {
+  "scale_err": 0.001276983240907618,
+  "wall_recall": 0.7662311279858441,
+  "wall_precision": 0.7997874693076812,
+  "wall_pos_median_mm": 18.0,
+  "wall_pos_p95_mm": 113.0,
+  "door_recall": 0.42105263157894735,
+  "door_width_ok": 0.3157894736842105,
+  "door_dir_ok": 0.16666666666666666,
+  "room_match": 0.020833333333333332,
+  "rooms_pred": 22,
+  "rooms_gt": 48,
+  "area_err_max": 0.7460622184664027,
+  "wall_iou": 0.5110114825077328,
+  "stair_risers_ok": 0.3333333333333333,
+  "stair_dir_ok": 1.0,
+  "stair_pos_ok": 0.0,
+  "gross_area_err": 0.030172413793103432
+ },
+ "missed": [
+  {
+   "id": "W9",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 1460,
+   "mode": "single",
+   "ink_binary": [
+    1.0,
+    0.15,
+    0.15
+   ],
+   "ink_clean": [
+    1.0,
+    0.15,
+    0.15
+   ]
+  },
+  {
+   "id": "W10",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 1460,
+   "mode": "double",
+   "ink_binary": [
+    0.93,
+    0.2,
+    1.0
+   ],
+   "ink_clean": [
+    0.93,
+    0.2,
+    1.0
+   ]
+  },
+  {
+   "id": "W11",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 13020,
+   "mode": "single",
+   "ink_binary": [
+    0.12,
+    0.05,
+    1.0
+   ],
+   "ink_clean": [
+    0.12,
+    0.05,
+    1.0
+   ]
+  },
+  {
+   "id": "W13",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 12830,
+   "mode": "single",
+   "ink_binary": [
+    0.03,
+    0.03,
+    1.0
+   ],
+   "ink_clean": [
+    0.03,
+    0.03,
+    1.0
+   ]
+  },
+  {
+   "id": "W14",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 13880,
+   "mode": "faint",
+   "ink_binary": [
+    0.1,
+    0.1,
+    0.57
+   ],
+   "ink_clean": [
+    0.1,
+    0.1,
+    0.57
+   ]
+  },
+  {
+   "id": "W15",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 4610,
+   "mode": "single",
+   "ink_binary": [
+    1.0,
+    0.03,
+    0.28
+   ],
+   "ink_clean": [
+    1.0,
+    0.03,
+    0.28
+   ]
+  },
+  {
+   "id": "W16",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 4780,
+   "mode": "single",
+   "ink_binary": [
+    1.0,
+    0.05,
+    0.28
+   ],
+   "ink_clean": [
+    1.0,
+    0.05,
+    0.28
+   ]
+  },
+  {
+   "id": "W24",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 360,
+   "mode": "single",
+   "ink_binary": [
+    0.0,
+    1.0,
+    0.23
+   ],
+   "ink_clean": [
+    0.0,
+    1.0,
+    0.23
+   ]
+  },
+  {
+   "id": "W30",
+   "kind": "low",
+   "thickness": 130,
+   "length_mm": 6650,
+   "mode": "faint",
+   "ink_binary": [
+    0.28,
+    0.07,
+    0.28
+   ],
+   "ink_clean": [
+    0.25,
+    0.07,
+    0.25
+   ]
+  },
+  {
+   "id": "W32",
+   "kind": "glass",
+   "thickness": 150,
+   "length_mm": 6000,
+   "mode": "double",
+   "ink_binary": [
+    1.0,
+    1.0,
+    0.9
+   ],
+   "ink_clean": [
+    1.0,
+    1.0,
+    0.9
+   ]
+  },
+  {
+   "id": "W38",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 770,
+   "mode": "single",
+   "ink_binary": [
+    1.0,
+    0.17,
+    0.2
+   ],
+   "ink_clean": [
+    1.0,
+    0.17,
+    0.2
+   ]
+  },
+  {
+   "id": "W39",
+   "kind": "exterior",
+   "thickness": 150,
+   "length_mm": 770,
+   "mode": "single",
+   "ink_binary": [
+    0.17,
+    1.0,
+    0.35
+   ],
+   "ink_clean": [
+    0.17,
+    1.0,
+    0.35
+   ]
+  },
+  {
+   "id": "W41",
+   "kind": "interior",
+   "thickness": 100,
+   "length_mm": 5690,
+   "mode": "single",
+   "ink_binary": [
+    0.95,
+    0.95,
+    0.23
+   ],
+   "ink_clean": [
+    0.95,
+    0.95,
+    0.23
+   ]
+  },
+  {
+   "id": "W47",
+   "kind": "interior",
+   "thickness": 210,
+   "length_mm": 1590,
+   "mode": "double",
+   "ink_binary": [
+    1.0,
+    0.0,
+    1.0
+   ],
+   "ink_clean": [
+    1.0,
+    0.0,
+    1.0
+   ]
+  },
+  {
+   "id": "W51",
+   "kind": "interior",
+   "thickness": 100,
+   "length_mm": 10210,
+   "mode": "double",
+   "ink_binary": [
+    0.85,
+    1.0,
+    0.85
+   ],
+   "ink_clean": [
+    0.85,
+    1.0,
+    0.85
+   ]
+  },
+  {
+   "id": "W53",
+   "kind": "interior",
+   "thickness": 150,
+   "length_mm": 7010,
+   "mode": "double",
+   "ink_binary": [
+    1.0,
+    0.07,
+    0.97
+   ],
+   "ink_clean": [
+    1.0,
+    0.07,
+    0.97
+   ]
+  },
+  {
+   "id": "W59",
+   "kind": "partition",
+   "thickness": 130,
+   "length_mm": 4180,
+   "mode": "faint",
+   "ink_binary": [
+    0.38,
+    0.3,
+    0.38
+   ],
+   "ink_clean": [
+    0.38,
+    0.3,
+    0.38
+   ]
+  },
+  {
+   "id": "W64",
+   "kind": "interior",
+   "thickness": 100,
+   "length_mm": 1950,
+   "mode": "faint",
+   "ink_binary": [
+    0.12,
+    0.55,
+    0.55
+   ],
+   "ink_clean": [
+    0.12,
+    0.55,
+    0.55
+   ]
+  },
+  {
+   "id": "W67",
+   "kind": "interior",
+   "thickness": 120,
+   "length_mm": 7540,
+   "mode": "erased",
+   "ink_binary": [
+    0.9,
+    0.1,
+    0.8
+   ],
+   "ink_clean": [
+    0.55,
+    0.1,
+    0.35
+   ]
+  },
+  {
+   "id": "W72",
+   "kind": "interior",
+   "thickness": 130,
+   "length_mm": 4630,
+   "mode": "double",
+   "ink_binary": [
+    0.88,
+    0.23,
+    0.88
+   ],
+   "ink_clean": [
+    0.62,
+    0.12,
+    0.62
+   ]
+  }
+ ],
+ "false": [
+  {
+   "id": "W4",
+   "length_mm": 601,
+   "confidence": 0.68,
+   "region": "other"
+  },
+  {
+   "id": "W6",
+   "length_mm": 1589,
+   "confidence": 0.54,
+   "region": "hatch"
+  },
+  {
+   "id": "W7",
+   "length_mm": 1134,
+   "confidence": 0.57,
+   "region": "other"
+  },
+  {
+   "id": "W8",
+   "length_mm": 1589,
+   "confidence": 0.54,
+   "region": "hatch"
+  },
+  {
+   "id": "W10",
+   "length_mm": 273,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W11",
+   "length_mm": 396,
+   "confidence": 0.78,
+   "region": "other"
+  },
+  {
+   "id": "W12",
+   "length_mm": 1364,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W13",
+   "length_mm": 1390,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W16",
+   "length_mm": 1454,
+   "confidence": 0.9,
+   "region": "other"
+  },
+  {
+   "id": "W17",
+   "length_mm": 1454,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W19",
+   "length_mm": 899,
+   "confidence": 0.72,
+   "region": "other"
+  },
+  {
+   "id": "W20",
+   "length_mm": 1998,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W21",
+   "length_mm": 801,
+   "confidence": 0.62,
+   "region": "other"
+  },
+  {
+   "id": "W22",
+   "length_mm": 737,
+   "confidence": 0.63,
+   "region": "other"
+  },
+  {
+   "id": "W23",
+   "length_mm": 2130,
+   "confidence": 0.26,
+   "region": "other"
+  },
+  {
+   "id": "W24",
+   "length_mm": 769,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W25",
+   "length_mm": 866,
+   "confidence": 0.75,
+   "region": "other"
+  },
+  {
+   "id": "W26",
+   "length_mm": 866,
+   "confidence": 0.63,
+   "region": "other"
+  },
+  {
+   "id": "W29",
+   "length_mm": 1239,
+   "confidence": 0.73,
+   "region": "other"
+  },
+  {
+   "id": "W30",
+   "length_mm": 310,
+   "confidence": 0.75,
+   "region": "free_end"
+  },
+  {
+   "id": "W31",
+   "length_mm": 543,
+   "confidence": 0.62,
+   "region": "other"
+  },
+  {
+   "id": "W32",
+   "length_mm": 4019,
+   "confidence": 0.75,
+   "region": "other"
+  },
+  {
+   "id": "W34",
+   "length_mm": 439,
+   "confidence": 0.65,
+   "region": "free_end"
+  },
+  {
+   "id": "W36",
+   "length_mm": 775,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W37",
+   "length_mm": 1324,
+   "confidence": 0.43,
+   "region": "hatch"
+  },
+  {
+   "id": "W38",
+   "length_mm": 3061,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W39",
+   "length_mm": 453,
+   "confidence": 0.4,
+   "region": "hatch"
+  },
+  {
+   "id": "W40",
+   "length_mm": 1473,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W41",
+   "length_mm": 304,
+   "confidence": 0.78,
+   "region": "other"
+  },
+  {
+   "id": "W44",
+   "length_mm": 2652,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W45",
+   "length_mm": 2652,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W46",
+   "length_mm": 4232,
+   "confidence": 0.62,
+   "region": "text"
+  },
+  {
+   "id": "W47",
+   "length_mm": 814,
+   "confidence": 0.55,
+   "region": "free_end"
+  },
+  {
+   "id": "W48",
+   "length_mm": 516,
+   "confidence": 0.74,
+   "region": "other"
+  },
+  {
+   "id": "W50",
+   "length_mm": 862,
+   "confidence": 0.39,
+   "region": "other"
+  },
+  {
+   "id": "W51",
+   "length_mm": 790,
+   "confidence": 0.65,
+   "region": "other"
+  },
+  {
+   "id": "W52",
+   "length_mm": 479,
+   "confidence": 0.4,
+   "region": "free_end"
+  },
+  {
+   "id": "W54",
+   "length_mm": 1674,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W56",
+   "length_mm": 1108,
+   "confidence": 0.23,
+   "region": "other"
+  },
+  {
+   "id": "W69",
+   "length_mm": 2087,
+   "confidence": 0.48,
+   "region": "other"
+  },
+  {
+   "id": "W72",
+   "length_mm": 472,
+   "confidence": 0.53,
+   "region": "other"
+  },
+  {
+   "id": "W73",
+   "length_mm": 1491,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W80",
+   "length_mm": 542,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W81",
+   "length_mm": 962,
+   "confidence": 0.78,
+   "region": "other"
+  },
+  {
+   "id": "W82",
+   "length_mm": 511,
+   "confidence": 0.26,
+   "region": "other"
+  },
+  {
+   "id": "W83",
+   "length_mm": 627,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W84",
+   "length_mm": 950,
+   "confidence": 0.35,
+   "region": "other"
+  },
+  {
+   "id": "W86",
+   "length_mm": 1532,
+   "confidence": 0.53,
+   "region": "other"
+  },
+  {
+   "id": "W87",
+   "length_mm": 595,
+   "confidence": 0.65,
+   "region": "other"
+  },
+  {
+   "id": "W88",
+   "length_mm": 950,
+   "confidence": 0.35,
+   "region": "other"
+  },
+  {
+   "id": "W95",
+   "length_mm": 5273,
+   "confidence": 0.53,
+   "region": "other"
+  },
+  {
+   "id": "W100",
+   "length_mm": 426,
+   "confidence": 0.5,
+   "region": "other"
+  },
+  {
+   "id": "W102",
+   "length_mm": 336,
+   "confidence": 0.4,
+   "region": "free_end"
+  },
+  {
+   "id": "W103",
+   "length_mm": 1771,
+   "confidence": 0.65,
+   "region": "free_end"
+  },
+  {
+   "id": "W104",
+   "length_mm": 685,
+   "confidence": 0.64,
+   "region": "free_end"
+  },
+  {
+   "id": "W105",
+   "length_mm": 1512,
+   "confidence": 0.65,
+   "region": "free_end"
+  },
+  {
+   "id": "W110",
+   "length_mm": 762,
+   "confidence": 0.65,
+   "region": "other"
+  },
+  {
+   "id": "W111",
+   "length_mm": 697,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W112",
+   "length_mm": 3334,
+   "confidence": 0.71,
+   "region": "other"
+  },
+  {
+   "id": "W114",
+   "length_mm": 1892,
+   "confidence": 0.88,
+   "region": "other"
+  },
+  {
+   "id": "W119",
+   "length_mm": 950,
+   "confidence": 0.55,
+   "region": "other"
+  },
+  {
+   "id": "W122",
+   "length_mm": 1892,
+   "confidence": 0.45,
+   "region": "other"
+  },
+  {
+   "id": "W128",
+   "length_mm": 806,
+   "confidence": 0.78,
+   "region": "other"
+  },
+  {
+   "id": "W133",
+   "length_mm": 129,
+   "confidence": 0.9,
+   "region": "other"
+  },
+  {
+   "id": "W134",
+   "length_mm": 458,
+   "confidence": 0.78,
+   "region": "other"
+  },
+  {
+   "id": "W135",
+   "length_mm": 833,
+   "confidence": 0.65,
+   "region": "other"
+  },
+  {
+   "id": "W139",
+   "length_mm": 1499,
+   "confidence": 0.77,
+   "region": "other"
+  }
+ ],
+ "rooms": {
+  "inner_gt": 23,
+  "inner_matched": 8,
+  "outdoor_gt": 25,
+  "outdoor_matched": 3,
+  "merged": [
+   [
+    "R1",
+    "R6",
+    "R7"
+   ],
+   [
+    "R10",
+    "R19",
+    "R21"
+   ],
+   [
+    "R23",
+    "R27"
+   ],
+   [
+    "R16",
+    "R2",
+    "R22",
+    "R25",
+    "R29",
+    "R3",
+    "R33",
+    "R43",
+    "R47",
+    "R48",
+    "R5"
+   ],
+   [
+    "R32",
+    "R34"
+   ],
+   [
+    "R37",
+    "R41"
+   ],
+   [
+    "R38",
+    "R42",
+    "R46"
+   ]
+  ]
+ }
+}
