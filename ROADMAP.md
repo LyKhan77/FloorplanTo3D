@@ -516,7 +516,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 ### Tugas — Ketahanan
 - [x] **Set augmentasi** (`benchmarks/augment/`, 1 hari): ±30 varian `plan.jpeg` (resolusi 0.6×–2×, JPEG q 40–95, rotasi ±2°, crop margin, blur/noise ringan). GT tetap dalam mm. Prediksi diselaraskan ke GT lewat phase correlation, dan mm/px GT diskalakan per varian. Jalankan benchmark, lalu analisis mode gagal.
-- [ ] **Denah sintetis** (`benchmarks/synth/`, P1, 3 hari): ubah GT Gatsu secara acak (jarak grid, partisi tambah/hapus, cermin, campuran tipe pintu, posisi tangga), lalu render 2D bergaya denah CAD (dinding garis ganda, busur pintu, bulatan grid, teks dimensi, anotasi MEP acak, simbol panel terisi). GT tiap varian otomatis diketahui.
+- [x] **Denah sintetis** (`benchmarks/synth/`, P1, 3 hari): ubah GT Gatsu secara acak (jarak grid, partisi tambah/hapus, cermin, campuran tipe pintu, posisi tangga), lalu render 2D bergaya denah CAD (dinding garis ganda, busur pintu, bulatan grid, teks dimensi, anotasi MEP acak, simbol panel terisi). GT tiap varian otomatis diketahui.
 - [~] Perbaikan ekstraktor yang **umum**, bukan hardcode untuk Gatsu. Tiap perbaikan diikuti regresi terhadap semua set.
 - [x] Simpan style profile Gatsu (`benchmarks/gatsu/style_profile.json`).
 - [ ] Bila denah nyata baru datang selama M7: buat GT ringkas dengan `gt_author.py` dan masukkan ke benchmark.
@@ -586,6 +586,23 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Catatan benchmark:** `failure_modes --fresh` tanpa `--cache` tidak menjalankan ulang stage dan memakai cache lama. Untuk angka baru, pakai `--cache` ke folder baru.
 - **Review akhir:** 2 Important diperbaiki: marquee mengikuti layer yang tampil, dan draft dinding berantai dibuang saat keluar dari tool tambah dinding.
 - **Suite:** pytest 512 passed, 3 xfailed (tanpa `strata`); Vitest 176 passed; ruff, oxlint, dan build bersih.
+
+**Status M7b (2026-10-28), branch `m7b-synthetic`** (plan `docs/superpowers/plans/2026-10-28-m7b-synthetic-plans.md`, laporan `benchmarks/reports/m7b-final.md`):
+- **Alat:**
+  - `benchmarks/synth/perturb.py`: GT Gatsu diubah acak per seed (bay 0.75×–1.25×, cermin, −/+ partisi, tipe pintu, geser tangga), lalu ruang dibentuk ulang dari dinding dengan label GT;
+  - `benchmarks/synth/render.py`: render bergaya CAD (garis ganda, busur pintu, bulatan grid, rantai dimensi, anotasi MEP, panel terisi);
+  - `benchmarks/run_synth_bench.py`: stage 0–5 per varian, dinilai terhadap GT varian.
+- **Hasil (21 varian):** **lolos 0/20** terhadap "≥ 80 % target NFR" (target ≥ 70 % varian belum tercapai; tidak memblokir MVP).
+  - Grid dan skala selalu terbaca benar (galat ≤ 0.06 %).
+  - Rata-rata: `wall_recall` 0.87, `wall_precision` 0.90, `door_recall` 0.36, `room_match` 0.05.
+  - Menit koreksi massal rata-rata 14.8 (13/20 varian ≤ 15).
+- **Mode gagal teratas:**
+  - ruang menyatu lewat celah pintu (7–27 ruang vs 44–50);
+  - pintu terlewat;
+  - stage 5 memilih S1 alih-alih S2 pada 3/20 varian;
+  - kontur bangunan pecah menjadi dua massa pada 2/20 varian.
+- **Suite:** pytest 564 passed, 3 xfailed (tanpa `strata`); ruff bersih.
+- **Batasan R-19:** gaya render adalah asumsi kita sendiri, dan lebih bersih daripada `plan.jpeg` (`s00`: recall 0.90 vs 0.77).
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.

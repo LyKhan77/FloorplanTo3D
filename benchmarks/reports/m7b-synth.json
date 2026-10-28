@@ -1,0 +1,1221 @@
+[
+ {
+  "id": "s00",
+  "seed": 0,
+  "ops": {
+   "bays": [
+    6000,
+    6000,
+    4000,
+    6000,
+    6000,
+    6000,
+    6000
+   ],
+   "mirror": false,
+   "drop_partitions": 0,
+   "add_partitions": 0,
+   "door_types": 0,
+   "stair_shift": [
+    0,
+    0
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.00030000000000001136,
+   "wall_recall": 0.9019795413678613,
+   "wall_precision": 0.9511269405124954,
+   "wall_pos_median_mm": 7.0,
+   "wall_pos_p95_mm": 17.0,
+   "door_recall": 0.3684210526315789,
+   "door_width_ok": 0.3157894736842105,
+   "door_dir_ok": 0.3888888888888889,
+   "room_match": 0.041666666666666664,
+   "rooms_pred": 25,
+   "rooms_gt": 48,
+   "area_err_max": 0.5226866510538641,
+   "wall_iou": 0.6432919061640463,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.6666666666666666,
+   "stair_pos_ok": 0.3333333333333333,
+   "gross_area_err": 0.020735774088264405
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 58.5,
+  "correction_min": 17.8,
+  "correction_min_bulk": 13.3
+ },
+ {
+  "id": "s01",
+  "seed": 1,
+  "ops": {
+   "bays": [
+    6000,
+    7500,
+    3500,
+    7500,
+    5500,
+    6000,
+    7000
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 1,
+   "door_types": 0,
+   "stair_shift": [
+    -300,
+    250
+   ],
+   "added_partitions": 1
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_recall, wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_recall",
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 5.600000000001159e-05,
+   "wall_recall": 0.6995220970404107,
+   "wall_precision": 0.7803020323358479,
+   "wall_pos_median_mm": 44.0,
+   "wall_pos_p95_mm": 143.0,
+   "door_recall": 0.10526315789473684,
+   "door_width_ok": 0.10526315789473684,
+   "door_dir_ok": 0.1111111111111111,
+   "room_match": 0.0,
+   "rooms_pred": 19,
+   "rooms_gt": 44,
+   "area_err_max": 0.2383296047725578,
+   "wall_iou": 0.2858157773430505,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.3333333333333333,
+   "gross_area_err": 0.2458105862805602
+  },
+  "shift_mm": [
+   0,
+   -100
+  ],
+  "seconds": 45.1,
+  "correction_min": 32.5,
+  "correction_min_bulk": 22.4
+ },
+ {
+  "id": "s02",
+  "seed": 2,
+  "ops": {
+   "bays": [
+    5500,
+    5500,
+    4500,
+    5000,
+    6500,
+    6500,
+    5000
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 0,
+   "door_types": 1,
+   "stair_shift": [
+    100,
+    -150
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.9014367938449651,
+   "wall_precision": 0.9073533662058718,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 20.0,
+   "door_recall": 0.42105263157894735,
+   "door_width_ok": 0.3684210526315789,
+   "door_dir_ok": 0.3888888888888889,
+   "room_match": 0.0,
+   "rooms_pred": 7,
+   "rooms_gt": 48,
+   "area_err_max": 0.040745856734307834,
+   "wall_iou": 0.5980991998494997,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.021449940730426886
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 59.9,
+  "correction_min": 20.5,
+  "correction_min_bulk": 15.1
+ },
+ {
+  "id": "s03",
+  "seed": 3,
+  "ops": {
+   "bays": [
+    5000,
+    5000,
+    4500,
+    6000,
+    5000,
+    6000,
+    6000
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 2,
+   "door_types": 0,
+   "stair_shift": [
+    -250,
+    -50
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8590250198394118,
+   "wall_precision": 0.8823549579449629,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 23.0,
+   "door_recall": 0.3157894736842105,
+   "door_width_ok": 0.2631578947368421,
+   "door_dir_ok": 0.2222222222222222,
+   "room_match": 0.04,
+   "rooms_pred": 20,
+   "rooms_gt": 50,
+   "area_err_max": 0.41196608040201005,
+   "wall_iou": 0.562165065364903,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.0,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.3012813135381901
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 59.9,
+  "correction_min": 21.2,
+  "correction_min_bulk": 15.4
+ },
+ {
+  "id": "s04",
+  "seed": 4,
+  "ops": {
+   "bays": [
+    7500,
+    6000,
+    5000,
+    4500,
+    6500,
+    5500,
+    7000
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 2,
+   "door_types": 1,
+   "stair_shift": [
+    50,
+    -100
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_recall, wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_recall",
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0005400000000000205,
+   "wall_recall": 0.7021968104193164,
+   "wall_precision": 0.7618028110184385,
+   "wall_pos_median_mm": 62.0,
+   "wall_pos_p95_mm": 144.0,
+   "door_recall": 0.10526315789473684,
+   "door_width_ok": 0.0,
+   "door_dir_ok": 0.0,
+   "room_match": 0.0,
+   "rooms_pred": 20,
+   "rooms_gt": 47,
+   "area_err_max": 0.12166672932711356,
+   "wall_iou": 0.2735706837194312,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.6666666666666666,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.39681072336491796
+  },
+  "shift_mm": [
+   0,
+   -100
+  ],
+  "seconds": 45.0,
+  "correction_min": 33.4,
+  "correction_min_bulk": 23.2
+ },
+ {
+  "id": "s05",
+  "seed": 5,
+  "ops": {
+   "bays": [
+    7000,
+    7000,
+    4000,
+    5500,
+    4500,
+    5500,
+    5500
+   ],
+   "mirror": true,
+   "drop_partitions": 0,
+   "add_partitions": 0,
+   "door_types": 0,
+   "stair_shift": [
+    300,
+    -200
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match"
+  ],
+  "metrics": {
+   "scale_err": 1.1999999999972033e-05,
+   "wall_recall": 0.9262329961503718,
+   "wall_precision": 0.927925893022942,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 19.0,
+   "door_recall": 0.4117647058823529,
+   "door_width_ok": 0.29411764705882354,
+   "door_dir_ok": 0.3125,
+   "room_match": 0.0851063829787234,
+   "rooms_pred": 20,
+   "rooms_gt": 47,
+   "area_err_max": 0.41260775862068966,
+   "wall_iou": 0.6444743937347089,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.3333333333333333,
+   "gross_area_err": 0.005553359311760029
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 52.8,
+  "correction_min": 17.0,
+  "correction_min_bulk": 12.7
+ },
+ {
+  "id": "s06",
+  "seed": 6,
+  "ops": {
+   "bays": [
+    6000,
+    5500,
+    3500,
+    5500,
+    7500,
+    6500,
+    6500
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 2,
+   "door_types": 2,
+   "stair_shift": [
+    -250,
+    100
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8777755163887413,
+   "wall_precision": 0.9285107252771815,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 24.0,
+   "door_recall": 0.5789473684210527,
+   "door_width_ok": 0.5789473684210527,
+   "door_dir_ok": 0.5882352941176471,
+   "room_match": 0.04081632653061224,
+   "rooms_pred": 9,
+   "rooms_gt": 49,
+   "area_err_max": 0.8625538293418074,
+   "wall_iou": 0.5912204749021683,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.01770861282532878
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 59.6,
+  "correction_min": 16.5,
+  "correction_min_bulk": 11.3
+ },
+ {
+  "id": "s07",
+  "seed": 7,
+  "ops": {
+   "bays": [
+    6500,
+    7000,
+    4500,
+    5000,
+    5500,
+    7000,
+    4500
+   ],
+   "mirror": false,
+   "drop_partitions": 0,
+   "add_partitions": 2,
+   "door_types": 0,
+   "stair_shift": [
+    0,
+    200
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.9191236863097424,
+   "wall_precision": 0.889288335187795,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 21.0,
+   "door_recall": 0.3333333333333333,
+   "door_width_ok": 0.16666666666666666,
+   "door_dir_ok": 0.29411764705882354,
+   "room_match": 0.02,
+   "rooms_pred": 20,
+   "rooms_gt": 50,
+   "area_err_max": 0.528421127660333,
+   "wall_iou": 0.6081628779789203,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.0,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.004798016101207517
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 62.3,
+  "correction_min": 19.6,
+  "correction_min_bulk": 14.8
+ },
+ {
+  "id": "s08",
+  "seed": 8,
+  "ops": {
+   "bays": [
+    5500,
+    7500,
+    3500,
+    7000,
+    7000,
+    5500,
+    6000
+   ],
+   "mirror": true,
+   "drop_partitions": 0,
+   "add_partitions": 0,
+   "door_types": 3,
+   "stair_shift": [
+    0,
+    300
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0005039999999999623,
+   "wall_recall": 0.8761907213353662,
+   "wall_precision": 0.9537606577385436,
+   "wall_pos_median_mm": 10.0,
+   "wall_pos_p95_mm": 26.0,
+   "door_recall": 0.47368421052631576,
+   "door_width_ok": 0.3684210526315789,
+   "door_dir_ok": 0.35294117647058826,
+   "room_match": 0.10638297872340426,
+   "rooms_pred": 30,
+   "rooms_gt": 47,
+   "area_err_max": 0.47934676204819276,
+   "wall_iou": 0.6373237372879662,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.022055699988105585
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 34.7,
+  "correction_min": 17.1,
+  "correction_min_bulk": 12.2
+ },
+ {
+  "id": "s09",
+  "seed": 9,
+  "ops": {
+   "bays": [
+    7000,
+    5500,
+    4000,
+    7000,
+    6500,
+    7000,
+    7000
+   ],
+   "mirror": false,
+   "drop_partitions": 0,
+   "add_partitions": 0,
+   "door_types": 4,
+   "stair_shift": [
+    -50,
+    150
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0005599999999999738,
+   "wall_recall": 0.9089034679348527,
+   "wall_precision": 0.9556269881992495,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 23.0,
+   "door_recall": 0.3157894736842105,
+   "door_width_ok": 0.21052631578947367,
+   "door_dir_ok": 0.23529411764705882,
+   "room_match": 0.08333333333333333,
+   "rooms_pred": 32,
+   "rooms_gt": 48,
+   "area_err_max": 0.6787166438413015,
+   "wall_iou": 0.6273822872219197,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 1.0,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.018491024429747496
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 38.3,
+  "correction_min": 16.0,
+  "correction_min_bulk": 12.1
+ },
+ {
+  "id": "s10",
+  "seed": 10,
+  "ops": {
+   "bays": [
+    7500,
+    5000,
+    4500,
+    5000,
+    6000,
+    5000,
+    6500
+   ],
+   "mirror": false,
+   "drop_partitions": 0,
+   "add_partitions": 1,
+   "door_types": 3,
+   "stair_shift": [
+    300,
+    -150
+   ],
+   "added_partitions": 1
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8929112988141403,
+   "wall_precision": 0.9070219285763619,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 19.0,
+   "door_recall": 0.3684210526315789,
+   "door_width_ok": 0.3157894736842105,
+   "door_dir_ok": 0.375,
+   "room_match": 0.0,
+   "rooms_pred": 19,
+   "rooms_gt": 48,
+   "area_err_max": 0.5840432402408815,
+   "wall_iou": 0.5935925367645434,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.0191031570480594
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 55.5,
+  "correction_min": 20.4,
+  "correction_min_bulk": 15.1
+ },
+ {
+  "id": "s11",
+  "seed": 11,
+  "ops": {
+   "bays": [
+    5000,
+    6000,
+    4000,
+    4500,
+    5000,
+    7500,
+    4500
+   ],
+   "mirror": true,
+   "drop_partitions": 3,
+   "add_partitions": 2,
+   "door_types": 5,
+   "stair_shift": [
+    100,
+    250
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.9121624604635885,
+   "wall_precision": 0.8864745905608998,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 25.0,
+   "door_recall": 0.3333333333333333,
+   "door_width_ok": 0.3333333333333333,
+   "door_dir_ok": 0.375,
+   "room_match": 0.04081632653061224,
+   "rooms_pred": 21,
+   "rooms_gt": 49,
+   "area_err_max": 0.6289906801507039,
+   "wall_iou": 0.5999141709076821,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.0,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.0035425902469916953
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 52.6,
+  "correction_min": 19.9,
+  "correction_min_bulk": 14.2
+ },
+ {
+  "id": "s12",
+  "seed": 12,
+  "ops": {
+   "bays": [
+    5500,
+    7500,
+    3500,
+    5000,
+    5500,
+    5000,
+    6500
+   ],
+   "mirror": true,
+   "drop_partitions": 0,
+   "add_partitions": 2,
+   "door_types": 1,
+   "stair_shift": [
+    250,
+    200
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8887535859411153,
+   "wall_precision": 0.8971501684306721,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 20.0,
+   "door_recall": 0.2631578947368421,
+   "door_width_ok": 0.2631578947368421,
+   "door_dir_ok": 0.23529411764705882,
+   "room_match": 0.04,
+   "rooms_pred": 22,
+   "rooms_gt": 50,
+   "area_err_max": 0.1238148876738886,
+   "wall_iou": 0.5803341057372888,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.02061972255729784
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 56.2,
+  "correction_min": 21.1,
+  "correction_min_bulk": 15.4
+ },
+ {
+  "id": "s13",
+  "seed": 13,
+  "ops": {
+   "bays": [
+    7000,
+    7000,
+    4500,
+    5500,
+    4500,
+    7500,
+    6500
+   ],
+   "mirror": true,
+   "drop_partitions": 3,
+   "add_partitions": 2,
+   "door_types": 0,
+   "stair_shift": [
+    300,
+    250
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.909048279039245,
+   "wall_precision": 0.9505350852760793,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 19.0,
+   "door_recall": 0.4117647058823529,
+   "door_width_ok": 0.35294117647058826,
+   "door_dir_ok": 0.375,
+   "room_match": 0.0425531914893617,
+   "rooms_pred": 22,
+   "rooms_gt": 47,
+   "area_err_max": 0.41196608040201005,
+   "wall_iou": 0.6149462432429599,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.6666666666666666,
+   "gross_area_err": 0.36452885729496126
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 59.9,
+  "correction_min": 18.0,
+  "correction_min_bulk": 13.7
+ },
+ {
+  "id": "s14",
+  "seed": 14,
+  "ops": {
+   "bays": [
+    7000,
+    5500,
+    4500,
+    7000,
+    6500,
+    6000,
+    7000
+   ],
+   "mirror": false,
+   "drop_partitions": 3,
+   "add_partitions": 1,
+   "door_types": 4,
+   "stair_shift": [
+    50,
+    250
+   ],
+   "added_partitions": 1
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_recall, wall_precision, wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_recall",
+   "wall_precision",
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0005480000000000018,
+   "wall_recall": 0.6712557167991832,
+   "wall_precision": 0.7153843755842951,
+   "wall_pos_median_mm": 55.0,
+   "wall_pos_p95_mm": 146.0,
+   "door_recall": 0.15789473684210525,
+   "door_width_ok": 0.05263157894736842,
+   "door_dir_ok": 0.058823529411764705,
+   "room_match": 0.044444444444444446,
+   "rooms_pred": 27,
+   "rooms_gt": 45,
+   "area_err_max": 0.1955890563930765,
+   "wall_iou": 0.26939375831559137,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.4299622429556589
+  },
+  "shift_mm": [
+   0,
+   -100
+  ],
+  "seconds": 31.4,
+  "correction_min": 32.3,
+  "correction_min_bulk": 22.4
+ },
+ {
+  "id": "s15",
+  "seed": 15,
+  "ops": {
+   "bays": [
+    6500,
+    7000,
+    3500,
+    4500,
+    6000,
+    5000,
+    6500
+   ],
+   "mirror": true,
+   "drop_partitions": 2,
+   "add_partitions": 1,
+   "door_types": 1,
+   "stair_shift": [
+    300,
+    -200
+   ],
+   "added_partitions": 1
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.9154503814164204,
+   "wall_precision": 0.9421471319183933,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 19.0,
+   "door_recall": 0.5789473684210527,
+   "door_width_ok": 0.5263157894736842,
+   "door_dir_ok": 0.5555555555555556,
+   "room_match": 0.08695652173913043,
+   "rooms_pred": 11,
+   "rooms_gt": 46,
+   "area_err_max": 0.7766751102354817,
+   "wall_iou": 0.6263171076867268,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.6666666666666666,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.020267636741587557
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 51.2,
+  "correction_min": 14.7,
+  "correction_min_bulk": 10.2
+ },
+ {
+  "id": "s16",
+  "seed": 16,
+  "ops": {
+   "bays": [
+    6000,
+    6000,
+    3000,
+    5500,
+    6500,
+    4500,
+    7000
+   ],
+   "mirror": false,
+   "drop_partitions": 3,
+   "add_partitions": 0,
+   "door_types": 0,
+   "stair_shift": [
+    200,
+    -300
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8915297825861126,
+   "wall_precision": 0.9497275746859661,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 21.0,
+   "door_recall": 0.5789473684210527,
+   "door_width_ok": 0.47368421052631576,
+   "door_dir_ok": 0.5555555555555556,
+   "room_match": 0.06818181818181818,
+   "rooms_pred": 17,
+   "rooms_gt": 44,
+   "area_err_max": 0.4146673387096774,
+   "wall_iou": 0.6197129813278699,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.02023573785950027
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 48.1,
+  "correction_min": 15.2,
+  "correction_min_bulk": 10.9
+ },
+ {
+  "id": "s17",
+  "seed": 17,
+  "ops": {
+   "bays": [
+    7000,
+    5000,
+    4000,
+    5500,
+    5000,
+    5500,
+    6000
+   ],
+   "mirror": false,
+   "drop_partitions": 0,
+   "add_partitions": 2,
+   "door_types": 0,
+   "stair_shift": [
+    -300,
+    50
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 1.9999999999953388e-05,
+   "wall_recall": 0.9131310588267051,
+   "wall_precision": 0.9417241777309913,
+   "wall_pos_median_mm": 6.0,
+   "wall_pos_p95_mm": 16.0,
+   "door_recall": 0.2631578947368421,
+   "door_width_ok": 0.21052631578947367,
+   "door_dir_ok": 0.2222222222222222,
+   "room_match": 0.06,
+   "rooms_pred": 16,
+   "rooms_gt": 50,
+   "area_err_max": 0.3881874498881449,
+   "wall_iou": 0.6361655405510778,
+   "stair_risers_ok": 0.6666666666666666,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.021219600864856542
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 51.8,
+  "correction_min": 19.8,
+  "correction_min_bulk": 14.5
+ },
+ {
+  "id": "s18",
+  "seed": 18,
+  "ops": {
+   "bays": [
+    5500,
+    6500,
+    3500,
+    4500,
+    7500,
+    6000,
+    6500
+   ],
+   "mirror": false,
+   "drop_partitions": 3,
+   "add_partitions": 1,
+   "door_types": 2,
+   "stair_shift": [
+    -250,
+    200
+   ],
+   "added_partitions": 1
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.00031599999999997407,
+   "wall_recall": 0.9095267616679141,
+   "wall_precision": 0.9406410023000829,
+   "wall_pos_median_mm": 8.0,
+   "wall_pos_p95_mm": 19.0,
+   "door_recall": 0.5263157894736842,
+   "door_width_ok": 0.47368421052631576,
+   "door_dir_ok": 0.5294117647058824,
+   "room_match": 0.06382978723404255,
+   "rooms_pred": 25,
+   "rooms_gt": 47,
+   "area_err_max": 0.525015251463919,
+   "wall_iou": 0.6194257545421837,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.6666666666666666,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.02080014006828328
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 52.6,
+  "correction_min": 17.6,
+  "correction_min_bulk": 12.7
+ },
+ {
+  "id": "s19",
+  "seed": 19,
+  "ops": {
+   "bays": [
+    6000,
+    7500,
+    3500,
+    4500,
+    5500,
+    6500,
+    7000
+   ],
+   "mirror": false,
+   "drop_partitions": 3,
+   "add_partitions": 0,
+   "door_types": 2,
+   "stair_shift": [
+    250,
+    -200
+   ],
+   "added_partitions": 0
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 0.0,
+   "wall_recall": 0.8928994532478075,
+   "wall_precision": 0.925771443782997,
+   "wall_pos_median_mm": 9.0,
+   "wall_pos_p95_mm": 23.0,
+   "door_recall": 0.3684210526315789,
+   "door_width_ok": 0.3157894736842105,
+   "door_dir_ok": 0.3333333333333333,
+   "room_match": 0.044444444444444446,
+   "rooms_pred": 18,
+   "rooms_gt": 45,
+   "area_err_max": 0.41346476510067115,
+   "wall_iou": 0.5924621867743844,
+   "stair_risers_ok": 0.3333333333333333,
+   "stair_dir_ok": 0.3333333333333333,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.018502617977338938
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 45.0,
+  "correction_min": 18.3,
+  "correction_min_bulk": 13.3
+ },
+ {
+  "id": "s20",
+  "seed": 20,
+  "ops": {
+   "bays": [
+    5500,
+    6000,
+    3000,
+    6000,
+    5500,
+    4500,
+    5000
+   ],
+   "mirror": false,
+   "drop_partitions": 3,
+   "add_partitions": 2,
+   "door_types": 5,
+   "stair_shift": [
+    -50,
+    50
+   ],
+   "added_partitions": 2
+  },
+  "passed": false,
+  "reason": "below 80% of target: wall_iou, door_recall, room_match, gross_area_err",
+  "failed_metrics": [
+   "wall_iou",
+   "door_recall",
+   "room_match",
+   "gross_area_err"
+  ],
+  "metrics": {
+   "scale_err": 3.200000000006753e-05,
+   "wall_recall": 0.8871765948344652,
+   "wall_precision": 0.9345690177151602,
+   "wall_pos_median_mm": 8.0,
+   "wall_pos_p95_mm": 21.0,
+   "door_recall": 0.3157894736842105,
+   "door_width_ok": 0.2631578947368421,
+   "door_dir_ok": 0.375,
+   "room_match": 0.08333333333333333,
+   "rooms_pred": 22,
+   "rooms_gt": 48,
+   "area_err_max": 0.7457268602540835,
+   "wall_iou": 0.6153188425805605,
+   "stair_risers_ok": 0.0,
+   "stair_dir_ok": 0.6666666666666666,
+   "stair_pos_ok": 0.0,
+   "gross_area_err": 0.023936639604659297
+  },
+  "shift_mm": [
+   0,
+   0
+  ],
+  "seconds": 31.8,
+  "correction_min": 20.1,
+  "correction_min_bulk": 14.7
+ }
+]
