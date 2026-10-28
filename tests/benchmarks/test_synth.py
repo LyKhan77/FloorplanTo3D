@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 import pytest
 from shapely.geometry import LineString
 
@@ -96,3 +97,79 @@ def test_openings_stay_on_their_walls(base, seed):
 def test_variants_validate_without_errors(base, seed):
     s, _ = perturb(base, seed)
     assert [i.code for i in validate(s).issues if i.severity == "error"] == []
+
+
+# --- render -----------------------------------------------------------------------------------------------------
+
+def _px(spec, p):
+    """mm -> image px through the render's px_to_mm affine (a 0 c / 0 e f)."""
+    a, _, c, _, e, f = spec.meta.px_to_mm
+    return (p[0] - c) / a, (p[1] - f) / e
+
+
+def _ink(img, x, y):
+    """Black ink only: stage 1 masks coloured pixels (grid, dimensions) out of the geometry."""
+    return img[round(y), round(x)].max() < 128
+
+
+@pytest.fixture(scope="module")
+def rendered(base):
+    from benchmarks.synth.render import render
+
+    s, _ = perturb(base, 0, no_ops(base))
+    return render(s, 0)
+
+
+def test_render_draws_double_lines_and_door_gaps(rendered):
+    img, s = rendered
+    assert s.meta.mm_per_px == 25.0
+    hosts = {o.wall_id for o in s.openings}
+    thick = [w for w in s.walls if w.thickness >= 180 and w.id not in hosts and _length(w) >= 1000]
+    ok = 0
+    for w in thick:
+        mx, my = (w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2
+        nx, ny = -(w.b[1] - w.a[1]) / _length(w), (w.b[0] - w.a[0]) / _length(w)
+        faces = [_px(s, (mx + k * nx * w.thickness / 2, my + k * ny * w.thickness / 2)) for k in (-1, 1)]
+        near = lambda q: any(_ink(img, q[0] + dx, q[1] + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+        ok += not _ink(img, *_px(s, (mx, my))) and all(near(q) for q in faces)
+    assert thick and ok >= 0.8 * len(thick)
+    walls = {w.id: w for w in s.walls}
+    d1 = next(o for o in s.openings if o.id == "D1")
+    w = walls[d1.wall_id]
+    ux, uy = (w.b[0] - w.a[0]) / _length(w), (w.b[1] - w.a[1]) / _length(w)
+    clear = []
+    for k in (-1, 1):
+        pts = [(w.a[0] + ux * (d1.offset + t * d1.width) - k * uy * w.thickness / 2,
+                w.a[1] + uy * (d1.offset + t * d1.width) + k * ux * w.thickness / 2) for t in np.linspace(0.2, 0.8, 9)]
+        clear.append(not any(_ink(img, *_px(s, q)) for q in pts))
+    assert any(clear)
+
+
+@pytest.fixture(scope="module")
+def stage2(rendered, tmp_path_factory):
+    import json
+
+    import cv2
+
+    from benchmarks.llm_items import run_stages
+
+    stop = lambda *_a, **_k: {"status": "failed", "message": "stop after stage 2"}
+    root = tmp_path_factory.mktemp("synth")
+    data = cv2.imencode(".png", rendered[0])[1].tobytes()
+    st, _ = run_stages(root, data, "s00.png", {"03_extract": stop})
+    return json.loads((st / "02_grid" / "grid.json").read_text()), json.loads((st / "02_grid" / "ocr.json").read_text())
+
+
+@pytest.mark.slow
+def test_render_text_reads_upright(stage2):
+    texts = {t["text"] for t in stage2[1]}
+    assert {"28000", "12000"} <= texts
+
+
+@pytest.mark.slow
+def test_stage2_reads_the_rendered_grid(stage2):
+    grid = stage2[0]
+    axes = lambda o: [a["label"] for a in sorted((a for a in grid["axes"] if a["orientation"] == o), key=lambda a: a["px"])]
+    assert axes("vertical") == list("ABCDEF")
+    assert sorted(axes("horizontal")) == ["1", "2", "3"]
+    assert abs(grid["mm_per_px"] / 25.0 - 1) <= 0.005
