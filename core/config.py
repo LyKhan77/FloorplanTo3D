@@ -21,6 +21,7 @@ class Settings:
     sweep_max_candidates: int
     max_upload_mb: int
     strata_api_key: str = field(default="", repr=False)  # a secret: kept out of repr and logs
+    strata_response_format: bool = True  # json_schema decoding; off on servers where it is slow (DGX)
 
 
 def _resolve_bin(name: str) -> str:
@@ -44,4 +45,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         sweep_max_candidates=int(e.get("SWEEP_MAX_CANDIDATES", "12")),
         max_upload_mb=int(e.get("MAX_UPLOAD_MB", "50")),
         strata_api_key=e.get("STRATA_API_KEY", ""),
+        strata_response_format=e.get("STRATA_RESPONSE_FORMAT", "1").strip().lower() not in ("0", "false", "no"),
     )

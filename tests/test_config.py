@@ -37,3 +37,12 @@ def test_strata_api_key_is_read_and_never_printed():
     s = load_settings({"STRATA_API_KEY": "sk-test-123"})
     assert s.strata_api_key == "sk-test-123"
     assert "sk-test-123" not in repr(s)
+
+
+def test_response_format_can_be_switched_off():
+    """DGX Strata: json_schema decoding is ~6x slower; the output is still validated by pydantic."""
+    assert load_settings({}).strata_response_format is True
+    assert load_settings({"STRATA_RESPONSE_FORMAT": "0"}).strata_response_format is False
+    from core.llm_review.client import StrataClient
+
+    assert StrataClient.from_settings(load_settings({"STRATA_RESPONSE_FORMAT": "0"})).use_response_format is False

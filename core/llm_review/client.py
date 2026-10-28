@@ -57,7 +57,8 @@ class StrataClient:
 
     @classmethod
     def from_settings(cls, s) -> "StrataClient":
-        return cls(s.strata_base_url, s.strata_model, s.strata_timeout_s, api_key=s.strata_api_key)
+        return cls(s.strata_base_url, s.strata_model, s.strata_timeout_s, api_key=s.strata_api_key,
+                   use_response_format=s.strata_response_format)
 
     def health(self, timeout_s: float = 3.0) -> bool:
         try:
