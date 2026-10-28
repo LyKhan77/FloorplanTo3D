@@ -548,6 +548,19 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   4. ruang dalam bocor lewat dinding yang terlewat.
 - **Suite:** pytest 493 passed, 3 xfailed (tanpa `strata`); Vitest 161 passed; ruff, oxlint, dan build bersih (sesudah fix review akhir).
 
+**Status M7a-2 (2026-10-28), branch `m7a2-correction`** (plan `docs/superpowers/plans/2026-10-28-m7a2-correction-outline-selection.md`, laporan `benchmarks/reports/m7a2-final.md`):
+- **Metrik menit koreksi** (`benchmarks/correction_effort.py`): jumlah operasi editor untuk mengubah hasil ekstraksi menjadi GT, dikali waktu standar per operasi. Ini mengukur kriteria MVP #2 (≤ 15 menit).
+  - Gatsu 22.1 → 21.8 menit (gambar ulang dari nol: 39 menit);
+  - rata-rata augmentasi 31.1 → 30.6 menit;
+  - **kriteria belum terpenuhi.**
+- **Kontur bangunan toleran celah** (closing 1500 mm per massa bangunan):
+  - Gatsu `gross_area_err` 0.038 → **0.003 (NFR ≤ 0.01 terpenuhi)**;
+  - ruang 42 → 50 (GT 48);
+  - rata-rata `gross_area_err` augmentasi 0.607 → 0.291.
+- **Pemilihan kandidat medoid di-revert:** tidak ada perbaikan, dan `gross_area_err` sedikit naik.
+- **Langkah berikutnya untuk ≤ 15 menit:** fitur editor yang memangkas operasi terbanyak (hapus massal dinding palsu, set tipe ruang massal, dan gambar dinding berantai), lalu kalibrasi model waktu dengan satu sesi koreksi nyata.
+- **Suite:** pytest 504 passed, 3 xfailed (tanpa `strata`); Vitest 161 passed; ruff, oxlint, dan build bersih.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.

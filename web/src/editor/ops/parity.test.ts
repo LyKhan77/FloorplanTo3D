@@ -21,7 +21,10 @@ describe('client reducer matches core.spec.ops.apply', () => {
       expect(strip(r.spec.stairs, ['provenance', 'room_id'])).toEqual(c.expected.stairs)
       expect(strip(r.spec.objects)).toEqual(c.expected.objects)
       expect(r.spec.meta.defaults).toEqual(c.expected.defaults)
-      expect(r.spec.meta.id_seq).toEqual(c.expected.id_seq)
+      // rooms (and their R ids) are rebuilt by the server on commit; the client never forms rooms
+      const { R: _clientR, ...clientSeq } = r.spec.meta.id_seq ?? {}
+      const { R: _serverR, ...serverSeq } = c.expected.id_seq as unknown as Record<string, number>
+      expect(clientSeq).toEqual(serverSeq)
     })
   }
 })

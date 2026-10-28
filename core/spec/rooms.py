@@ -100,9 +100,10 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     union = unary_union([wall_footprint(w, spec) for w in spec.walls] + cols)
     # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
     dividers = unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols)
-    shells = [SPolygon(p.exterior) for p in _parts(_closed(union))]
+    shells = [SPolygon(p.exterior).simplify(0) for p in _parts(_closed(union))]  # closing adds collinear points
     # Islands (lift shafts, free-standing columns) sit inside another mass; they are not building masses.
     outlines = [s for i, s in enumerate(shells) if not any(j != i and o.covers(s) for j, o in enumerate(shells))]
+    outlines.sort(key=lambda o: (-o.area, o.bounds))  # stable order, largest mass first (closing regroups pieces)
     interior = unary_union(outlines).difference(dividers) if outlines else SPolygon()
     # necks are cut only next to the outer contour (the outer band's bays, PRD/04 §2b); inner rooms keep their shape
     reach = max((w.thickness for w in spec.walls), default=0) + 1
