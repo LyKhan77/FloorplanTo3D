@@ -197,8 +197,17 @@ def test_all_over_reading_still_chooses():
 
 
 def test_coverage_cut_uses_the_remaining_candidates():
-    """The 60 % cut is taken from the candidates left after the over-reading one is gone (0.6 x 1.37 would drop 0.8)."""
+    """The 60 % cut is taken from the candidates left after the over-reading one is gone (0.6 x 1.37 would drop 0.45
+    and keep the over-reader in play)."""
     over = {"index": 9, "score": 0.89, "passed": True, "coverage": 1.37}
-    s2 = {"index": 5, "score": 0.84, "passed": True, "coverage": 0.8}
+    s2 = {"index": 5, "score": 0.84, "passed": True, "coverage": 0.85}  # synthetic s04's numbers
     weak = {"index": 6, "score": 0.86, "passed": True, "coverage": 0.45}
     assert choose([over, s2, weak])["index"] == 5
+
+
+def test_an_overflowing_correct_candidate_is_kept_when_only_sparse_ones_remain():
+    """M9 final review: on a plan with diagonal or single-line walls the estimate runs low and the right S2 can pass
+    1.05; dropping it must not hand the choice to an almost empty S1 (the MIN_COVERAGE failure)."""
+    s2 = {"index": 0, "score": 0.86, "passed": True, "coverage": 1.1}
+    sparse = {"index": 9, "score": 0.97, "passed": True, "coverage": 0.3}
+    assert choose([s2, sparse])["index"] == 0

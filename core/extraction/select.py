@@ -37,7 +37,13 @@ def choose(scored: list[dict]) -> dict | None:
     passed = [c for c in scored if c["passed"]]
     if not passed:
         return None
-    passed = [c for c in passed if c["coverage"] <= MAX_COVERAGE] or passed  # all over-read: keep them
+    # drop over-readers only when a remaining candidate is about as complete (0.6 of them): on a plan whose estimate
+    # runs low (diagonal or single-line walls) the right candidate itself can pass 1.05, and must not lose to a
+    # nearly empty one
+    over = [c["coverage"] for c in passed if c["coverage"] > MAX_COVERAGE]
+    rest = [c for c in passed if c["coverage"] <= MAX_COVERAGE]
+    if over and rest and max(c["coverage"] for c in rest) >= MIN_COVERAGE * max(over):
+        passed = rest
     # relative to the best coverage: on a cluttered plan (furniture lines in the estimate) all may sit below 60%
     cut = MIN_COVERAGE * max(c["coverage"] for c in passed)
     valid = [c for c in passed if c["coverage"] >= cut]

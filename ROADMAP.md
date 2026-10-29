@@ -655,6 +655,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 **Status M9 (2026-10-29), branch `m9-stage5-choice`** (laporan `benchmarks/reports/m9-final.md`):
 - **Aturan baru:** tahap 5 mengeluarkan kandidat yang membaca dinding lebih panjang dari gambar (`coverage` > 1.05), yaitu S1 yang menghitung kedua muka dinding.
+- **Penjaga dari review:** kandidat semacam itu hanya dibuang bila masih ada kandidat lain yang sama lengkapnya (≥ 0.6 × coverage-nya). Pada denah dengan banyak dinding diagonal atau bergaris tunggal, kandidat yang benar pun bisa melewati 1.05.
 - **Gerbang lolos:**
   - Gatsu identik;
   - augmentasi sedikit membaik;
