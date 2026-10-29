@@ -31,3 +31,21 @@ describe('ReviewCanvas', () => {
     expect(container.querySelector('image')?.getAttribute('href')).toBe('/p.png')
   })
 })
+
+describe('ReviewCanvas pointer (M8 final review)', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('a marquee can start on a room and selects the walls inside (I8)', () => {
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    const room = container.querySelector('polygon')!
+    const w = gt.walls![0]
+    const [x0, x1] = [Math.min(w.a[0], w.b[0]) - 10, Math.max(w.a[0], w.b[0]) + 10]
+    const [y0, y1] = [Math.min(w.a[1], w.b[1]) - 10, Math.max(w.a[1], w.b[1]) + 10]
+    fireEvent.pointerDown(room, { button: 0, clientX: x0, clientY: -y1 })  // no CTM in jsdom: client px = SVG units
+    fireEvent.pointerMove(room, { clientX: x1, clientY: -y0 })
+    fireEvent.pointerUp(room, { clientX: x1, clientY: -y0 })
+    fireEvent.click(room)
+    expect(st().selection).toContain(w.id)
+    expect(st().selection.every((id) => id.startsWith('W') || id.startsWith('O'))).toBe(true)
+  })
+})

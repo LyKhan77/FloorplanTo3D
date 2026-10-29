@@ -96,6 +96,8 @@ def _gaps(spec: Spec) -> list[dict]:
         if not hits:
             continue
         reach, q, h = min(hits, key=lambda t: t[0])
+        along = (q[0] - p[0]) * d[0] + (q[1] - p[1]) * d[1]
+        q = (p[0] + d[0] * along, p[1] + d[1] * along)  # stay on the wall's own line: closing it never turns the wall
         gap = math.dist(p, q)
         if not (GAP_MIN_MM <= gap <= GAP_MAX_MM) or any(LineString([p, q]).distance(c) <= w.thickness / 2 + 1 for c in doors):
             continue

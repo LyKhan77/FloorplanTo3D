@@ -36,3 +36,36 @@ describe('TasksPanel', () => {
     expect(st().selection).toEqual(['R1'])
   })
 })
+
+describe('ReviewWorkspace tools (M8 final review)', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('the canvas handles follow the "Pasang pintu" choice (I2)', async () => {
+    const { ReviewWorkspace } = await import('./ReviewWorkspace')
+    const w = gt.walls!.find((x) => x.a[1] === x.b[1] && Math.abs(x.b[0] - x.a[0]) > 2000)!
+    const dir = Math.sign(w.b[0] - w.a[0])
+    const to: [number, number] = [w.b[0] + dir * 900, w.b[1]]
+    const t: ReviewTask = { id: `gap:${w.id}:b`, kind: 'gap', message: 'Celah', at: to, element_ids: [w.id],
+      fix: { a: w.b as [number, number], b: to, thickness: w.thickness, kind: w.kind, ends: [{ wall: w.id, end: 'b' }] } }
+    act(() => { st().setReviewWithDoor(false); st().setActiveTask(t.id); st().setTool('close-gap') })
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[t]} backdrop={null} />)
+    act(() => { fireEvent.click(container.querySelector('[data-handle="0"]')!) })
+    act(() => { fireEvent.click(container.querySelector('[data-handle="1"]')!) })
+    expect(st().ops).toEqual([{ op: 'move_wall', id: w.id, b: to }])
+  })
+
+  it('the add-wall tool draws on the canvas: two clicks add a wall and chain (I7)', async () => {
+    const { ReviewWorkspace } = await import('./ReviewWorkspace')
+    act(() => { st().setTool('add-wall') })
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    const svg = container.querySelector('svg')!
+    const click = (x: number, y: number) => {  // mm (x, y) -> SVG (x, -y); jsdom: client px = SVG units
+      fireEvent.pointerDown(svg, { button: 0, clientX: x, clientY: -y })
+      fireEvent.pointerUp(svg, { button: 0, clientX: x, clientY: -y })
+    }
+    act(() => { click(100000, 2000); click(103000, 2000) })
+    expect(st().ops).toEqual([{ op: 'add_wall', a: [100000, 2000], b: [103000, 2000], thickness: 150, kind: 'partition' }])
+    expect(st().wallDraft).toEqual({ a: [103000, 2000] })
+    expect(container.querySelector('[aria-label="Garis bantu"]')).not.toBeNull()
+  })
+})

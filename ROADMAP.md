@@ -639,7 +639,16 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - **Tutup celah:** dinding yang ujung `b`-nya di celah diperpanjang, dan pintu dipasang di situ;
   - **Garis bantu:** `POST /snap` menempelkan garis kasar ke garis ganda atau garis tunggal di gambar. Di Gatsu, 8–11 dari 15 dinding terlewat ter-snap dalam 150 mm.
 - **Menit koreksi Gatsu (model):** 22.1 satu-per-satu, 14.4 massal, **14.3 dengan alat review**. Model menghitung waktu per op; manfaat utama alat (menemukan dan menempatkan) baru terukur lewat sesi kalibrasi.
-- **Suite:** pytest 639 passed, 3 xfailed; 5 tes Blender gagal karena GPU di sesi ini (sama di `main`). Vitest 195 passed; ruff, oxlint, dan build bersih.
+- **Review akhir:** 1 Critical dan 7 Important diperbaiki:
+  - pintu "Tutup celah" kini lolos V008: 7/7 celah di Gatsu tersimpan tanpa error, sebelumnya 6/8 gagal;
+  - pilihan "Pasang pintu" berlaku juga untuk handle di kanvas;
+  - tugas yang masih terbuka tercatat di run lanjutan (`review_open`);
+  - dry-run yang gagal tidak lagi membuat tugas tampak selesai;
+  - Save tidak memicu regenerate selama run menunggu review;
+  - continue membawa `params_override` dan `profile_id`;
+  - kanvas punya alat Pilih, Garis bantu, dan Dinding baru;
+  - marquee bisa dimulai dari dalam ruang.
+- **Suite:** pytest 642 passed, 3 xfailed; 5 tes Blender gagal karena GPU di sesi ini (sama di `main`). Vitest 202 passed; ruff, oxlint, dan build bersih.
 - **E2E:**
   - lewat API: jeda, tugas, tutup celah, snap 422, simpan v2, lanjut dari tahap 6;
   - di browser: tidak bisa dijalankan, karena di sesi ini Chrome, render GPU Blender, dan DNS gagal akibat akses layanan sistem macOS.

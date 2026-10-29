@@ -280,7 +280,7 @@ class Orchestrator:
         return None
 
     def start_run(self, pid: str, kind: str, from_stage: int = 0, version: int | str = "HEAD",
-                  params_override: dict | None = None, profile_id: str | None = None) -> dict:
+                  params_override: dict | None = None, profile_id: str | None = None, extra: dict | None = None) -> dict:
         project_dir = self.storage.project_dir(pid)
         if profile_id:
             try:
@@ -309,7 +309,7 @@ class Orchestrator:
                                "started_at": None, "ended_at": None, "duration_ms": None, "progress": None,
                                "metrics": {}, "warnings": []} for n, name in STAGES],
                    "code_version": self.code_version, "blender_version": None, "created_at": _now(), "error": None,
-                   "params_override": params_override or {}, "profile_id": profile_id}
+                   "params_override": params_override or {}, "profile_id": profile_id, **(extra or {})}
             if seed is not None:
                 target = project_dir / "runs" / rid / "stages"
                 for n in range(from_stage):

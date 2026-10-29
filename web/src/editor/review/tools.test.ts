@@ -39,7 +39,24 @@ describe('review tools', () => {
     const { spec, task } = withGap('a')
     const r = closeGapOps(task, true, spec)
     expect(r.ops).toEqual([{ op: 'add_wall', a: [52000, 0], b: [52900, 0], thickness: 120, kind: 'interior' }])
-    expect(r.doorSkipped).toBe(true)
+    expect(r.doorSkipped).toBe('needs-save')
+  })
+
+  it('a gap too narrow for a door is closed without one', () => {
+    const { spec, task } = withGap('b')
+    task.fix.b = [52600, 0]  // 600 mm: 550 mm of door after the 50 mm margin
+    const r = closeGapOps(task, true, spec)
+    expect(r.ops).toEqual([{ op: 'move_wall', id: 'W900', b: [52600, 0] }])
+    expect(r.doorSkipped).toBe('too-narrow')
+  })
+
+  it('the door fits the extended wall with the 50 mm end margin (V008)', () => {
+    const { spec, task } = withGap('b')
+    task.fix.b = [52900, 40]  // a slightly askew target: the new length is not len + gap
+    const out = applyOps(spec, closeGapOps(task, true, spec).ops)
+    const w = out.spec.walls!.find((x) => x.id === 'W900')!
+    const door = out.spec.openings!.find((o) => o.wall_id === 'W900')!
+    expect(door.offset + door.width).toBeLessThanOrEqual(Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]) - 50)
   })
 
   it('guideLineOps uses the snapped thickness', () => {

@@ -96,3 +96,14 @@ def test_backdrop_points_at_the_newest_page(client, project_with_gt):
     r = client.get(f"/api/projects/{pid}/backdrop").json()
     assert r == {"url": f"/api/projects/{pid}/runs/20261029T000000-aa/artifacts/01_preprocess/page.png",
                  "px_to_mm": [12.9, 0, -5000, 0, -12.9, 15000]}
+
+
+def test_validate_survives_a_broken_ocr_file(client, project_with_gt):
+    """M8 final review I4: unreadable stage-2 files only drop the leak tasks; the dry run still answers."""
+    pid = project_with_gt
+    st = client.app.state.storage.project_dir(pid) / "runs" / "20261029T000000-aa" / "stages" / "02_grid"
+    st.mkdir(parents=True)
+    (st / "ocr.json").write_text("{not json")
+    (st / "grid.json").write_text("{}")
+    r = client.post(f"/api/projects/{pid}/specs/validate", json={"base_version": 1, "ops": []})
+    assert r.status_code == 200 and isinstance(r.json()["tasks"], list)

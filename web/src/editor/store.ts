@@ -49,6 +49,7 @@ interface EditorState {
   gizmo: Gizmo
   wallDraft: { a?: [number, number]; b?: [number, number] }
   activeTask: string | null  // M8 review: the task the canvas is focused on
+  reviewWithDoor: boolean  // "Pasang pintu" for gap closures, from the panel and the canvas handles alike
   wallSpec: { thickness: number; kind: Wall['kind'] }
   focus: [number, number] | null
   saving: boolean
@@ -78,6 +79,7 @@ interface EditorState {
   setGizmo(g: Gizmo): void
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
   setActiveTask(id: string | null): void
+  setReviewWithDoor(on: boolean): void
   setWallSpec(w: { thickness: number; kind: Wall['kind'] }): void
   commitWallDraft(): boolean
   setFocus(p: [number, number] | null): void
@@ -118,7 +120,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, activeTask: null, wallSpec: { thickness: 150, kind: 'partition' }, focus: null,
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, activeTask: null, reviewWithDoor: true, wallSpec: { thickness: 150, kind: 'partition' }, focus: null,
     saving: false,
 
     load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {}, activeTask: null,
@@ -182,6 +184,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setWallDraft: (wallDraft) => set({ wallDraft }),
     setWallSpec: (wallSpec) => set({ wallSpec }),
     setActiveTask: (activeTask) => set({ activeTask }),
+    setReviewWithDoor: (reviewWithDoor) => set({ reviewWithDoor }),
     commitWallDraft: () => {
       const { wallDraft: { a, b }, wallSpec, apply } = get()
       if (!a || !b || (a[0] === b[0] && a[1] === b[1])) return false

@@ -83,3 +83,25 @@ def test_gap_from_one_dangling_end_to_the_next_wall():
     fix = gaps[0]["fix"]
     assert (tuple(fix["a"]), tuple(fix["b"])) == ((5000, 5100), (5000, 6000))  # onto W3's centreline
     assert fix["ends"] == [{"wall": "W5", "end": "b"}]
+
+
+def test_one_sided_gap_stays_on_the_wall_line_and_its_door_saves():
+    """M8 final review C1: the far wall's end is offset sideways (the ray only grazes it); the fix must stay on W5's
+    line, and extending W5 with a door there must validate (no V008)."""
+    from core.spec.ops import apply
+    from core.spec.validate import validate
+
+    s = spec_with_rooms()
+    s.walls = [w for w in s.walls if w.id != "W5"] + [
+        Wall(id="W5", a=(5000, 0), b=(5000, 2000), thickness=100, kind="interior"),
+        Wall(id="W8", a=(4930, 2900), b=(2000, 2900), thickness=100, kind="partition")]  # ends 70 mm beside W5's line
+    s.openings = [o for o in s.openings if o.id != "D1"]
+    s = rebuild_rooms(s.model_copy(update={"rooms": []}))
+    gap = next(t for t in review_tasks(s) if t["kind"] == "gap" and t["fix"]["ends"][0]["wall"] == "W5")
+    assert gap["fix"]["b"][0] == 5000  # on W5's own line, not W8's centreline projection
+    length = gap["fix"]["b"][1]
+    ops = [{"op": "move_wall", "id": "W5", "b": gap["fix"]["b"]},
+           {"op": "add_opening", "wall_id": "W5", "category": "door", "offset": 2000, "width": length - 2000 - 50,
+            "door_type": "single_swing", "hinge": "start", "swing": "left"}]
+    out = apply(s, ops, "editor", s.meta.version + 1)
+    assert [i.code for i in validate(out).issues if i.severity == "error"] == []

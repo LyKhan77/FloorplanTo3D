@@ -116,7 +116,11 @@ function AddWallForm() {
   return (
     <>
       <h5 className="editor-panel__sub">Tambah dinding</h5>
-      <Button size="sm" kind="ghost" onClick={() => { const s = useEditorStore.getState(); s.setMode('top'); s.setTool('add-wall') }}>
+      <Button size="sm" kind="ghost" onClick={() => {
+        const s = useEditorStore.getState()
+        if (s.mode !== 'plan') s.setMode('top')  // the 2D review canvas draws walls itself; stay on it
+        s.setTool('add-wall')
+      }}>
         Klik dua titik
       </Button>
       <p className="helper">Enter: simpan dan lanjut dari titik akhir · Esc: berhenti</p>

@@ -47,4 +47,16 @@ describe('useValidate', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(600) })
     expect(result.current.error).toBe('Op #1: unknown id W9')
   })
+
+  it('a failed dry run keeps the last review tasks (M8 final review I4)', async () => {
+    const { ApiError } = await vi.importActual<typeof import('../api/client')>('../api/client')
+    const task = { id: 'gap:W1,W2', kind: 'gap', message: 'Celah', at: [0, 0], element_ids: ['W1', 'W2'], fix: {} }
+    post.mockImplementation((_p, body) => ((body as { ops: EditorOp[] }).ops.length
+      ? Promise.reject(new ApiError(500, 'internal', 'boom'))
+      : Promise.resolve({ issues: [], rooms: [], tasks: [task] })) as never)
+    const ops = [op(4000)]
+    const { result } = renderHook(() => useValidate('p1', 4, ops))
+    await act(async () => { await vi.advanceTimersByTimeAsync(600) })
+    expect(result.current.tasks).toEqual([task])
+  })
 })

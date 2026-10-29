@@ -843,3 +843,7 @@ body {
 .review-task.is-done .review-task__mark { background: #42be65; border-color: #42be65; color: #000; }
 .review-task__tools { display: flex; gap: 8px; align-items: center; padding: 4px 0 8px 24px; flex-wrap: wrap; }
 .editor__plan-note--review { left: auto; right: 8px; border-left: 3px solid #f1c21b; }
+.review-tools { position: absolute; left: 8px; bottom: 8px; z-index: 1; display: flex; gap: 2px; background: #262626; padding: 4px; }
+.review-tools button { all: unset; cursor: pointer; padding: 6px 10px; color: #c6c6c6; font-size: 13px; }
+.review-tools button.is-on { background: #0f62fe; color: #fff; }
+.review-tools kbd { font: 11px 'IBM Plex Mono', monospace; border: 1px solid currentColor; padding: 0 3px; margin-left: 4px; }

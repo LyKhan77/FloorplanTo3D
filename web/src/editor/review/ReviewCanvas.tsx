@@ -31,6 +31,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
   const svgRef = useRef<SVGSVGElement>(null)
+  const dragged = useRef(false)
   const imgSize = useImageSize(backdrop?.url)
   const home = useMemo<Box>(() => {
     const xs = (view?.walls ?? []).flatMap((w) => [w.a[0], w.b[0]]), ys = (view?.walls ?? []).flatMap((w) => [w.a[1], w.b[1]])
@@ -54,7 +55,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
 
   const toSvg = (e: { clientX: number; clientY: number }): [number, number] => {
     const svg = svgRef.current, m = svg?.getScreenCTM?.()
-    if (!svg || !m) return [0, 0]
+    if (!svg || !m) return [e.clientX, e.clientY]  // no layout (jsdom): client px are SVG units
     const p = svg.createSVGPoint()
     p.x = e.clientX
     p.y = e.clientY
@@ -71,7 +72,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     const s = toSvg(e)
     if (onCanvasPointer?.('down', mm(s), e)) return
     if (e.button === 1 || e.altKey) setDrag({ kind: 'pan', a: s, b: s })
-    else if (e.button === 0 && e.target === e.currentTarget) setDrag({ kind: 'marquee', a: s, b: s })
+    // rooms fill the whole interior: a marquee starts on them too (a click without a drag still picks the room)
+    else if (e.button === 0 && (e.target === e.currentTarget || (e.target as Element).hasAttribute?.('data-room'))) setDrag({ kind: 'marquee', a: s, b: s })
   }
   const move = (e: RPointerEvent<SVGSVGElement>) => {
     const s = toSvg(e)
@@ -88,9 +90,14 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     if (d?.kind !== 'marquee' || !view) return
     const [xa, xb] = [Math.min(d.a[0], d.b[0]), Math.max(d.a[0], d.b[0])], [ya, yb] = [Math.min(d.a[1], d.b[1]), Math.max(d.a[1], d.b[1])]
     if (xb - xa < 50 && yb - ya < 50) { if (!e.shiftKey) useEditorStore.getState().select([]); return }
+    dragged.current = true  // the click that ends this drag must not pick the room under the cursor
+    setTimeout(() => { dragged.current = false }, 0)
     useEditorStore.getState().select(idsInRect(view, { xa, xb, ya, yb }, (p) => svgPoint(p)), e.shiftKey)
   }
-  const pick = (id: string) => (e: React.MouseEvent) => { e.stopPropagation(); useEditorStore.getState().select([id], e.shiftKey) }
+  const pick = (id: string) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!dragged.current) useEditorStore.getState().select([id], e.shiftKey)
+  }
 
   if (!view) return null
   const walls = new Map((view.walls ?? []).map((w) => [w.id, w]))
@@ -103,7 +110,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
       )}
       {backdrop && showImage && !imgSize && <image href={backdrop.url} transform={imageMatrix(backdrop.px_to_mm)} opacity={0} />}
       {rooms.map((r, i) => (
-        <polygon key={r.id} points={pts(r.polygon as number[][])} className={leak.has(r.id) ? 'is-leak' : undefined}
+        <polygon key={r.id} data-room={r.id} points={pts(r.polygon as number[][])} className={leak.has(r.id) ? 'is-leak' : undefined}
           fill={leak.has(r.id) ? '#fa4d56' : ROOM_FILLS[i % ROOM_FILLS.length]} fillOpacity={leak.has(r.id) ? 0.28 : sel.has(r.id) ? 0.3 : 0.1}
           stroke={sel.has(r.id) ? '#ffffff' : 'none'} strokeWidth={60} onClick={pick(r.id)} style={{ cursor: 'pointer' }} />
       ))}

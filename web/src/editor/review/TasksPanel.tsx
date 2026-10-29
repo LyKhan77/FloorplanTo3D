@@ -2,7 +2,7 @@ import { Button, Checkbox, ProgressBar } from '@carbon/react'
 import { useEffect, useState } from 'react'
 import type { ReviewTask } from '../../api/types'
 import { useEditorStore } from '../store'
-import { closeGapOps } from './tools'
+import { closeGapOps, DOOR_SKIPPED_TEXT } from './tools'
 
 const GROUPS: [ReviewTask['kind'], string][] = [['gap', 'Celah terbuka'], ['leak', 'Ruang bocor'], ['loose', 'Dinding lepas'], ['type', 'Tipe ruang']]
 
@@ -10,7 +10,7 @@ const GROUPS: [ReviewTask['kind'], string][] = [['gap', 'Celah terbuka'], ['leak
 export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: ReviewTask[] }) {
   const active = useEditorStore((s) => s.activeTask)
   const baseVersion = useEditorStore((s) => s.baseVersion)
-  const [withDoor, setWithDoor] = useState(true)
+  const withDoor = useEditorStore((s) => s.reviewWithDoor)
   // the list a review starts from: the first answer for this project and base version (derived state, set in render)
   const key = `${projectId}@${baseVersion}`
   const [start, setStart] = useState<{ key: string; tasks: ReviewTask[] }>({ key: '', tasks: [] })
@@ -31,7 +31,7 @@ export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: Rev
   const close = (t: ReviewTask) => {
     const s = useEditorStore.getState()
     const r = closeGapOps(t, withDoor, s.view!)
-    if (s.applyMany(r.ops) && r.doorSkipped) s.setNotice({ kind: 'info', text: 'Celah ditutup; pintu bisa ditambahkan setelah Simpan' })
+    if (s.applyMany(r.ops) && r.doorSkipped) s.setNotice({ kind: 'info', text: DOOR_SKIPPED_TEXT[r.doorSkipped] })
   }
 
   return (
@@ -55,7 +55,7 @@ export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: Rev
                   </button>
                   {t.id === active && t.kind === 'gap' && !finished && (
                     <div className="review-task__tools">
-                      <Checkbox id="gap-door" labelText="Pasang pintu" checked={withDoor} onChange={(_, { checked }) => setWithDoor(checked)} />
+                      <Checkbox id="gap-door" labelText="Pasang pintu" checked={withDoor} onChange={(_, { checked }) => useEditorStore.getState().setReviewWithDoor(checked)} />
                       <Button size="sm" kind="primary" onClick={() => close(t)}>Tutup celah</Button>
                     </div>
                   )}

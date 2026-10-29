@@ -29,7 +29,8 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const data = useEditorData(projectId)
   const regenerate = useRegenerate(projectId)
   const flow = useRegenerateFlow(projectId, run)
-  const saver = useSave(projectId, flow.regenerate)
+  const paused = run?.status === 'needs_review'
+  const saver = useSave(projectId, flow.regenerate, paused)
   const { save } = saver
   const onSave = useCallback(() => void save(), [save])
   useShortcuts(data.templates, onSave)
@@ -73,7 +74,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   return (
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
-        onSave={onSave} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
+        onSave={onSave} saving={saver.saving} onRegenerate={paused ? undefined : () => flow.regenerate()} regen={flow} />
       {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
       {left && (
         <aside className="editor__library" aria-label="Library template">

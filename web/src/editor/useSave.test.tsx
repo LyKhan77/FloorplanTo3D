@@ -7,7 +7,7 @@ import { api, ApiError } from '../api/client'
 import type { Spec } from '../types/spec'
 import { applyOps, type EditorOp } from './ops/reducer'
 import { useEditorStore } from './store'
-import { useSave } from './useSave'
+import { AUTO_REGENERATE_KEY, useSave } from './useSave'
 
 vi.mock('../api/client', async (orig) => ({ ...(await orig<typeof import('../api/client')>()), api: { get: vi.fn(), post: vi.fn() } }))
 const post = vi.mocked(api.post)
@@ -18,8 +18,8 @@ const [px, py] = gt.rooms!.find((r) => r.name === 'R. MEETING')!.label_pos as [n
 const add: EditorOp = { op: 'add_object', template_id: 'r', template_version: '1', position: [px, py, 0], rotation: 0, dims: [600, 1200, 2000] }
 const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
 
-function setup(regenerate = vi.fn()) {
-  return { regenerate, ...renderHook(() => useSave('p1', regenerate), { wrapper }) }
+function setup(regenerate = vi.fn(), paused = false) {
+  return { regenerate, ...renderHook(() => useSave('p1', regenerate, paused), { wrapper }) }
 }
 
 describe('useSave', () => {
@@ -100,5 +100,16 @@ describe('useSave', () => {
     const { result, regenerate } = setup()
     await act(() => result.current.save())
     expect(regenerate).toHaveBeenCalledWith(5)
+  })
+
+  it('while a run waits for review, a save never regenerates (M8 final review I5)', async () => {
+    localStorage.setItem(AUTO_REGENERATE_KEY, '1')
+    post.mockResolvedValueOnce({ version: 5, spec: { ...gt, meta: { ...gt.meta, version: 5 } }, issues: [] })
+    act(() => { useEditorStore.getState().apply({ op: 'set_wall_height', id: 'W1', height: 4000 }) })
+    const { result, regenerate } = setup(vi.fn(), true)
+    await act(async () => { await result.current.save() })
+    expect(regenerate).not.toHaveBeenCalled()
+    expect(useEditorStore.getState().notice?.action).toBeUndefined()
+    localStorage.removeItem(AUTO_REGENERATE_KEY)
   })
 })

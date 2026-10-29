@@ -17,7 +17,8 @@ export function autoRegenerate(): boolean {
 }
 
 /** POST /specs with the local ops: 201 moves the base, 409 offers a rebase, 422 lists issues, 400 names the op. */
-export function useSave(projectId: string, regenerate: (version: number) => void) {
+/** `paused`: the latest run waits for review — a save never regenerates then (approving continues that run). */
+export function useSave(projectId: string, regenerate: (version: number) => void, paused = false) {
   const qc = useQueryClient()
   const [saving, setSaving] = useState(false)
   const inFlight = useRef(false) // state lags a render; two quick Ctrl+S must not both POST
@@ -34,7 +35,9 @@ export function useSave(projectId: string, regenerate: (version: number) => void
         { base_version: s.baseVersion, ops: s.ops, message: message ?? `Edit editor: ${s.ops.length} op` })
       s.markSaved(r.spec)
       for (const k of ['spec', 'specs', 'project']) qc.invalidateQueries({ queryKey: [k, projectId] })
-      if (autoRegenerate()) {
+      if (paused) {
+        s.setNotice({ kind: 'info', text: `Tersimpan sebagai v${r.version}` })
+      } else if (autoRegenerate()) {
         s.setNotice({ kind: 'info', text: `Tersimpan sebagai v${r.version}; regenerate dimulai` })
         regenerate(r.version)
       } else {

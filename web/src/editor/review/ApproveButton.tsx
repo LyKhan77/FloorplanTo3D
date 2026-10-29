@@ -36,7 +36,7 @@ export function ApproveButton({ projectId, runId, tasksLeft, save }: {
       <Modal open={open} modalHeading="Setujui dan build 3D?" primaryButtonText="Setujui" secondaryButtonText="Kembali"
         primaryButtonDisabled={busy} onRequestClose={() => setOpen(false)} onRequestSubmit={() => void approve()}>
         <p>Koreksi disimpan sebagai versi baru, lalu tahap 6–10 (review Strata, build, verifikasi, dokumen) berjalan.</p>
-        {tasksLeft > 0 && <p className="helper">{tasksLeft} tugas review belum selesai; build tetap jalan dan sisanya tercatat sebagai warning.</p>}
+        {tasksLeft > 0 && <p className="helper">{tasksLeft} tugas review belum selesai; build tetap jalan dan sisanya tercatat di run sebagai tugas terbuka.</p>}
       </Modal>
     </>
   )

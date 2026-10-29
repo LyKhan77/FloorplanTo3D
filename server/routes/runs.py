@@ -64,7 +64,8 @@ def continue_run(pid: str, rid: str, body: ContinueBody, request: Request):
     """A run stopped at stage 5 (low score, or paused for review) continues as a new run from stage 6 on HEAD."""
     run = _orch(request).load_run(pid, rid)
     if run["status"] == "needs_review":  # M8: the person approved the corrected spec
-        new = _orch(request).start_run(pid, "from_stage", 6)
+        new = _orch(request).start_run(pid, "from_stage", 6, params_override=run.get("params_override") or {},
+                                       profile_id=run.get("profile_id"), extra={"review_open": _open_review_tasks(request, pid)})
         _orch(request).close_review(pid, rid)
         return {"run_id": new["run_id"], "status": new["status"]}
     if run["status"] != "needs_attention" or run["stages"][5]["status"] != "needs_attention":
@@ -111,3 +112,16 @@ def regenerate(pid: str, body: RegenerateBody, request: Request):
         return JSONResponse({"run_id": None, "reused": True}, status_code=200)
     run = _orch(request).start_run(pid, "regenerate", version=body.version)
     return {"run_id": run["run_id"], "status": run["status"]}
+
+
+def _open_review_tasks(request: Request, pid: str) -> list[dict]:
+    """The review tasks still open on the approved spec (HEAD): kept on the continuation as its record."""
+    from core.spec.review_tasks import review_tasks
+    from core.spec.store import SpecStore
+    from server.routes.specs import _labels
+
+    store = SpecStore(request.app.state.storage.project_dir(pid) / "specs")
+    head = store.head()
+    if head is None:
+        return []
+    return [{k: t[k] for k in ("id", "kind", "message", "at")} for t in review_tasks(store.load(head), _labels(request, pid))]

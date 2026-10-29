@@ -111,7 +111,10 @@ def _labels(request: Request, pid: str):
     ocr, grid = latest_stage_file(storage, pid, "02_grid/ocr.json"), latest_stage_file(storage, pid, "02_grid/grid.json")
     if not ocr or not grid:
         return None
-    return labels_from_ocr(json.loads(ocr.read_text()), json.loads(grid.read_text())["px_to_mm"])
+    try:
+        return labels_from_ocr(json.loads(ocr.read_text()), json.loads(grid.read_text())["px_to_mm"])
+    except (OSError, ValueError, KeyError, TypeError):  # an unreadable stage-2 file drops the leak tasks, not the dry run
+        return None
 
 
 @router.post("/import", status_code=201)

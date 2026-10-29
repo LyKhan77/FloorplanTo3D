@@ -7,29 +7,39 @@ import { useEditorStore } from '../store'
 type Pt = [number, number]
 
 const END_MARGIN_MM = 50  // V008: an opening keeps 50 mm from the wall end
+const DOOR_MIN_MM = 600  // V010's narrowest door
 
 /**
  * Close a gap task. A door goes onto a wall the server already knows (pushOp refuses edits of unsaved elements),
  * so the wall whose b end sits at the gap is extended across it and the door is placed in the extension;
  * extending an a end would shift that wall's doors. With no b end at the gap, a new wall closes it without a door.
  */
-export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { ops: EditorOp[]; doorSkipped: boolean } {
+export type DoorSkipped = null | 'needs-save' | 'too-narrow'
+
+export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { ops: EditorOp[]; doorSkipped: DoorSkipped } {
   const { a, b, thickness, kind, ends = [] } = task.fix
-  if (!a || !b) return { ops: [], doorSkipped: false }
+  if (!a || !b) return { ops: [], doorSkipped: null }
   const i = ends.findIndex((e) => e.end === 'b')
   const w = i >= 0 ? view.walls?.find((x) => x.id === ends[i].wall) : undefined
   if (!w) {
-    return { ops: [{ op: 'add_wall', a, b, thickness: thickness ?? 150, kind: (kind ?? 'partition') as 'partition' }], doorSkipped: withDoor }
+    return { ops: [{ op: 'add_wall', a, b, thickness: thickness ?? 150, kind: (kind ?? 'partition') as 'partition' }],
+      doorSkipped: withDoor ? 'needs-save' : null }
   }
   const to = i === 0 ? b : a  // the other end of the gap
-  const len = Math.round(Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]))
-  const gap = Math.round(Math.hypot(to[0] - w.b[0], to[1] - w.b[1]))
+  const len = Math.ceil(Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]))
+  // the door spans the extension and keeps V008's 50 mm from the new end; the real new length, not len + gap
+  const width = Math.floor(Math.hypot(to[0] - w.a[0], to[1] - w.a[1]) - len - END_MARGIN_MM)
   const ops: EditorOp[] = [{ op: 'move_wall', id: w.id, b: to }]
-  if (withDoor) {
-    ops.push({ op: 'add_opening', wall_id: w.id, category: 'door', offset: len, width: gap - END_MARGIN_MM,
+  if (withDoor && width >= DOOR_MIN_MM) {
+    ops.push({ op: 'add_opening', wall_id: w.id, category: 'door', offset: len, width,
       door_type: 'single_swing', hinge: 'start', swing: 'left' })
   }
-  return { ops, doorSkipped: false }
+  return { ops, doorSkipped: withDoor && width < DOOR_MIN_MM ? 'too-narrow' : null }
+}
+
+export const DOOR_SKIPPED_TEXT: Record<Exclude<DoorSkipped, null>, string> = {
+  'needs-save': 'Celah ditutup; pintu bisa ditambahkan setelah Simpan',
+  'too-narrow': 'Celah ditutup tanpa pintu: terlalu sempit untuk pintu (< 600 mm)',
 }
 
 /** A guide line the server snapped onto the drawing becomes one partition wall. */

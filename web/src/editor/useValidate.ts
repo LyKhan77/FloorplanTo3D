@@ -6,7 +6,7 @@ import type { EditorOp } from './ops/reducer'
 import type { Issue } from './store'
 
 interface Result { issues: Issue[]; rooms?: Room[]; tasks?: ReviewTask[] }
-type Review = { rooms: Room[] | null; tasks: ReviewTask[] }
+type Review = { rooms: Room[] | null; tasks: ReviewTask[] | null }
 const key = (i: Issue) => `${i.code}|${i.element_ids.join(',')}`
 
 /** Live dry-run of the local ops (POST /specs/validate), debounced 500 ms; issues absent from the base are "new". */
@@ -35,14 +35,15 @@ export function useValidate(projectId: string, baseVersion: number | null, ops: 
           if (!live) return
           const msg = e instanceof ApiError && e.code === 'bad_op'
             ? `Op #${Number(e.details.index ?? 0) + 1}: ${e.message}` : e instanceof Error ? e.message : String(e)
-          setDone({ ops, issues: [], error: msg, rooms: null, tasks: [] })
+          // keep the last rooms and tasks: an error must not look like every review task got done
+          setDone((prev) => ({ ops, issues: [], error: msg, rooms: prev.rooms, tasks: prev.ops ? prev.tasks : null }))
         })
     }, 500)
     return () => { live = false; clearTimeout(t) }
   }, [url, baseVersion, ops])
 
   return useMemo(() => {
-    if (!ops.length) return { issues: base.issues, newIssues: new Set<string>(), error: null, pending: false, rooms: base.rooms, tasks: base.tasks }
+    if (!ops.length) return { issues: base.issues, newIssues: new Set<string>(), error: null, pending: false, rooms: base.rooms, tasks: base.tasks ?? [] }
     const known = new Set(base.issues.map(key))
     return {
       issues: done.issues,
@@ -51,7 +52,7 @@ export function useValidate(projectId: string, baseVersion: number | null, ops: 
       pending: done.ops !== ops,
       // M8: rooms rebuilt by the server for these ops, and the review tasks left; the last answer while one is pending
       rooms: done.rooms ?? base.rooms,
-      tasks: done.ops ? done.tasks : base.tasks,
+      tasks: (done.ops ? done.tasks : null) ?? base.tasks ?? [],
     }
   }, [ops, base, done])
 }
