@@ -132,7 +132,11 @@ def snap(pid: str, body: SnapBody, request: Request):
     page, grid = latest_stage_file(storage, pid, "01_preprocess/bin.png"), latest_stage_file(storage, pid, "02_grid/grid.json")
     if not page or not grid:
         raise ApiError(404, "no_run", "no extraction run with a page image")
-    found = snap_wall(cv2.imread(str(page), cv2.IMREAD_GRAYSCALE), json.loads(grid.read_text())["px_to_mm"], body.a, body.b)
+    store = SpecStore(storage.project_dir(pid) / "specs")
+    head = store.head()
+    default = store.load(head).meta.defaults.wall_thickness if head is not None else 150  # for a single-line wall
+    found = snap_wall(cv2.imread(str(page), cv2.IMREAD_GRAYSCALE), json.loads(grid.read_text())["px_to_mm"], body.a, body.b,
+                      default_mm=default)
     if found is None:
         raise ApiError(422, "no_line", "tidak ada garis ganda di dekat garis ini")
     return found
