@@ -11,7 +11,14 @@ from pydantic import BaseModel
 from core.extraction.profiles import ProfileNotFound, load_profile
 from core.spec.store import SpecStore
 from server.errors import ApiError
-from server.projects import create_project, latest_run, output_versions, summary, touch
+from server.projects import (
+    create_project,
+    latest_run,
+    latest_stage_file,
+    output_versions,
+    summary,
+    touch,
+)
 
 router = APIRouter(prefix="/api/projects")
 CHUNK = 1024 * 1024
@@ -106,3 +113,26 @@ def original(pid: str, request: Request):
     if f is None:
         raise ApiError(404, "not_found", "original file missing")
     return FileResponse(f)
+
+
+class SnapBody(BaseModel):
+    a: tuple[float, float]
+    b: tuple[float, float]
+
+
+@router.post("/{pid}/snap")
+def snap(pid: str, body: SnapBody, request: Request):
+    """M8 guide line: the rough line (mm) moved onto the double line of the newest run's binary page."""
+    import cv2
+
+    from core.extraction.snap import snap_wall
+
+    storage = request.app.state.storage
+    storage.project_dir(pid)
+    page, grid = latest_stage_file(storage, pid, "01_preprocess/bin.png"), latest_stage_file(storage, pid, "02_grid/grid.json")
+    if not page or not grid:
+        raise ApiError(404, "no_run", "no extraction run with a page image")
+    found = snap_wall(cv2.imread(str(page), cv2.IMREAD_GRAYSCALE), json.loads(grid.read_text())["px_to_mm"], body.a, body.b)
+    if found is None:
+        raise ApiError(422, "no_line", "tidak ada garis ganda di dekat garis ini")
+    return found
