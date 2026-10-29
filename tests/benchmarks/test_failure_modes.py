@@ -145,3 +145,50 @@ def test_fresh_clears_the_default_cache(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError):
         fm.main(["--out", str(tmp_path / "r"), "--fresh"])
     assert not marker.exists()
+
+
+def _grid_2x2():
+    """10 m square, a cross of interior walls: four 5 m rooms."""
+    from core.spec.models import Wall as W
+
+    gt = two_room_spec()
+    gt.openings = []
+    gt.walls = [w for w in gt.walls if w.id != "W5"] + [
+        W(id="W5", a=(5000, 0), b=(5000, 6000), thickness=100, kind="interior"),
+        W(id="W6", a=(0, 3000), b=(10000, 3000), thickness=100, kind="interior")]
+    return _rooms(gt)
+
+
+def test_corner_contacts_are_not_leaks():
+    """Final review I-1a: rooms touching at a corner only are not neighbours."""
+    from benchmarks.failure_modes import classify_leaks
+
+    gt = _grid_2x2()
+    pred = gt.model_copy(deep=True)
+    pred.walls = [w for w in pred.walls if w.id not in ("W5", "W6")]
+    assert len(classify_leaks(gt, _rooms(pred))) == 4
+
+
+def test_a_missing_piece_of_a_split_separator_is_wall_missing():
+    """Final review I-1b: the separator is every GT wall along the shared edge, not the one with most overlap."""
+    from benchmarks.failure_modes import classify_leaks
+    from core.spec.models import Wall as W
+
+    gt = spec_with_rooms()
+    gt.openings = [o for o in gt.openings if o.id != "D1"]
+    gt.walls = [w for w in gt.walls if w.id != "W5"] + [W(id="W5", a=(5000, 0), b=(5000, 2000), thickness=100, kind="interior"),
+                                                        W(id="W7", a=(5000, 2000), b=(5000, 6000), thickness=100, kind="interior")]
+    pred = gt.model_copy(deep=True)
+    pred.walls = [w for w in pred.walls if w.id != "W5"]
+    assert [r["cause"] for r in classify_leaks(gt, _rooms(pred))] == ["wall_missing"]
+
+
+def test_cache_path_never_resolves_to_the_working_tree(tmp_path, monkeypatch):
+    """Final review M-4 (re-graded): `--cache ""` is the current directory; --fresh must not delete it."""
+    import benchmarks.failure_modes as fm
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "keep.txt").write_text("project file")
+    with pytest.raises(SystemExit):
+        fm.main(["--out", str(tmp_path / "r"), "--fresh", "--cache", ""])
+    assert (tmp_path / "keep.txt").exists()

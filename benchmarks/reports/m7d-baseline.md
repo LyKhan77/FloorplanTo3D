@@ -52,4 +52,4 @@ Rincian dinding terlewat (id, jenis, tebal, panjang, mode, tinta binary/clean [k
 
 **Upaya koreksi:** 22.1 menit satu-per-satu, 14.4 menit dengan aksi massal (delete_wall 68, add_wall 16, add_opening 10, delete_opening 9, set_door 5, set_room_type 31, room_type_groups 8, rename_room 14, set_stair 3).
 
-**Kebocoran ruang (pasangan ruang GT dalam satu ruang prediksi):** door_gap 2, wall_missing 9, other 1.
+**Kebocoran ruang (pasangan ruang GT dalam satu ruang prediksi):** door_gap 6, wall_missing 4, other 1.

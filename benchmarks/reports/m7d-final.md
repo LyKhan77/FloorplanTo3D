@@ -1,51 +1,66 @@
 # M7d — Ruang bocor: hasil
 
-## Atribusi kebocoran (Task 1)
+## Atribusi kebocoran (Task 1, diperbaiki setelah review akhir)
 
-`failure_modes` kini menghitung pasangan ruang GT bertetangga yang menyatu di satu ruang prediksi, beserta pemisahnya di GT:
-- `wall_missing`: dinding pemisah tercakup < 50 %;
-- `door_gap`: dinding ada, tapi bukaan pintunya terbuka;
-- `other`: lainnya.
+`failure_modes.classify_leaks` mencatat setiap pasangan ruang GT yang menyatu dalam satu ruang prediksi.
 
-| Set | `wall_missing` | `door_gap` | `other` |
-|---|---|---|---|
-| Gatsu (`m7d-baseline`) | 9 | 2 | 1 |
-| Sintetis `s00…s20` (M7b) | 49 | 7 | 78 |
+**Pasangan yang dihitung:** hanya yang bertetangga, yaitu berbagi tepi lebih dari 300 mm. Ruang yang hanya bersentuhan di sudut tidak dihitung.
 
-Pada 78 kasus `other` di sintetis, pemisahnya hampir utuh: cakupan ≥ 0.95 pada 45 kasus. Celah yang tersisa ada di ujung atau sambungan dinding (24), di tengah (24), atau tidak terlihat di garis tengah sama sekali (30).
+**Cara menentukan penyebab:**
+- Pemisahnya adalah semua garis tengah dinding GT di sepanjang tepi bersama itu.
+- Kebocorannya adalah bentang terpanjang pemisah itu yang tidak tertutup dinding prediksi (toleransi 150 mm, sama dengan `wall_recall`).
+- Penyebabnya:
+  - `door_gap`: ada pusat pintu GT di bentang itu;
+  - `wall_missing`: bentangnya ≥ 300 mm tanpa pintu;
+  - `other`: tidak ada celah di garis tengah pemisah (bocor lewat sambungan atau jalur lain).
 
-**Koreksi atas M7b:** ruang menyatu terutama karena dinding hilang (Gatsu) dan sambungan dinding yang tidak tertutup (sintetis), bukan "lewat celah pintu". Celah pintu hanya penyebab kecil.
+| Set | `door_gap` | `wall_missing` | `other` | Sumber |
+|---|---|---|---|---|
+| Gatsu (11 pasangan) | 6 | 4 | 1 | `m7d-baseline.json` |
+| Sintetis `s01…s20` (122 pasangan) | 32 | 43 | 47 | `m7d-synth-leaks.json` |
+
+Di Gatsu, `wall_missing` hanya berasal dari 5 dinding: W13 dan W14 (dinding luar, ruang `outdoor`), W68, W69, dan W72. Sementara `door_gap` tersebar di banyak pintu, terutama deretan WC, pantry, dan ruang-ruang di sisi timur.
+
+**Koreksi:** versi pertama Task 1 menghitung kontak sudut sebagai kebocoran, dan menilai pemisah dari satu dinding saja. Hasilnya `wall_missing` 9 / `door_gap` 2, dan kesimpulan "bukan lewat celah pintu". Kesimpulan itu salah. Dengan atribusi yang benar, celah pintu adalah penyebab terbesar di Gatsu (6/11) dan sepertiga dari kasus sintetis yang terdiagnosis.
 
 ## Dinding sintetis penutup kebocoran, PRD/04 §6b (Task 2): gagal gerbang, di-revert
 
-Ruang yang memuat label bertipe berbeda dipotong oleh perpanjangan sebuah ujung dinding yang menggantung. Dinding baru diterima hanya bila skor validator naik. Laporan: `m7d-t2`, `m7d-augment`, `m7d-synth`.
+**Cara kerja:**
+- Ruang yang memuat label bertipe berbeda dipotong oleh perpanjangan sebuah ujung dinding yang menggantung.
+- Dinding baru diterima hanya bila skor validator naik.
+
+Laporan: `m7d-t2`, `m7d-augment`, `m7d-synth` (dihasilkan sebelum atribusi diperbaiki, sehingga angka kebocoran di `m7d-t2` memakai cara hitung lama).
 
 | Set | Metrik | Sebelum | Sesudah |
 |---|---|---|---|
-| Gatsu | pasangan bocor | 12 | 7 |
 | Gatsu | ruang (GT 48) | 41 | 44 |
 | Gatsu | `room_match` | 0.083 | 0.083 |
 | Gatsu | `wall_precision` | 0.7725 | 0.7694 |
 | Gatsu | koreksi / massal (menit) | 22.1 / 14.4 | 21.0 / 13.3 |
 | Augmentasi (rata-rata 30) | `room_match` | 0.028 | 0.031 |
-| Augmentasi (rata-rata 30) | lainnya | — | dalam toleransi |
+| Augmentasi (rata-rata 30) | varian lolos | 2 | 1 |
 | Sintetis (rata-rata 21) | `room_match` | 0.040 | 0.042 |
-| Sintetis (rata-rata 21) | `door_recall` | 0.362 | 0.354 (−0.008) |
+| Sintetis (rata-rata 21) | `door_recall` | 0.362 | 0.354 |
+| Sintetis (rata-rata 21) | `door_width_ok` | 0.283 | 0.273 |
+| Sintetis (rata-rata 21) | `door_dir_ok` | 0.327 | 0.315 |
 
 **Gerbang gagal, dengan dua alasan:**
-1. `room_match` Gatsu tidak naik. Ruang hasil potongan belum cukup mirip ruang GT (IoU < 0.5), karena dinding lain di sekitarnya juga masih hilang.
-2. `door_recall` sintetis turun melebihi toleransi. Skor validator yang berubah membuat tahap 5 memilih kandidat ekstraksi lain di `s08` dan `s13`, dan pintunya ikut hilang. Ini ketidakstabilan pemilihan kandidat yang sama dengan M7a-2 dan M7b.
+1. `room_match` Gatsu tidak naik.
+2. Tiga metrik pintu sintetis turun melebihi toleransi 0.005. Penurunannya berasal dari `s08` dan `s13`, tempat tahap 5 memilih kandidat ekstraksi lain setelah skor validator berubah.
 
-Ada juga batas bawaan aturan PRD. Menutup kebocoran sering menghasilkan ruang tanpa pintu, karena `door_recall` hanya sekitar 0.4. Penalti V012 untuk ruang tanpa pintu (0.12) lebih besar daripada keuntungan menyambung ujung dinding (V004, 0.15 × rasio), sehingga "skor naik" jarang terpenuhi.
+Di augmentasi, ketidakstabilan yang sama terlihat jelas: `a00`, `a02`, `a15`, dan `a19` berubah pintu atau ruangnya. Misalnya `a00` `door_recall` 0.316 → 0.474, sedangkan `a02` 0.105 → 0.053.
 
-Kode percobaan ada di commit `9f4e123` (di-revert oleh `f76a2b9`). Percobaan ini bisa dipakai lagi bila pemilihan kandidat stabil.
+Ada juga batas bawaan aturan PRD. Menutup kebocoran sering menghasilkan ruang tanpa pintu, karena `door_recall` hanya sekitar 0.4. Penalti V012 untuk ruang tanpa pintu (0.12) lebih besar daripada keuntungan V004 (0.15 × rasio ujung menggantung), sehingga syarat "skor naik" jarang terpenuhi.
+
+Kode percobaan ada di commit `9f4e123` (di-revert oleh `f76a2b9`). Jumlah dinding sintetis yang diterima tidak dicatat di laporan run; di Gatsu ruang bertambah 3 (41 → 44).
 
 ## Lainnya
 
-- `failure_modes --fresh` kini juga menjalankan ulang cache default (Task 3).
+- `failure_modes --fresh` menjalankan ulang cache default. Bila `--cache` menunjuk folder kerja atau induknya, perintah ditolak.
+- Cache Gatsu default sudah diregenerasi di HEAD. Metrik kembali sama dengan `m7a3-gatsu`: 41 ruang, `room_match` 0.083.
 
 ## Implikasi untuk milestone berikutnya
 
-1. **Pemilihan kandidat tahap 5 harus stabil dulu.** Setiap perubahan yang menggeser skor validator bisa membalik pilihan kandidat dan membuat gerbang berisik. Ini sudah tiga kali terjadi: M7a-2, M7b (S1/S2), dan M7d.
-2. **Dinding hilang adalah penyebab kebocoran terbesar di Gatsu**, yaitu dinding interior 5–7 m yang tidak terdeteksi. Masalah ini ada di deteksi dinding (tahap 3), bukan di pembentukan ruang.
-3. **Sambungan dinding yang tidak tertutup** adalah penyebab terbesar di sintetis, jadi `close_ends` (reach 1200 mm) layak diperiksa.
+1. **Pemilihan kandidat tahap 5 harus stabil dulu.** Setiap perubahan yang menggeser skor validator bisa membalik pilihan kandidat dan membuat gerbang berisik. Ini sudah terjadi di M7a-2, M7b (S1/S2), dan M7d (sintetis dan augmentasi).
+2. **Celah pintu adalah penyebab kebocoran terbesar di Gatsu.** Dinding prediksi berhenti di kusen dan tidak menyambung melintasi bukaan. Menutup bukaan pintu yang terdeteksi tidak menghasilkan ruang tanpa pintu, karena pintunya ada di pemisah itu. Jadi pendekatan ini tidak terkena masalah V012 seperti §6b, dan layak dicoba setelah no. 1.
+3. **Dinding hilang** di Gatsu terbatas pada 5 dinding, dua di antaranya dinding luar. Kasus `other` di sintetis (47) belum terdiagnosis.

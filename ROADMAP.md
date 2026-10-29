@@ -597,7 +597,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - Rata-rata: `wall_recall` 0.87, `wall_precision` 0.93, `door_recall` 0.36, `room_match` 0.04.
   - Menit koreksi massal rata-rata 14.6 (14/20 varian ≤ 15).
 - **Mode gagal teratas:**
-  - ruang menyatu (12–32 ruang vs 44–50; M7d: penyebabnya dinding hilang dan sambungan terbuka, bukan celah pintu);
+  - ruang menyatu (12–32 ruang vs 44–50; penyebabnya diatribusi di M7d);
   - pintu terlewat;
   - stage 5 memilih S1 alih-alih S2 pada 3/20 varian;
   - kontur bangunan pecah atau menyusut pada 7/20 varian.
@@ -616,15 +616,18 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **E2E T3 di Gatsu:** Δ 0 pada semua metrik; tahap 6 selesai dalam 0.6 s.
 
 **Status M7d (2026-10-29), branch `m7d-room-leaks`** (plan `docs/superpowers/plans/2026-10-29-m7d-room-leaks.md`, laporan `benchmarks/reports/m7d-final.md`):
-- **Atribusi kebocoran** (`failure_modes.classify_leaks`):
-  - Gatsu: `wall_missing` 9, `door_gap` 2, `other` 1;
-  - sintetis: `other` 78 (sebagian besar sambungan dinding), `wall_missing` 49, `door_gap` 7.
+- **Atribusi kebocoran** (`failure_modes.classify_leaks`; tetangga = tepi bersama > 300 mm; penyebab = celah terpanjang di pemisah):
+  - Gatsu: `door_gap` 6, `wall_missing` 4, `other` 1;
+  - sintetis (s01–s20): `other` 47, `wall_missing` 43, `door_gap` 32.
 - **Dinding sintetis penutup kebocoran (PRD/04 §6b): gagal gerbang, di-revert.**
-  - Gatsu: kebocoran 12 → 7 dan koreksi 22.1 → 21.0 menit, tapi `room_match` tetap 0.083.
-  - Sintetis: `door_recall` −0.008, karena kandidat tahap 5 berganti.
+  - Gatsu: koreksi 22.1 → 21.0 menit, tapi `room_match` tetap 0.083.
+  - Sintetis: metrik pintu turun 0.008–0.012, karena kandidat tahap 5 berganti.
   - Kodenya tersimpan di `9f4e123`.
-- `failure_modes --fresh` kini juga menjalankan ulang cache default.
-- **Rekomendasi berikutnya:** stabilkan pemilihan kandidat tahap 5, lalu perbaiki deteksi dinding interior yang hilang.
+- **`failure_modes --fresh`:** kini juga menjalankan ulang cache default, dan menolak path yang menunjuk folder kerja.
+- **Review akhir:** 4 Important ditambah 1 Minor yang dinaikkan, semuanya diperbaiki. Termasuk di dalamnya atribusi kebocoran: versi pertama keliru menyimpulkan "bukan celah pintu".
+- **Rekomendasi berikutnya:**
+  1. stabilkan pemilihan kandidat tahap 5;
+  2. tutup bukaan pintu yang terdeteksi sebagai pemisah ruang (penyebab terbesar di Gatsu).
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.

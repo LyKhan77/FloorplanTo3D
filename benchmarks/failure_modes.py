@@ -23,6 +23,8 @@ from core.spec.models import Spec, Wall
 INKED = 0.6  # share of samples on ink for a face line to count as drawn
 REGION_SHARE = 0.3
 TEXT_NEAR_MM = 600
+WALL_TOL_MM, SAMPLE_STEP_MM = 150, 50  # the wall-recall tolerance; leak sampling step
+SHARED_EDGE_MM, LEAK_RUN_MM = 300, 300  # neighbours share more than a corner; a leak is a gap this wide
 
 
 def wall_coverage(w: Wall, ref: list[Wall], tol_mm: float = 150, angle_deg: float = 5) -> float:
@@ -136,15 +138,23 @@ def classify_rooms(gt: Spec, pred: Spec) -> dict:
 
 
 def classify_leaks(gt: Spec, pred: Spec) -> list[dict]:
-    """Neighbouring GT rooms that one predicted room swallows, and what separates them in the GT: the wall is
-    mostly missing (`wall_missing`), or present but one of its doors left open (`door_gap`), else `other`."""
+    """Neighbouring GT rooms that one predicted room swallows, and how they leak. The separator is every GT wall
+    centreline along their shared edge; the leak is the longest stretch of it the predicted walls leave uncovered
+    (150 mm tolerance, as wall recall): `door_gap` when a GT door sits in that stretch, `wall_missing` when the
+    stretch is >= LEAK_RUN_MM, else `other` (no visible gap on the separator: a junction or a path elsewhere)."""
     from shapely.ops import unary_union
 
     from core.spec.derive import wall_footprint
 
     reach = max((w.thickness for w in gt.walls), default=0) + 1
-    foot = unary_union([wall_footprint(w, pred) for w in pred.walls]).buffer(30) if pred.walls else SPolygon()
-    gwalls = [(w, wall_footprint(w, gt)) for w in gt.walls]
+    foot = unary_union([wall_footprint(w, pred) for w in pred.walls]).buffer(WALL_TOL_MM) if pred.walls else SPolygon()
+    walls = [(w, wall_footprint(w, gt)) for w in gt.walls]
+    door_pts = []
+    for o in gt.openings:
+        w = next((x for x in gt.walls if x.id == o.wall_id), None)
+        if w and o.category == "door" and math.dist(w.a, w.b):
+            t = (o.offset + o.width / 2) / math.dist(w.a, w.b)
+            door_pts.append(Point(w.a[0] + t * (w.b[0] - w.a[0]), w.a[1] + t * (w.b[1] - w.a[1])))
     rows = []
     for p in pred.rooms:
         ps = _shape(p)
@@ -152,18 +162,34 @@ def classify_leaks(gt: Spec, pred: Spec) -> list[dict]:
         for i, a in enumerate(inside):
             for b in inside[i + 1:]:
                 sa, sb = _shape(a), _shape(b)
-                if sa.distance(sb) > reach:
-                    continue
+                if sa.distance(sb) > reach or sa.boundary.intersection(sb.buffer(reach)).length <= SHARED_EDGE_MM:
+                    continue  # not neighbours, or touching at a corner only
                 gap = sa.buffer(reach).intersection(sb.buffer(reach))
-                w = max(gwalls, key=lambda wf: wf[1].intersection(gap).area)[0]
-                doors = [o for o in gt.openings if o.wall_id == w.id]
-                length = math.dist(w.a, w.b) or 1.0
-                ux, uy = (w.b[0] - w.a[0]) / length, (w.b[1] - w.a[1]) / length
-                open_door = any(not foot.contains(Point(w.a[0] + ux * (o.offset + o.width / 2),
-                                                        w.a[1] + uy * (o.offset + o.width / 2))) for o in doors)
-                cause = "wall_missing" if wall_coverage(w, pred.walls) < 0.5 else "door_gap" if open_door else "other"
-                rows.append({"pred_room": p.id, "gt_rooms": [a.id, b.id], "cause": cause, "wall": w.id})
+                seps = sorted(((w, f.intersection(gap).area) for w, f in walls if f.intersects(gap)), key=lambda t: -t[1])
+                run, at_door = _longest_gap([LineString([w.a, w.b]).intersection(gap) for w, _ in seps], foot, door_pts)
+                cause = "door_gap" if at_door else "wall_missing" if run >= LEAK_RUN_MM else "other"
+                rows.append({"pred_room": p.id, "gt_rooms": [a.id, b.id], "cause": cause,
+                             "wall": seps[0][0].id if seps else None, "walls": sorted(w.id for w, _ in seps),
+                             "gap_mm": run})
     return rows
+
+
+def _longest_gap(segments, foot, door_pts) -> tuple[int, bool]:
+    """(length of the longest uncovered stretch along the segments, whether a door centre lies in an uncovered
+    stretch), sampled every SAMPLE_STEP_MM."""
+    best, at_door = 0, False
+    for seg in (g for s in segments for g in getattr(s, "geoms", [s]) if isinstance(g, LineString) and g.length):
+        n = max(1, int(seg.length // SAMPLE_STEP_MM))
+        pts = [seg.interpolate(k / n, normalized=True) for k in range(n + 1)]
+        run = 0
+        for q in pts:
+            if foot.contains(q):
+                run = 0
+                continue
+            run += SAMPLE_STEP_MM
+            best = max(best, run)
+            at_door |= any(q.distance(d) <= SAMPLE_STEP_MM for d in door_pts)
+    return best, at_door
 
 # --- Gatsu run ----------------------------------------------------------------------------------------------------
 
@@ -251,7 +277,10 @@ def main(argv: list[str] | None = None) -> dict:
 
         from benchmarks import llm_items
 
-        shutil.rmtree(a.cache or llm_items.CACHE, ignore_errors=True)
+        target = (a.cache or llm_items.CACHE).resolve()
+        if target == Path.cwd().resolve() or target in Path.cwd().resolve().parents:
+            raise SystemExit(f"--fresh refuses to delete {target}: it holds the working tree")
+        shutil.rmtree(target, ignore_errors=True)
     gt, pred, page, binary, masks, texts, to_px = _gatsu_inputs(a.cache)
     metrics = {k: v for k, v in evaluate(pred, gt).items() if k != "passed"}
     missed = classify_missed(gt, pred, binary, masks["clean"], to_px)

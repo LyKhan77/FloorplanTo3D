@@ -21,6 +21,7 @@ import numpy as np
 
 from benchmarks.correction_effort import capped_minutes
 from benchmarks.extraction_metrics import LOWER_IS_BETTER, THRESHOLDS, evaluate
+from benchmarks.failure_modes import classify_leaks
 from benchmarks.llm_items import run_stages
 from benchmarks.run_augment_bench import SUMMARY_KEYS, absolute_means, best_shift
 from benchmarks.synth.perturb import draw_ops, load_base, no_ops, perturb
@@ -53,7 +54,8 @@ def score(pred, gt) -> dict:
     best_shift is reported only: a non-zero shift is a finding (a frame or a wall-face error), not a correction."""
     return {"metrics": {k: m for k, m in evaluate(pred, gt).items() if k != "passed"},
             "shift_mm": list(best_shift(pred, gt)),
-            "correction_min": capped_minutes(pred, gt), "correction_min_bulk": capped_minutes(pred, gt, bulk=True)}
+            "correction_min": capped_minutes(pred, gt), "correction_min_bulk": capped_minutes(pred, gt, bulk=True),
+            "leaks": dict(Counter(r["cause"] for r in classify_leaks(gt, pred)))}
 
 
 def run_variant(v: dict, root: Path, stage_overrides: dict | None = None) -> dict:
@@ -115,6 +117,8 @@ def markdown(name: str, rows: list[dict]) -> str:
               "run yang berhenti gagal. s00 = GT tanpa perubahan, dirender dengan gaya yang sama (pembanding)."), "",
              "**Rata-rata absolut (s01…, run berhenti = nilai terburuk):** "
              + ", ".join(f"{k} {v:.4f}" for k, v in absolute_means(rest).items()), "",
+             "**Kebocoran ruang (jumlah pasangan, s01…):** " + ", ".join(
+                 f"{k} {sum(r.get('leaks', {}).get(k, 0) for r in rest)}" for k in ("door_gap", "wall_missing", "other")), "",
              (f"Metrik yang paling sering gagal: {', '.join(f'{k} ({n})' for k, n in fails.most_common(6)) or '—'}. "
               f"Run yang berhenti: {', '.join(f'{k} ({n})' for k, n in stops.most_common()) or '—'}."), "",
              "| Varian | perubahan | lolos | " + " | ".join(SUMMARY_KEYS)

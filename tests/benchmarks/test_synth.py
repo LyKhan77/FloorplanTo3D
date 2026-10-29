@@ -271,3 +271,16 @@ def test_scoring_uses_the_known_frame(base):
     out = score(translate(gt, 0, 100), gt)
     assert out["metrics"]["wall_pos_median_mm"] >= 90
     assert out["shift_mm"] == [0, -100]
+
+
+def test_synth_rows_attribute_leaks(base):
+    """M7d final review I-2: synthetic leak counts come from the runner's own rows."""
+    from benchmarks.run_synth_bench import score
+
+    gt, _ = perturb(base, 0, no_ops(base))
+    pred = gt.model_copy(deep=True)
+    pred.walls = [w for w in pred.walls if w.kind != "partition"]
+    from core.spec.rooms import rebuild_rooms
+
+    out = score(rebuild_rooms(pred.model_copy(update={"rooms": []})), gt)
+    assert out["leaks"] and set(out["leaks"]) <= {"door_gap", "wall_missing", "other"}

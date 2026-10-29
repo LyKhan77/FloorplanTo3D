@@ -766,8 +766,14 @@
     "R14",
     "R27"
    ],
-   "cause": "wall_missing",
-   "wall": "W59"
+   "cause": "door_gap",
+   "wall": "W59",
+   "walls": [
+    "W56",
+    "W57",
+    "W59"
+   ],
+   "gap_mm": 500
   },
   {
    "pred_room": "R24",
@@ -776,7 +782,13 @@
     "R16"
    ],
    "cause": "other",
-   "wall": "W58"
+   "wall": "W58",
+   "walls": [
+    "W12",
+    "W58",
+    "W59"
+   ],
+   "gap_mm": 0
   },
   {
    "pred_room": "R24",
@@ -784,8 +796,14 @@
     "R15",
     "R25"
    ],
-   "cause": "wall_missing",
-   "wall": "W59"
+   "cause": "door_gap",
+   "wall": "W59",
+   "walls": [
+    "W56",
+    "W58",
+    "W59"
+   ],
+   "gap_mm": 500
   },
   {
    "pred_room": "R24",
@@ -793,8 +811,14 @@
     "R16",
     "R25"
    ],
-   "cause": "wall_missing",
-   "wall": "W59"
+   "cause": "door_gap",
+   "wall": "W59",
+   "walls": [
+    "W54",
+    "W58",
+    "W59"
+   ],
+   "gap_mm": 450
   },
   {
    "pred_room": "R24",
@@ -803,7 +827,14 @@
     "R29"
    ],
    "cause": "door_gap",
-   "wall": "W52"
+   "wall": "W52",
+   "walls": [
+    "W50",
+    "W52",
+    "W53",
+    "W55"
+   ],
+   "gap_mm": 1750
   },
   {
    "pred_room": "R24",
@@ -812,16 +843,13 @@
     "R29"
    ],
    "cause": "door_gap",
-   "wall": "W54"
-  },
-  {
-   "pred_room": "R24",
-   "gt_rooms": [
-    "R29",
-    "R31"
+   "wall": "W54",
+   "walls": [
+    "W54",
+    "W60",
+    "W61"
    ],
-   "cause": "wall_missing",
-   "wall": "W62"
+   "gap_mm": 500
   },
   {
    "pred_room": "R24",
@@ -829,8 +857,17 @@
     "R29",
     "R33"
    ],
-   "cause": "wall_missing",
-   "wall": "W67"
+   "cause": "door_gap",
+   "wall": "W67",
+   "walls": [
+    "W14",
+    "W24",
+    "W67",
+    "W68",
+    "W70",
+    "W71"
+   ],
+   "gap_mm": 3450
   },
   {
    "pred_room": "R26",
@@ -839,7 +876,14 @@
     "R34"
    ],
    "cause": "wall_missing",
-   "wall": "W72"
+   "wall": "W72",
+   "walls": [
+    "W14",
+    "W68",
+    "W69",
+    "W72"
+   ],
+   "gap_mm": 750
   },
   {
    "pred_room": "R30",
@@ -848,7 +892,11 @@
     "R42"
    ],
    "cause": "wall_missing",
-   "wall": "W13"
+   "wall": "W13",
+   "walls": [
+    "W13"
+   ],
+   "gap_mm": 2550
   },
   {
    "pred_room": "R31",
@@ -857,7 +905,11 @@
     "R40"
    ],
    "cause": "wall_missing",
-   "wall": "W13"
+   "wall": "W13",
+   "walls": [
+    "W13"
+   ],
+   "gap_mm": 2550
   },
   {
    "pred_room": "R31",
@@ -866,7 +918,11 @@
     "R41"
    ],
    "cause": "wall_missing",
-   "wall": "W13"
+   "wall": "W13",
+   "walls": [
+    "W13"
+   ],
+   "gap_mm": 2500
   }
  ]
 }
