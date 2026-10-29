@@ -126,3 +126,22 @@ def test_no_leak_no_rows():
 
     gt = spec_with_rooms()
     assert classify_leaks(gt, gt) == []
+
+
+def test_fresh_clears_the_default_cache(tmp_path, monkeypatch):
+    """--fresh without --cache used to keep the stale default run (M7a-3 ruling)."""
+    import benchmarks.failure_modes as fm
+    import benchmarks.llm_items as items
+
+    marker = tmp_path / "cache" / "stale.txt"
+    marker.parent.mkdir()
+    marker.write_text("old run")
+    monkeypatch.setattr(items, "CACHE", tmp_path / "cache")
+
+    def stop(*_a, **_k):
+        raise RuntimeError("stop after the cache step")
+
+    monkeypatch.setattr(fm, "_gatsu_inputs", stop)
+    with pytest.raises(RuntimeError):
+        fm.main(["--out", str(tmp_path / "r"), "--fresh"])
+    assert not marker.exists()

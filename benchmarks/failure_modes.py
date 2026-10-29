@@ -246,10 +246,12 @@ def main(argv: list[str] | None = None) -> dict:
     ap.add_argument("--cache", type=Path, default=None, help="Gatsu run folder (default benchmarks/.cache/gatsu)")
     ap.add_argument("--fresh", action="store_true", help="rerun stages 0-5 with the current code")
     a = ap.parse_args(argv)
-    if a.fresh and a.cache:
+    if a.fresh:
         import shutil
 
-        shutil.rmtree(a.cache, ignore_errors=True)
+        from benchmarks import llm_items
+
+        shutil.rmtree(a.cache or llm_items.CACHE, ignore_errors=True)
     gt, pred, page, binary, masks, texts, to_px = _gatsu_inputs(a.cache)
     metrics = {k: v for k, v in evaluate(pred, gt).items() if k != "passed"}
     missed = classify_missed(gt, pred, binary, masks["clean"], to_px)
