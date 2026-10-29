@@ -25,6 +25,7 @@ export function NewProjectPage() {
   const [siteType, setSiteType] = useState('')
   const [mmPerPx, setMmPerPx] = useState('')
   const [useStrata, setUseStrata] = useState(true)
+  const [reviewPause, setReviewPause] = useState(true)
   const [profileId, setProfileId] = useState<string | null>(null)
   const { data: profiles = [] } = useProfiles()
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +45,7 @@ export function NewProjectPage() {
     try {
       const form = buildProjectForm(file, {
         name, prompt, wallHeight, doorHeight, wallThickness, floorName, siteType,
-        mmPerPx: mmPerPx ? Number(mmPerPx) : null, useStrata, profileId, start,
+        mmPerPx: mmPerPx ? Number(mmPerPx) : null, useStrata, reviewPause, profileId, start,
       })
       create.mutate(form, {
         onSuccess: (r) => navigate(`/projects/${r.project_id}?tab=pipeline`),
@@ -87,6 +88,8 @@ export function NewProjectPage() {
                 <TextInput id="scale" labelText="Skala manual (mm per px)" helperText="Kosongkan agar dihitung dari grid dan dimensi"
                   value={mmPerPx} onChange={(e) => setMmPerPx(e.target.value)} />
                 <Toggle id="strata" labelText="Gunakan Strata" toggled={useStrata} onToggle={setUseStrata} />
+                <Toggle id="review-pause" labelText="Berhenti untuk review sebelum build 3D" toggled={reviewPause}
+                  onToggle={setReviewPause} />
                 <Dropdown id="profile" titleText="Profile (opsional)" label="Tanpa profile" helperText="Sweep dimulai dari parameter profile"
                   items={[null, ...profiles.map((p) => p.profile_id)]}
                   itemToString={(pid) => (pid ? profiles.find((p) => p.profile_id === pid)?.name ?? pid : 'Tanpa profile')}

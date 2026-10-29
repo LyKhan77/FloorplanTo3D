@@ -16,6 +16,8 @@ import { useRegenerateFlow } from './useRegenerateFlow'
 import { useSave } from './useSave'
 import { useShortcuts } from './useShortcuts'
 import { useValidate } from './useValidate'
+import { ReviewCanvas } from './review/ReviewCanvas'
+import { useBackdrop } from './review/useBackdrop'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
 
@@ -41,6 +43,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const base = useEditorStore((s) => s.base)
   const view = useEditorStore((s) => s.view)
   const validation = useValidate(projectId, baseVersion, ops)
+  const backdrop = useBackdrop(projectId)
   const geometryChanged = useMemo(() => !!base && !!view && !isEmptyDiff(geometryDiff(base, view)), [base, view])
 
   // Load HEAD once per project; a refetch never discards local ops (a newer HEAD is handled by Save's rebase).
@@ -99,10 +102,16 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           <ToastNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast title={notice.text}
             timeout={notice.kind === 'error' ? 0 : 5000} onClose={() => { setNotice(null); return false }} />
         )}
-        {data.shellUrl === null ? (
-          <div className="editor__empty">
-            <p>Belum ada shell. Regenerate dulu.</p>
-            <Button size="sm" disabled={regenerate.isPending} onClick={() => regenerate.mutate('HEAD')}>Regenerate</Button>
+        {data.shellUrl === null || mode === 'plan' ? (
+          // M8: the 2D review canvas works before any 3D shell exists (a run paused for review has none yet)
+          <div className="editor__canvas editor__canvas--plan">
+            {data.shellUrl === null && run?.status !== 'needs_review' && (
+              <div className="editor__plan-note">
+                <span>Belum ada shell 3D.</span>
+                <Button size="sm" kind="ghost" disabled={regenerate.isPending} onClick={() => regenerate.mutate('HEAD')}>Regenerate</Button>
+              </div>
+            )}
+            <ReviewCanvas rooms={validation.rooms ?? view?.rooms ?? []} tasks={validation.tasks} backdrop={backdrop} />
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>

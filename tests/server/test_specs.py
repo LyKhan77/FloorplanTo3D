@@ -80,3 +80,19 @@ def test_snap_route(client, project_with_gt):
     assert ok.status_code == 200 and abs(ok.json()["a"][1] - 5000) <= 15
     r = client.post(f"/api/projects/{pid}/snap", json={"a": [1500, 9000], "b": [7500, 9000]})
     assert r.status_code == 422 and r.json()["error"]["code"] == "no_line"
+
+
+def test_backdrop_points_at_the_newest_page(client, project_with_gt):
+    """M8 review canvas: the page image of the newest run that has one, and its px -> mm transform."""
+    import json
+
+    pid = project_with_gt
+    assert client.get(f"/api/projects/{pid}/backdrop").status_code == 404
+    st = client.app.state.storage.project_dir(pid) / "runs" / "20261029T000000-aa" / "stages"
+    (st / "01_preprocess").mkdir(parents=True)
+    (st / "02_grid").mkdir(parents=True)
+    (st / "01_preprocess" / "page.png").write_bytes(b"png")
+    (st / "02_grid" / "grid.json").write_text(json.dumps({"px_to_mm": [12.9, 0, -5000, 0, -12.9, 15000]}))
+    r = client.get(f"/api/projects/{pid}/backdrop").json()
+    assert r == {"url": f"/api/projects/{pid}/runs/20261029T000000-aa/artifacts/01_preprocess/page.png",
+                 "px_to_mm": [12.9, 0, -5000, 0, -12.9, 15000]}

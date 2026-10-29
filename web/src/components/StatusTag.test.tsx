@@ -7,6 +7,7 @@ describe('StatusTag', () => {
   it.each([
     ['running', 'Berjalan'],
     ['needs_attention', 'Perlu perhatian'],
+    ['needs_review', 'Perlu review'],
     ['skipped', 'Dilewati'],
     ['queued', 'Menunggu'],
     ['failed', 'Gagal'],

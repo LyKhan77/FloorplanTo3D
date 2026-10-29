@@ -40,9 +40,10 @@ describe('EditorTab', () => {
     expect(await screen.findByText('Shell dari v3; regenerate untuk memperbarui')).toBeInTheDocument()
   })
 
-  it('shows an empty state without any shell', async () => {
+  it('without any shell shows the 2D review canvas and offers Regenerate', async () => {
     setup(4, [out(4, ['report.html'])])
-    expect(await screen.findByText('Belum ada shell. Regenerate dulu.')).toBeInTheDocument()
+    expect(await screen.findByText('Belum ada shell 3D.')).toBeInTheDocument()
+    expect(screen.getByRole('application', { name: 'Kanvas review' })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Regenerate' }).length).toBeGreaterThan(0)
   })
 

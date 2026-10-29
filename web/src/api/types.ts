@@ -1,7 +1,7 @@
 // Response shapes of the server (PRD/09). Spec types are generated in ../types/spec.ts.
 
 export type StageStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'skipped' | 'needs_attention' | 'queued'
-export type RunStatus = 'queued' | 'running' | 'succeeded' | 'needs_attention' | 'failed'
+export type RunStatus = 'queued' | 'running' | 'succeeded' | 'needs_attention' | 'needs_review' | 'failed'
 export type RunKind = 'full' | 'from_stage' | 'regenerate'
 
 export interface Stage {
@@ -167,3 +167,16 @@ export interface TranscriptLine {
   response?: { raw?: string; valid?: boolean; error?: string | null }
   latency_ms?: number
 }
+
+/** M8 review step: a located task from POST /specs/validate (core/spec/review_tasks.py). */
+export interface ReviewTask {
+  id: string
+  kind: 'gap' | 'leak' | 'loose' | 'type'
+  message: string
+  at: [number, number]
+  element_ids: string[]
+  fix: { a?: [number, number]; b?: [number, number]; thickness?: number; kind?: string }
+}
+
+/** GET /backdrop: the newest page image and the px -> mm transform that lays it under the spec. */
+export interface Backdrop { url: string; px_to_mm: number[] }

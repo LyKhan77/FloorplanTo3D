@@ -6,7 +6,7 @@ import { allIds } from './ops/ids'
 import { applyOps, type EditorOp, type OpFailure } from './ops/reducer'
 
 export type Tool = 'select' | 'distance' | 'room-area' | 'area' | 'height' | 'add-wall'
-export type Mode = 'orbit' | 'top' | 'walk'
+export type Mode = 'orbit' | 'top' | 'walk' | 'plan'  // plan: the 2D review canvas (M8)
 export type Gizmo = 'translate' | 'rotate' | 'scale'
 export type Layer = 'walls' | 'columns' | 'doors' | 'objects' | 'labels' | 'grid' | 'axes'
 export type Point3 = [number, number, number]

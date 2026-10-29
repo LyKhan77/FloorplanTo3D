@@ -136,3 +136,16 @@ def snap(pid: str, body: SnapBody, request: Request):
     if found is None:
         raise ApiError(422, "no_line", "tidak ada garis ganda di dekat garis ini")
     return found
+
+
+@router.get("/{pid}/backdrop")
+def backdrop(pid: str, request: Request):
+    """M8 review canvas: the newest page image and the px -> mm transform that lays it under the spec."""
+    storage = request.app.state.storage
+    storage.project_dir(pid)
+    page, grid = latest_stage_file(storage, pid, "01_preprocess/page.png"), latest_stage_file(storage, pid, "02_grid/grid.json")
+    if not page or not grid or page.parents[2] != grid.parents[2]:
+        raise ApiError(404, "no_run", "no extraction run with a page image")
+    rid = page.parents[2].name
+    return {"url": f"/api/projects/{pid}/runs/{rid}/artifacts/01_preprocess/page.png",
+            "px_to_mm": json.loads(grid.read_text())["px_to_mm"]}

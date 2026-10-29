@@ -8,6 +8,7 @@ export interface ProjectFields {
   siteType?: string
   mmPerPx?: number | null
   useStrata?: boolean
+  reviewPause?: boolean
   profileId?: string | null
   start: boolean
 }
@@ -27,6 +28,7 @@ export function buildProjectForm(file: File, f: ProjectFields): FormData {
   if (f.siteType) params.site_type = f.siteType
   num('mm_per_px', f.mmPerPx)
   if (f.useStrata !== undefined) params.use_strata = f.useStrata
+  if (f.reviewPause !== undefined) params.review_pause = f.reviewPause
 
   const fd = new FormData()
   fd.append('file', file)

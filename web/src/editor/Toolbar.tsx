@@ -1,5 +1,5 @@
 import {
-  Area, AreaCustom, ArrowsVertical, Cube, Cursor_1, Map, Pedestrian, Redo, Renew, RightPanelClose, RightPanelOpen,
+  Area, AreaCustom, ArrowsVertical, Cube, Cursor_1, Grid, Map, Pedestrian, Redo, Renew, RightPanelClose, RightPanelOpen,
   Ruler, Save, SidePanelClose, SidePanelOpen, Undo,
 } from '@carbon/icons-react'
 import { Button, Checkbox, ProgressBar } from '@carbon/react'
@@ -7,7 +7,8 @@ import { useState, type ComponentType } from 'react'
 import { AUTO_REGENERATE_KEY, autoRegenerate } from './useSave'
 import { useEditorStore, type Mode, type Tool } from './store'
 
-const MODES: [Mode, string, ComponentType][] = [['orbit', 'Orbit', Cube], ['top', 'Top', Map], ['walk', 'Walk', Pedestrian]]
+const MODES: [Mode, string, ComponentType][] = [['orbit', 'Orbit', Cube], ['top', 'Top', Map], ['walk', 'Walk', Pedestrian],
+  ['plan', 'Plan 2D', Grid]]
 const TOOLS: [Tool, string, ComponentType][] = [
   ['select', 'Select', Cursor_1], ['distance', 'Ukur jarak', Ruler], ['room-area', 'Luas ruang', Area],
   ['area', 'Luas bebas', AreaCustom], ['height', 'Ukur tinggi', ArrowsVertical],

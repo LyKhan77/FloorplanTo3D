@@ -1,4 +1,4 @@
-import { CheckmarkFilled, CircleDash, ErrorFilled, InProgress, SubtractAlt, WarningAltFilled, WarningFilled } from '@carbon/icons-react'
+import { CheckmarkFilled, CircleDash, Edit, ErrorFilled, InProgress, SubtractAlt, WarningAltFilled, WarningFilled } from '@carbon/icons-react'
 import type { CarbonIconType } from '@carbon/icons-react'
 import type { StageStatus } from '../api/types'
 
@@ -11,6 +11,7 @@ const STATUS: Record<string, { icon: CarbonIconType; color: string; text: string
   succeeded: { icon: CheckmarkFilled, color: '#42be65', text: 'Selesai' },
   warning: { icon: WarningAltFilled, color: '#f1c21b', text: 'Selesai dengan peringatan' },
   needs_attention: { icon: WarningFilled, color: '#f1c21b', text: 'Perlu perhatian' },
+  needs_review: { icon: Edit, color: '#f1c21b', text: 'Perlu review' },
   failed: { icon: ErrorFilled, color: '#fa4d56', text: 'Gagal' },
   skipped: { icon: SubtractAlt, color: '#8d8d8d', text: 'Dilewati' },
 }
