@@ -629,6 +629,21 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   1. stabilkan pemilihan kandidat tahap 5;
   2. tutup bukaan pintu yang terdeteksi sebagai pemisah ruang (penyebab terbesar di Gatsu).
 
+**Status M8 (2026-10-29), branch `m8-refining`** (plan `docs/superpowers/plans/2026-10-29-m8-refining.md`, konsep `temp/concept/refining-flow.html`):
+- **Titik jeda review.** Run baru berhenti dengan status **Perlu review** setelah tahap 5 (param `review_pause`, default menyala, toggle di form project baru). "Setujui & build 3D" menyimpan koreksi lalu melanjutkan dari tahap 6 dengan spec HEAD. Continue kedua ditolak (409).
+- **Kanvas review 2D** (mode Plan 2D, juga dipakai otomatis bila belum ada shell 3D): spec di atas `page.png` run terbaru (`GET /backdrop`). Ruang dibentuk ulang langsung dari dry-run validasi, dan ruang bocor ditandai merah.
+- **Daftar tugas berlokasi** (`core/spec/review_tasks.py`, ikut di dry-run validasi):
+  - jenis tugas: celah terbuka (dua ujung segaris, atau satu ujung menuju dinding lain, 0.6–1.3 m), ruang bocor (≥ 2 tipe label OCR), dinding lepas, tipe ruang `other`;
+  - Gatsu: celah 13, dinding lepas 9, tipe 4, bocor 2.
+- **Alat:**
+  - **Tutup celah:** dinding yang ujung `b`-nya di celah diperpanjang, dan pintu dipasang di situ;
+  - **Garis bantu:** `POST /snap` menempelkan garis kasar ke garis ganda atau garis tunggal di gambar. Di Gatsu, 8–11 dari 15 dinding terlewat ter-snap dalam 150 mm.
+- **Menit koreksi Gatsu (model):** 22.1 satu-per-satu, 14.4 massal, **14.3 dengan alat review**. Model menghitung waktu per op; manfaat utama alat (menemukan dan menempatkan) baru terukur lewat sesi kalibrasi.
+- **Suite:** pytest 639 passed, 3 xfailed; 5 tes Blender gagal karena GPU di sesi ini (sama di `main`). Vitest 195 passed; ruff, oxlint, dan build bersih.
+- **E2E:**
+  - lewat API: jeda, tugas, tutup celah, snap 422, simpan v2, lanjut dari tahap 6;
+  - di browser: tidak bisa dijalankan, karena di sesi ini Chrome, render GPU Blender, dan DNS gagal akibat akses layanan sistem macOS.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
