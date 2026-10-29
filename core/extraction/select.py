@@ -15,6 +15,9 @@ from core.spec.rooms import RoomLabel
 
 TIE = 0.01  # scores this close are a tie, settled by wall coverage (V018)
 MIN_COVERAGE = 0.6  # share of the best candidate's coverage a candidate needs before scores are compared
+# more wall than the drawing holds: both faces of a double wall read as two walls (M9: synthetic S1 at 1.21-1.38,
+# correct S2 candidates never above 0.96)
+MAX_COVERAGE = 1.05
 CROP_MIN_M2 = 4  # rooms that V015 counts
 CROP_SCALE = 3
 TYPED = ("stair", "lift", "outdoor")  # geometry already says what these rooms are
@@ -27,12 +30,14 @@ def ocr_dimensions_from(grid_doc: dict) -> list[tuple[str, str, int]]:
 def choose(scored: list[dict]) -> dict | None:
     """Best validator score among candidates without errors; ties (<= 0.01) go to higher coverage, then index.
 
-    Candidates below 60% of the best coverage are left out first: the score only subtracts violations, so an
-    almost empty candidate breaks almost nothing (Gatsu S1, one wall: 0.997).
+    Candidates that read more wall than the drawing holds (coverage > 1.05) go first, then those below 60% of the
+    best remaining coverage: the score only subtracts violations, so an almost empty candidate breaks almost
+    nothing (Gatsu S1, one wall: 0.997), and one that draws every double wall twice breaks little more.
     """
     passed = [c for c in scored if c["passed"]]
     if not passed:
         return None
+    passed = [c for c in passed if c["coverage"] <= MAX_COVERAGE] or passed  # all over-read: keep them
     # relative to the best coverage: on a cluttered plan (furniture lines in the estimate) all may sit below 60%
     cut = MIN_COVERAGE * max(c["coverage"] for c in passed)
     valid = [c for c in passed if c["coverage"] >= cut]

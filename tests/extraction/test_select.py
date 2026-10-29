@@ -181,3 +181,24 @@ def test_coverage_cut_is_relative_on_cluttered_plans():
     empty = {"index": 0, "score": 0.997, "passed": True, "coverage": 0.01}
     real = {"index": 1, "score": 0.82, "passed": True, "coverage": 0.4}
     assert choose([empty, real])["index"] == 1
+
+
+def test_over_reading_candidate_is_left_out():
+    """M9 (synthetic s01): S1 read both faces of every double wall: more wall than the drawing holds (1.26)."""
+    s1 = {"index": 8, "score": 0.89, "passed": True, "coverage": 1.26}
+    s2 = {"index": 0, "score": 0.878, "passed": True, "coverage": 0.91}
+    assert choose([s1, s2])["index"] == 0
+
+
+def test_all_over_reading_still_chooses():
+    a = {"index": 0, "score": 0.8, "passed": True, "coverage": 1.2}
+    b = {"index": 1, "score": 0.9, "passed": True, "coverage": 1.3}
+    assert choose([a, b])["index"] == 1
+
+
+def test_coverage_cut_uses_the_remaining_candidates():
+    """The 60 % cut is taken from the candidates left after the over-reading one is gone (0.6 x 1.37 would drop 0.8)."""
+    over = {"index": 9, "score": 0.89, "passed": True, "coverage": 1.37}
+    s2 = {"index": 5, "score": 0.84, "passed": True, "coverage": 0.8}
+    weak = {"index": 6, "score": 0.86, "passed": True, "coverage": 0.45}
+    assert choose([over, s2, weak])["index"] == 5

@@ -653,6 +653,15 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - lewat API: jeda, tugas, tutup celah, snap 422, simpan v2, lanjut dari tahap 6;
   - di browser: tidak bisa dijalankan, karena di sesi ini Chrome, render GPU Blender, dan DNS gagal akibat akses layanan sistem macOS.
 
+**Status M9 (2026-10-29), branch `m9-stage5-choice`** (laporan `benchmarks/reports/m9-final.md`):
+- **Aturan baru:** tahap 5 mengeluarkan kandidat yang membaca dinding lebih panjang dari gambar (`coverage` > 1.05), yaitu S1 yang menghitung kedua muka dinding.
+- **Gerbang lolos:**
+  - Gatsu identik;
+  - augmentasi sedikit membaik;
+  - sintetis: `wall_iou` 0.562 → 0.608, `gross_area_err` 0.126 → 0.064, koreksi massal 14.6 → 13.2 menit.
+- Hanya varian yang dulu memilih S1 (s01, s04, s14, a17) yang berubah.
+- **Suite:** pytest 645 passed, 3 xfailed; 5 tes Blender gagal karena GPU (lingkungan, sama di `main`); ruff bersih.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
