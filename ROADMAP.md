@@ -597,7 +597,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - Rata-rata: `wall_recall` 0.87, `wall_precision` 0.93, `door_recall` 0.36, `room_match` 0.04.
   - Menit koreksi massal rata-rata 14.6 (14/20 varian ≤ 15).
 - **Mode gagal teratas:**
-  - ruang menyatu lewat celah pintu (12–32 ruang vs 44–50);
+  - ruang menyatu (12–32 ruang vs 44–50; M7d: penyebabnya dinding hilang dan sambungan terbuka, bukan celah pintu);
   - pintu terlewat;
   - stage 5 memilih S1 alih-alih S2 pada 3/20 varian;
   - kontur bangunan pecah atau menyusut pada 7/20 varian.
@@ -614,6 +614,17 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Hasil gerbang:** T0 (0.99) dan T3 (0.85) lolos. T1 (presisi hapus ≤ 0.86) dan T2 (engsel 0.60) belum lolos, jadi set aktif tetap `T0,T3`.
 - **T0 dipercepat:** effort `none`, 49 s → 2.2 s per panggilan, akurasi sama.
 - **E2E T3 di Gatsu:** Δ 0 pada semua metrik; tahap 6 selesai dalam 0.6 s.
+
+**Status M7d (2026-10-29), branch `m7d-room-leaks`** (plan `docs/superpowers/plans/2026-10-29-m7d-room-leaks.md`, laporan `benchmarks/reports/m7d-final.md`):
+- **Atribusi kebocoran** (`failure_modes.classify_leaks`):
+  - Gatsu: `wall_missing` 9, `door_gap` 2, `other` 1;
+  - sintetis: `other` 78 (sebagian besar sambungan dinding), `wall_missing` 49, `door_gap` 7.
+- **Dinding sintetis penutup kebocoran (PRD/04 §6b): gagal gerbang, di-revert.**
+  - Gatsu: kebocoran 12 → 7 dan koreksi 22.1 → 21.0 menit, tapi `room_match` tetap 0.083.
+  - Sintetis: `door_recall` −0.008, karena kandidat tahap 5 berganti.
+  - Kodenya tersimpan di `9f4e123`.
+- `failure_modes --fresh` kini juga menjalankan ulang cache default.
+- **Rekomendasi berikutnya:** stabilkan pemilihan kandidat tahap 5, lalu perbaiki deteksi dinding interior yang hilang.
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
