@@ -1,26 +1,12 @@
 import { useState } from 'react'
-import { api, ApiError } from '../../api/client'
 import type { Backdrop, ReviewTask } from '../../api/types'
 import type { Room } from '../../types/spec'
 import { useEditorStore } from '../store'
 import { svgPoint } from './planTransform'
 import { ReviewCanvas } from './ReviewCanvas'
-import { closeGapOps, guideLineOps } from './tools'
+import { closeGapOps, snapGuide } from './tools'
 
 type Pt = [number, number]
-
-/** A rough guide line (mm) → the server snaps it onto the drawing → one wall; no double line nearby → a notice only. */
-export async function snapGuide(projectId: string, a: Pt, b: Pt): Promise<void> {
-  const s = useEditorStore.getState()
-  try {
-    const r = await api.post<{ a: Pt; b: Pt; thickness: number }>(`/api/projects/${projectId}/snap`, { a, b })
-    s.applyMany(guideLineOps(r))
-  } catch (e) {
-    const text = e instanceof ApiError && e.code === 'no_line' ? 'Tidak ada garis ganda di dekat garis ini'
-      : e instanceof ApiError && e.code === 'no_run' ? 'Belum ada gambar hasil ekstraksi untuk di-snap' : String(e)
-    s.setNotice({ kind: 'warning', text })
-  }
-}
 
 /** The review canvas with its tools: gap handles (click both ends to close) and the snapped guide line. */
 export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {

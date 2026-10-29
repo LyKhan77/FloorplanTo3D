@@ -1,6 +1,10 @@
+import { api, ApiError } from '../../api/client'
 import type { ReviewTask } from '../../api/types'
 import type { Spec } from '../../types/spec'
 import type { EditorOp } from '../ops/reducer'
+import { useEditorStore } from '../store'
+
+type Pt = [number, number]
 
 const END_MARGIN_MM = 50  // V008: an opening keeps 50 mm from the wall end
 
@@ -31,4 +35,17 @@ export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { 
 /** A guide line the server snapped onto the drawing becomes one partition wall. */
 export function guideLineOps(snap: { a: [number, number]; b: [number, number]; thickness: number }): EditorOp[] {
   return [{ op: 'add_wall', a: snap.a, b: snap.b, thickness: snap.thickness, kind: 'partition' }]
+}
+
+/** A rough guide line (mm) → the server snaps it onto the drawing → one wall; no double line nearby → a notice only. */
+export async function snapGuide(projectId: string, a: Pt, b: Pt): Promise<void> {
+  const s = useEditorStore.getState()
+  try {
+    const r = await api.post<{ a: Pt; b: Pt; thickness: number }>(`/api/projects/${projectId}/snap`, { a, b })
+    s.applyMany(guideLineOps(r))
+  } catch (e) {
+    const text = e instanceof ApiError && e.code === 'no_line' ? 'Tidak ada garis ganda di dekat garis ini'
+      : e instanceof ApiError && e.code === 'no_run' ? 'Belum ada gambar hasil ekstraksi untuk di-snap' : String(e)
+    s.setNotice({ kind: 'warning', text })
+  }
 }

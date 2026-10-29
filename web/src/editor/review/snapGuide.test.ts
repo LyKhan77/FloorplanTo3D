@@ -3,7 +3,7 @@ import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import { api, ApiError } from '../../api/client'
 import type { Spec } from '../../types/spec'
 import { useEditorStore } from '../store'
-import { snapGuide } from './ReviewWorkspace'
+import { snapGuide } from './tools'
 
 vi.mock('../../api/client', async (orig) => ({ ...(await orig<typeof import('../../api/client')>()), api: { get: vi.fn(), post: vi.fn() } }))
 const post = vi.mocked(api.post)
