@@ -88,3 +88,41 @@ def test_classify_rooms_counts_merges():
     assert (out["inner_gt"], out["inner_matched"], out["outdoor_gt"], out["outdoor_matched"]) == (2, 0, 1, 0)
     assert out["merged"] == [["R1", "R2"]]
     assert classify_rooms(gt, gt)["inner_matched"] == 2
+
+
+# --- leaks (M7d) ------------------------------------------------------------------------------------------------
+
+def _rooms(spec):
+    from core.spec.rooms import rebuild_rooms
+
+    return rebuild_rooms(spec.model_copy(update={"rooms": []}))
+
+
+def test_leak_through_an_open_door():
+    from benchmarks.failure_modes import classify_leaks
+
+    gt = spec_with_rooms()
+    pred = gt.model_copy(deep=True)
+    pred.openings = [o for o in pred.openings if o.id != "D1"]
+    pred.walls = [w for w in pred.walls if w.id != "W5"] + [wall("W8", (5000, 0), (5000, 2000), t=100),
+                                                             wall("W9", (5000, 2900), (5000, 6000), t=100)]
+    rows = classify_leaks(gt, _rooms(pred))
+    assert [(sorted(r["gt_rooms"]), r["cause"], r["wall"]) for r in rows] == [(["R1", "R2"], "door_gap", "W5")]
+
+
+def test_leak_through_a_missing_wall():
+    from benchmarks.failure_modes import classify_leaks
+
+    gt = spec_with_rooms()
+    gt.openings = [o for o in gt.openings if o.id != "D1"]
+    pred = gt.model_copy(deep=True)
+    pred.walls = [w for w in pred.walls if w.id != "W5"]
+    rows = classify_leaks(gt, _rooms(pred))
+    assert [(r["cause"], r["wall"]) for r in rows] == [("wall_missing", "W5")]
+
+
+def test_no_leak_no_rows():
+    from benchmarks.failure_modes import classify_leaks
+
+    gt = spec_with_rooms()
+    assert classify_leaks(gt, gt) == []

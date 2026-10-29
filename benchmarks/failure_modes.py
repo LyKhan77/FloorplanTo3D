@@ -134,6 +134,37 @@ def classify_rooms(gt: Spec, pred: Spec) -> dict:
             "outdoor_matched": sum(map(matched, outdoor)), "merged": merged}
 
 
+
+def classify_leaks(gt: Spec, pred: Spec) -> list[dict]:
+    """Neighbouring GT rooms that one predicted room swallows, and what separates them in the GT: the wall is
+    mostly missing (`wall_missing`), or present but one of its doors left open (`door_gap`), else `other`."""
+    from shapely.ops import unary_union
+
+    from core.spec.derive import wall_footprint
+
+    reach = max((w.thickness for w in gt.walls), default=0) + 1
+    foot = unary_union([wall_footprint(w, pred) for w in pred.walls]).buffer(30) if pred.walls else SPolygon()
+    gwalls = [(w, wall_footprint(w, gt)) for w in gt.walls]
+    rows = []
+    for p in pred.rooms:
+        ps = _shape(p)
+        inside = [g for g in gt.rooms if ps.contains(_shape(g).representative_point())]
+        for i, a in enumerate(inside):
+            for b in inside[i + 1:]:
+                sa, sb = _shape(a), _shape(b)
+                if sa.distance(sb) > reach:
+                    continue
+                gap = sa.buffer(reach).intersection(sb.buffer(reach))
+                w = max(gwalls, key=lambda wf: wf[1].intersection(gap).area)[0]
+                doors = [o for o in gt.openings if o.wall_id == w.id]
+                length = math.dist(w.a, w.b) or 1.0
+                ux, uy = (w.b[0] - w.a[0]) / length, (w.b[1] - w.a[1]) / length
+                open_door = any(not foot.contains(Point(w.a[0] + ux * (o.offset + o.width / 2),
+                                                        w.a[1] + uy * (o.offset + o.width / 2))) for o in doors)
+                cause = "wall_missing" if wall_coverage(w, pred.walls) < 0.5 else "door_gap" if open_door else "other"
+                rows.append({"pred_room": p.id, "gt_rooms": [a.id, b.id], "cause": cause, "wall": w.id})
+    return rows
+
 # --- Gatsu run ----------------------------------------------------------------------------------------------------
 
 def _gatsu_inputs(cache: Path | None = None):
@@ -228,15 +259,20 @@ def main(argv: list[str] | None = None) -> dict:
 
     ops = correction_ops(pred, gt)
     effort = {"ops": ops, "minutes": capped_minutes(pred, gt), "minutes_bulk": capped_minutes(pred, gt, bulk=True)}
-    doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms, "effort": effort}
+    leaks = classify_leaks(gt, pred)
+    leak_counts = dict(Counter(r["cause"] for r in leaks))
+    doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms, "effort": effort, "leaks": leaks}
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.with_suffix(".json").write_text(json.dumps(doc, indent=1))
     a.out.with_suffix(".md").write_text(report(a.out.name, metrics, missed, false, rooms)
                                         + f"\n**Upaya koreksi:** {effort['minutes']} menit satu-per-satu, "
                                         + f"{effort['minutes_bulk']} menit dengan aksi massal "
-                                        + f"({', '.join(f'{k} {n}' for k, n in ops.items() if n)}).\n")
+                                        + f"({', '.join(f'{k} {n}' for k, n in ops.items() if n)}).\n"
+                                        + "\n**Kebocoran ruang (pasangan ruang GT dalam satu ruang prediksi):** "
+                                        + ", ".join(f"{k} {leak_counts.get(k, 0)}" for k in ("door_gap", "wall_missing", "other"))
+                                        + ".\n")
     cv2.imwrite(str(a.out.with_suffix(".png")), _overlay(page, gt, pred, missed, false, to_px))
-    print(json.dumps({"minutes": effort["minutes"], "minutes_bulk": effort["minutes_bulk"], "missed": Counter(r["mode"] for r in missed),
+    print(json.dumps({"minutes": effort["minutes"], "minutes_bulk": effort["minutes_bulk"], "leaks": leak_counts, "missed": Counter(r["mode"] for r in missed),
                       "false": Counter(r["region"] for r in false),
                       "rooms": {k: v for k, v in rooms.items() if k != "merged"}}))
     return doc
