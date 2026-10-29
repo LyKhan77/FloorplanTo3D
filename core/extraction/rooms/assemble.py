@@ -10,14 +10,19 @@ from core.extraction.geometry.elements import elements_to_spec
 from core.extraction.rooms.labels import best_label
 from core.spec.carryover import assign_ids
 from core.spec.derive import column_footprint, derive, endpoint_connected, wall_footprint
-from core.spec.models import Defaults, ImageInfo, Spec
+from core.spec.ids import take_id
+from core.spec.models import Defaults, ImageInfo, Provenance, Spec, Wall
 from core.spec.rooms import RoomLabel, rebuild_rooms
+from core.spec.validate import validate
 
 BAND_MAX_MM = 2000  # an unlabelled strip this narrow along the outline is the outer band (§2b): outdoor
 NECK_MM = 600
 CLOSE_REACH_MM = 1200  # dangling wall ends are extended this far to meet the next wall (rooms must close)
 CLOSED_CONF = 0.55  # a wall extended by more than CLOSE_REVIEW_MM goes to review
 CLOSE_REVIEW_MM = 300
+LEAK_CUT_MAX_MM = 6000  # a synthetic wall across a leak (§6b) is never longer than one bay
+LEAK_CUT_CONF = 0.5
+MAX_LEAK_CUTS = 20
 SITE_TYPES = ("data_hall", "data_center", "office", "mixed", "other")
 
 
@@ -149,8 +154,91 @@ def leak_issues(spec: Spec, labels: list[RoomLabel]) -> list[dict]:
     return issues
 
 
+def _types(shape, labels: list[RoomLabel]) -> set[str]:
+    return {lb.type for lb in labels if lb.type != "other" and shape.covers(Point(lb.at))}
+
+
+def _blocked(spec: Spec) -> list:
+    """Door and window openings, columns and stair flights: no synthetic wall may cross them."""
+    walls = {w.id: w for w in spec.walls}
+    out = [column_footprint(c) for c in spec.columns]
+    out += [LineString([f.start, f.end]).buffer(f.width / 2) for st in spec.stairs for f in st.flights]
+    for o in spec.openings:
+        w = walls.get(o.wall_id)
+        length = math.dist(w.a, w.b) if w else 0
+        if length:
+            ux, uy = (w.b[0] - w.a[0]) / length, (w.b[1] - w.a[1]) / length
+            out.append(LineString([(w.a[0] + ux * o.offset, w.a[1] + uy * o.offset),
+                                   (w.a[0] + ux * (o.offset + o.width), w.a[1] + uy * (o.offset + o.width))])
+                       .buffer(w.thickness / 2))
+    return out
+
+
+def _leak_cuts(spec: Spec, shape, labels: list[RoomLabel], blocked: list) -> list[tuple[float, tuple, tuple, int]]:
+    """(length, a, b, thickness) of each wall extension that runs from a dangling end across the room to its far edge, avoids
+    openings, columns and stairs, and leaves differently labelled parts on either side; shortest first."""
+    edge = shape.boundary
+    cuts = []
+    for w in spec.walls:
+        length = math.dist(w.a, w.b)
+        if not length:
+            continue
+        ux, uy = (w.b[0] - w.a[0]) / length, (w.b[1] - w.a[1]) / length
+        for end, sign in (("a", -1), ("b", 1)):
+            p = w.a if end == "a" else w.b
+            if endpoint_connected(spec, w, end) or edge.distance(Point(p)) > w.thickness / 2 + 1:
+                continue
+            ray = LineString([p, (p[0] + sign * ux * LEAK_CUT_MAX_MM, p[1] + sign * uy * LEAK_CUT_MAX_MM)])
+            hits = [Point(p).distance(q) for q in getattr(ray.intersection(edge), "geoms", [ray.intersection(edge)])
+                    if not q.is_empty]
+            far = [d for d in hits if d > w.thickness / 2 + 1]
+            if not far:
+                continue
+            q0 = (p[0] + sign * ux * min(far), p[1] + sign * uy * min(far))
+            host = min(spec.walls, key=lambda h: LineString([h.a, h.b]).distance(Point(q0)))
+            d = min(far) + LineString([host.a, host.b]).distance(Point(q0))  # on to the far wall's centreline
+            q = (round(p[0] + sign * ux * d), round(p[1] + sign * uy * d))
+            line = LineString([p, q])
+            if d > LEAK_CUT_MAX_MM or any(line.intersects(b) for b in blocked):
+                continue
+            parts = [g for g in getattr(shape.difference(line.buffer(w.thickness / 2)), "geoms", [])
+                     if _types(g, labels)]
+            if len(parts) >= 2 and len({frozenset(_types(g, labels)) for g in parts}) >= 2:
+                cuts.append((d, tuple(p), q, w.thickness))
+    return sorted(cuts)
+
+
+def close_leaks(spec: Spec, labels: list[RoomLabel]) -> Spec:
+    """PRD/04 §6b: a room holding labels of two room types leaks through a gap. Close it with a synthetic wall from
+    a dangling wall end across the room, and keep the wall only when the validator score rises."""
+    tried: set[tuple] = set()
+    for _ in range(MAX_LEAK_CUTS):
+        score, blocked, changed = validate(spec).score, _blocked(spec), False
+        for r in spec.rooms:
+            shape = SPolygon(r.polygon, r.holes)
+            if len(_types(shape, labels)) < 2:
+                continue
+            for d, a, b, t in _leak_cuts(spec, shape, labels, blocked):
+                if (a, b) in tried:
+                    continue
+                tried.add((a, b))
+                trial = spec.model_copy(deep=True)
+                trial.walls.append(Wall(id=take_id(trial, "W"), a=a, b=b, thickness=t, kind="partition",
+                                        provenance=Provenance(source="cv", confidence=LEAK_CUT_CONF,
+                                                              evidence={"leak_cut": True, "cut_mm": round(d)})))
+                trial = rebuild_rooms(trial, labels, pick=best_label, source="cv")
+                if validate(trial).score > score:
+                    spec, changed = trial, True
+                    break
+            if changed:
+                break
+        if not changed:
+            return spec
+    return spec
+
+
 def assemble_spec(elements: dict, grid_doc: dict, labels: list[RoomLabel], meta_info: dict) -> tuple[Spec, list[dict]]:
     spec = assign_ids(close_ends(_with_meta(elements_to_spec(elements, grid_doc), meta_info)))
-    spec = rebuild_rooms(spec, labels, pick=best_label, source="cv")
+    spec = close_leaks(rebuild_rooms(spec, labels, pick=best_label, source="cv"), labels)
     spec = derive(Spec.model_validate(_type_rooms(spec, labels, elements.get("lifts", [])).model_dump()))
     return spec, leak_issues(spec, labels)
