@@ -61,8 +61,12 @@ def cancel(pid: str, rid: str, request: Request):
 
 @router.post("/runs/{rid}/continue", status_code=202)
 def continue_run(pid: str, rid: str, body: ContinueBody, request: Request):
-    """A run stopped at stage 5 continues as a new run from stage 6 once a spec exists."""
+    """A run stopped at stage 5 (low score, or paused for review) continues as a new run from stage 6 on HEAD."""
     run = _orch(request).load_run(pid, rid)
+    if run["status"] == "needs_review":  # M8: the person approved the corrected spec
+        new = _orch(request).start_run(pid, "from_stage", 6)
+        _orch(request).close_review(pid, rid)
+        return {"run_id": new["run_id"], "status": new["status"]}
     if run["status"] != "needs_attention" or run["stages"][5]["status"] != "needs_attention":
         raise ApiError(409, "not_continuable", "only runs stopped at stage 5 can continue")
     if not body.accept_low_score:

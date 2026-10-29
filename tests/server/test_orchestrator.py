@@ -50,7 +50,7 @@ def fast_blender(ctx):
 def test_full_run_extracts_and_saves_a_spec(app_factory, project_id):
     with app_factory(stage_impls={n: fast_blender for n in range(7, 11)}) as client:  # real stages 0-5
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
-        run = wait_status(client, project_id, rid, {"succeeded", "needs_attention", "failed"}, timeout=180)
+        run = wait_status(client, project_id, rid, {"succeeded", "needs_attention", "needs_review", "failed"}, timeout=180)
         assert [s["status"] for s in run["stages"][:6]] == ["succeeded"] * 6, run["stages"][5]
         assert run["spec_version_out"] == 1 and run["stages"][5]["metrics"]["rooms"] >= 20
         assert client.get(f"/api/projects/{project_id}").json()["head"] == 1
@@ -130,7 +130,8 @@ def test_stage_exception_fails_run_with_message(app_factory, project_with_gt):
 
 def test_create_project_with_start_queues_full_run(app_factory, plan_bytes):
     with app_factory(stage_impls={n: fast_blender for n in range(7, 11)}) as client:
-        r = client.post("/api/projects", files={"file": ("plan.jpeg", plan_bytes, "image/jpeg")}, data={"name": "x"})
+        r = client.post("/api/projects", files={"file": ("plan.jpeg", plan_bytes, "image/jpeg")},
+                        data={"name": "x", "params": '{"review_pause": false}'})  # this test builds through stage 10
         body = r.json()
         assert r.status_code == 201 and body["run_id"] and body["status"] == "queued"
         run = wait_status(client, body["project_id"], body["run_id"], {"succeeded"}, timeout=180)
@@ -239,7 +240,7 @@ def test_stage6_version_becomes_the_run_output(app_factory, project_id):
     seen = []
     impls[7] = lambda ctx: (seen.append(ctx.state.get("version")), {"status": "succeeded"})[1]
     with app_factory(stage_impls=impls) as client:
-        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
         run = wait_status(client, project_id, rid, {"succeeded"})
         assert run["spec_version_out"] == 2
 
@@ -248,7 +249,7 @@ def test_stage6_emits_llm_decision_events(app_factory, project_id):
     impls = fake_impls([])
     impls[6] = lambda ctx: (ctx.emit_event("llm.decision", {"element": "W1", "accepted": True}), {"status": "succeeded"})[1]
     with app_factory(stage_impls=impls) as client:
-        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
         wait_status(client, project_id, rid, {"succeeded"})
         events = [e for e in client_events(client, project_id) if e["type"] == "llm.decision"]
         assert events and events[0]["stage"] == 6 and events[0]["data"]["element"] == "W1"
@@ -258,7 +259,7 @@ def test_real_stage6_skips_when_disabled(app_factory, project_with_gt):
     impls = {n: fast_blender for n in range(7, 11)} | {n: fake_impls([])[n] for n in range(5)}
     impls[5] = lambda ctx: (ctx.state.update(version=1), {"status": "succeeded", "metrics": {"version": 1}})[1]
     with app_factory(stage_impls=impls) as client:  # stage 6 is the real one; settings_for empties LLM_TASKS_ENABLED
-        rid = client.post(f"/api/projects/{project_with_gt}/runs", json={"kind": "full"}).json()["run_id"]
+        rid = client.post(f"/api/projects/{project_with_gt}/runs", json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
         run = wait_status(client, project_with_gt, rid, {"succeeded"})
         assert run["stages"][6]["status"] == "skipped" and run["stages"][6]["metrics"]["reason"] == "disabled"
 
@@ -281,9 +282,65 @@ def test_rerun_from_stage6_carries_stage_1_to_5_artefacts(app_factory, project_i
     impls = fake_impls([]) | {n: write for n in range(6)}
     impls[6] = lambda ctx: (seen.append(sorted(p.name for p in ctx.work_dir.parent.iterdir())), {"status": "succeeded"})[1]
     with app_factory(stage_impls=impls) as client:
-        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
         wait_status(client, project_id, rid, {"succeeded"})
         rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "from_stage", "from_stage": 6}).json()["run_id"]
         run = wait_status(client, project_id, rid, {"succeeded"})
     assert run["from_stage"] == 6
     assert {"00_input", "01_preprocess", "02_grid", "05_validate"} <= set(seen[-1])
+
+
+# --- M8: pause for human review after stage 5 ---------------------------------------------------------------------
+
+def _spec_impls(calls=None):
+    impls = fake_impls(calls if calls is not None else [])
+    impls[5] = lambda ctx: {"status": "succeeded", "metrics": {"version": 1}}
+    return impls
+
+
+def test_full_run_pauses_for_review_after_stage_5(app_factory, project_id):
+    calls = []
+    with app_factory(stage_impls=_spec_impls(calls)) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        run = wait_status(client, project_id, rid, {"needs_review", "succeeded"})
+        assert run["status"] == "needs_review"
+        assert run["stages"][5]["status"] == "succeeded"
+        assert [s["status"] for s in run["stages"][6:]] == ["pending"] * 5
+        assert 6 not in calls
+        assert client.get(f"/api/projects/{project_id}").json()["status"] == "needs_review"
+
+
+def test_review_pause_off_runs_through(app_factory, project_id):
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs",
+                          json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
+        assert wait_status(client, project_id, rid, {"needs_review", "succeeded"})["status"] == "succeeded"
+
+
+def test_continue_after_review_starts_from_stage_6(app_factory, project_id):
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_review"})
+        r = client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={})
+        assert r.status_code == 202, r.text
+        new = wait_status(client, project_id, r.json()["run_id"], {"succeeded"})
+        assert new["from_stage"] == 6 and new["stages"][5]["status"] == "skipped"
+        assert client.get(f"/api/projects/{project_id}/runs/{rid}").json()["status"] == "succeeded"
+
+
+def test_continue_twice_is_409(app_factory, project_id):
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_review"})
+        new = client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={}).json()["run_id"]
+        wait_status(client, project_id, new, {"succeeded"})
+        r = client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={})
+        assert r.status_code == 409 and r.json()["error"]["code"] == "not_continuable"
+
+
+def test_recover_keeps_needs_review(app_factory, project_id):
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_review"})
+    with app_factory(stage_impls=_spec_impls()) as client:  # a restart runs recover()
+        assert client.get(f"/api/projects/{project_id}/runs/{rid}").json()["status"] == "needs_review"

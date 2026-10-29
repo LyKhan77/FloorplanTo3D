@@ -84,6 +84,11 @@ def _strata(settings: Settings) -> StrataClient:
     return StrataClient.from_settings(settings)
 
 
+def _review_pause(ctx: StageContext) -> bool:
+    """M8: a fresh extraction stops after stage 5 for a person to correct the spec, unless the project opts out."""
+    return run_params(ctx.project_dir, ctx.params_override, ctx.work_dir.parent).get("review_pause", True) is not False
+
+
 def _use_strata(ctx: StageContext) -> bool:
     return run_params(ctx.project_dir, ctx.params_override, ctx.work_dir.parent).get("use_strata", True) is not False
 
@@ -437,7 +442,17 @@ class Orchestrator:
         if status == "needs_attention" and n in STOP_ON_ATTENTION:
             self._finish(run, "needs_attention", result.get("message"))
             return False
+        if n == FIRST_SPEC_STAGE and status == "succeeded" and _review_pause(self._context(run, n)):
+            self._finish(run, "needs_review", "menunggu review manusia")
+            return False
         return True
+
+    def close_review(self, pid: str, rid: str) -> None:
+        """The review of a paused run is done: it is no longer continuable (its continuation is a new run)."""
+        run = self.load_run(pid, rid)
+        run.update(status="succeeded", error=None)
+        self._save(run)
+        self.bus.emit(pid, rid, None, "run.finished", data={"status": "succeeded", "error": None})
 
     def _finish(self, run: dict, status: str, error: str | None = None) -> None:
         pid, rid = run["project_id"], run["run_id"]

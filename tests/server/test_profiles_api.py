@@ -20,7 +20,7 @@ def test_profile_round_trip_and_run_with_profile(app_factory, project_id, data_d
 
     impls = fake_impls([]) | {3: extract}
     with app_factory(stage_impls=impls) as client:
-        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full", "params_override": {"review_pause": False}}).json()["run_id"]
         wait_status(client, project_id, rid, {"succeeded"})
         finish_stage5(data_dir, project_id, rid)
         r = client.post("/api/profiles", json={"name": "Gatsu", "from_run": f"{project_id}/{rid}"})
@@ -28,7 +28,8 @@ def test_profile_round_trip_and_run_with_profile(app_factory, project_id, data_d
         prof = r.json()
         assert prof["params"] == PARAMS and [p["profile_id"] for p in client.get("/api/profiles").json()] == [prof["profile_id"]]
         rid2 = client.post(f"/api/projects/{project_id}/runs",
-                           json={"kind": "full", "profile_id": prof["profile_id"]}).json()["run_id"]
+                           json={"kind": "full", "profile_id": prof["profile_id"],
+                                 "params_override": {"review_pause": False}}).json()["run_id"]
         run = wait_status(client, project_id, rid2, {"succeeded"})
         assert run["profile_id"] == prof["profile_id"] and seen["profile"] == prof
 
