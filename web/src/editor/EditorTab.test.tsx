@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import gtJson from '../../../benchmarks/gatsu/gt_spec.json'
-import type { OutputVersion } from '../api/types'
+import { MemoryRouter } from 'react-router-dom'
+import type { OutputVersion, Run } from '../api/types'
 import type { Spec } from '../types/spec'
 import { EditorTab } from './EditorTab'
 import { useEditorStore } from './store'
@@ -20,12 +21,12 @@ vi.mock('./viewport/Viewport', () => ({ Viewport: () => null }))
 const spec = (version: number): Spec => ({ ...gt, meta: { ...gt.meta, version } })
 const out = (version: number, files = ['shell.glb']): OutputVersion => ({ version, files: files.map((name) => ({ name, bytes: 1 })), renders: [] })
 
-function setup(head: number, outputs: OutputVersion[]) {
+function setup(head: number, outputs: OutputVersion[], run: Run | null = null) {
   routes['/api/projects/p1/specs/HEAD'] = spec(head)
   routes['/api/projects/p1/outputs'] = outputs
   routes['/api/templates'] = []
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(<QueryClientProvider client={qc}><EditorTab projectId="p1" run={null} /></QueryClientProvider>)
+  render(<QueryClientProvider client={qc}><MemoryRouter><EditorTab projectId="p1" run={run} /></MemoryRouter></QueryClientProvider>)
   return qc
 }
 
@@ -83,5 +84,13 @@ describe('EditorTab', () => {
     await act(() => qc.invalidateQueries())
     expect(useEditorStore.getState().ops).toHaveLength(1)
     expect(useEditorStore.getState().baseVersion).toBe(4)
+  })
+
+  it('a run waiting for review opens on the review canvas even with an older 3D shell (M11)', async () => {
+    const paused = { run_id: 'r9', status: 'needs_review', stages: [] } as unknown as Run
+    useEditorStore.setState({ mode: 'orbit' })
+    setup(4, [out(3)], paused)
+    expect(await screen.findByRole('application', { name: 'Kanvas review' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Setujui & build 3D' })).toBeInTheDocument()
   })
 })

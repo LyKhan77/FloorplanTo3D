@@ -329,6 +329,9 @@ class Orchestrator:
 
     def cancel(self, pid: str, rid: str) -> dict:
         run = self.load_run(pid, rid)
+        if run["status"] == "needs_review":  # M11: a paused run is dismissed (it never builds)
+            self._finish(run, "failed", "cancelled")
+            return {"cancelled": rid}
         if self._active.get(pid) != rid:
             raise ApiError(409, "run_not_active", f"run {rid} is already {run['status']}")
         self._cancel[rid].set()
@@ -441,6 +444,9 @@ class Orchestrator:
             return False
         if status == "needs_attention" and n in STOP_ON_ATTENTION:
             self._finish(run, "needs_attention", result.get("message"))
+            return False
+        if self._cancel[rid].is_set():  # a cancel during a stage wins over the review pause
+            self._finish(run, "failed", "cancelled")
             return False
         if n == FIRST_SPEC_STAGE and status == "succeeded" and _review_pause(self._context(run, n)):
             self._finish(run, "needs_review", "menunggu review manusia")

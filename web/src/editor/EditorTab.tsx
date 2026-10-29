@@ -78,7 +78,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
       {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
       {left && (
         <aside className="editor__library" aria-label="Library template">
-          {(data.shellUrl === null || mode === 'plan') && <TasksPanel projectId={projectId} tasks={validation.tasks} />}
+          {(data.shellUrl === null || mode === 'plan' || paused) && <TasksPanel projectId={projectId} tasks={validation.tasks} />}
           <LibraryPanel templates={data.templates} />
         </aside>
       )}
@@ -110,8 +110,9 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           <ToastNotification key={notice.text} className="editor__toast" kind={notice.kind} lowContrast title={notice.text}
             timeout={notice.kind === 'error' ? 0 : 5000} onClose={() => { setNotice(null); return false }} />
         )}
-        {data.shellUrl === null || mode === 'plan' ? (
-          // M8: the 2D review canvas works before any 3D shell exists (a run paused for review has none yet)
+        {data.shellUrl === null || mode === 'plan' || paused ? (
+          // M8: the 2D review canvas works before any 3D shell exists; a run paused for review always opens on it,
+          // an older shell would show the previous version (M11)
           <div className="editor__canvas editor__canvas--plan">
             {run?.status === 'needs_review' && (
               <div className="editor__plan-note editor__plan-note--review">

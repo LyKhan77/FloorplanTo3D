@@ -847,3 +847,4 @@ body {
 .review-tools button { all: unset; cursor: pointer; padding: 6px 10px; color: #c6c6c6; font-size: 13px; }
 .review-tools button.is-on { background: #0f62fe; color: #fff; }
 .review-tools kbd { font: 11px 'IBM Plex Mono', monospace; border: 1px solid currentColor; padding: 0 3px; margin-left: 4px; }
+.stage-panel__actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }

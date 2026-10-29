@@ -2,7 +2,7 @@ import { Button, InlineNotification, ProgressBar, Tile } from '@carbon/react'
 import { Download, Launch } from '@carbon/icons-react'
 import { useQuery } from '@tanstack/react-query'
 import { api, outputsBase } from '../api/client'
-import { useOutputs } from '../api/hooks'
+import { useCancelRun, useOutputs } from '../api/hooks'
 import type { ApiEvent, Run } from '../api/types'
 import { formatBytes, formatDuration } from '../lib/format'
 import { formatLogLine } from '../lib/logs'
@@ -39,6 +39,7 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
     queryFn: () => api.get<Verify>(`/api/projects/${projectId}/runs/${run.run_id}/artifacts/07_build/work/verify.json`),
     enabled: n === 8 && run.stages[8].status !== 'pending' && run.stages[8].status !== 'running',
   })
+  const dismiss = useCancelRun(projectId)  // M11: a paused review can be dropped (the run never builds)
   const logs = events.filter((e) => e.run_id === run.run_id && e.stage === n && e.type === 'stage.log').slice(-20)
   const messages = events.filter((e) => e.run_id === run.run_id && e.stage === n && e.type === 'stage.log' && e.level !== 'debug')
 
@@ -55,7 +56,10 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
           subtitle="Pipeline berhenti sebelum build 3D. Koreksi spec di editor, lalu setujui." />
       )}
       {n === 5 && run.status === 'needs_review' && (
-        <Button renderIcon={Launch} onClick={() => { useEditorStore.getState().setMode('plan'); onOpenEditor() }}>Buka review</Button>
+        <div className="stage-panel__actions">
+          <Button renderIcon={Launch} onClick={() => { useEditorStore.getState().setMode('plan'); onOpenEditor() }}>Buka review</Button>
+          <Button kind="ghost" disabled={dismiss.isPending} onClick={() => dismiss.mutate(run.run_id)}>Batalkan review</Button>
+        </div>
       )}
       {n <= 5 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
       {n === 6 && <p className="helper">{strataSummary(stage, messages.at(-1)?.msg)}</p>}

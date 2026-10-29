@@ -37,6 +37,17 @@ describe('TasksPanel', () => {
   })
 })
 
+describe('TasksPanel counts (M11)', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('a task that appears after an edit is listed and counted, so the panel and the approve dialog agree', () => {
+    const { rerender } = render(<TasksPanel projectId="p1" tasks={[gap]} />)
+    rerender(<TasksPanel projectId="p1" tasks={[room]} />)  // gap closed; the edit made a room-type task
+    expect(screen.getByText('1 / 2 selesai')).toBeInTheDocument()
+    expect(screen.getByText(room.message)).toBeInTheDocument()
+  })
+})
+
 describe('ReviewWorkspace tools (M8 final review)', () => {
   beforeEach(() => st().load('p1', gt))
 

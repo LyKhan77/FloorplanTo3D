@@ -663,12 +663,21 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Hanya varian yang dulu memilih S1 (s01, s04, s14, a17) yang berubah.
 - **Suite:** pytest 645 passed, 3 xfailed; 5 tes Blender gagal karena GPU (lingkungan, sama di `main`); ruff bersih.
 
+**Status M11 (2026-10-29), branch `m11-e2e-ready`:** persiapan tes E2E oleh user.
+- **`README.md`:** kebutuhan, setup `.env` (termasuk Strata DGX), cara menjalankan, alur review → setujui → build, CLI, tes/benchmark, backup, dan troubleshooting.
+- **Perbaikan alur review M8:**
+  - run yang dijeda bisa dibatalkan ("Batalkan review"; run itu tidak dibangun);
+  - cancel saat tahap 5 berakhir *dibatalkan*, bukan Perlu review;
+  - run yang menunggu review selalu membuka kanvas review, walaupun ada shell 3D lama;
+  - panel tugas ikut menghitung tugas yang muncul setelah edit, sehingga angkanya sama dengan dialog Setujui.
+- **Tes Blender** (dijalankan user di Terminal): 17 passed, 1 xfailed. Kegagalan Blender di sesi agent murni karena lingkungan.
+
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
 - [ ] Deploy ke gspe-ai2 (`/home/gspe-ai2/project_AI/floorplan3d/`). Smoke test: Gatsu end-to-end di server.
 - [ ] Uji kontensi: run pipeline bersamaan dengan beban Strata. Pastikan tidak ada OOM atau VRAM penuh.
-- [ ] `README.md`: setup dev, menjalankan pipeline/CLI, deploy, backup `DATA_DIR`, troubleshooting.
+- [x] `README.md`: setup dev, menjalankan pipeline/CLI, deploy, backup `DATA_DIR`, troubleshooting.
 
 ### Kriteria selesai (= kriteria sukses MVP, `01-requirements.md` §3)
 1. Gatsu end-to-end memenuhi NFR-AC.

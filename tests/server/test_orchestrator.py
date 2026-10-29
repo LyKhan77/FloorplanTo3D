@@ -363,3 +363,35 @@ def test_continue_keeps_params_and_records_open_review_tasks(app_factory, projec
         expected = review_tasks(Spec.model_validate_json(GT_PATH.read_text()))
         assert [t["id"] for t in run["review_open"]] == [t["id"] for t in expected]
         assert all({"id", "kind", "message"} <= set(t) for t in run["review_open"])
+
+
+# --- M11: paused runs can be dismissed; a cancel during stage 5 is a cancel -------------------------------------
+
+def test_a_paused_run_can_be_dismissed(app_factory, project_id):
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_review"})
+        r = client.post(f"/api/projects/{project_id}/runs/{rid}/cancel")
+        assert r.status_code == 200, r.text
+        run = client.get(f"/api/projects/{project_id}/runs/{rid}").json()
+        assert run["status"] == "failed" and run["error"] == "cancelled"
+        assert client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={}).status_code == 409
+
+
+def test_cancel_during_stage_5_is_not_a_review_pause(app_factory, project_id):
+    gate, go = threading.Event(), threading.Event()
+    impls = _spec_impls()
+
+    def slow5(ctx):
+        gate.set()
+        go.wait(5)
+        return {"status": "succeeded", "metrics": {"version": 1}}
+
+    impls[5] = slow5
+    with app_factory(stage_impls=impls) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        assert gate.wait(10)
+        client.post(f"/api/projects/{project_id}/runs/{rid}/cancel")
+        go.set()
+        run = wait_status(client, project_id, rid, {"failed", "needs_review", "succeeded"})
+        assert run["status"] == "failed" and run["error"] == "cancelled"

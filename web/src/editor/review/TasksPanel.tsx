@@ -15,7 +15,9 @@ export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: Rev
   const key = `${projectId}@${baseVersion}`
   const [start, setStart] = useState<{ key: string; tasks: ReviewTask[] }>({ key: '', tasks: [] })
   if (start.key !== key && tasks.length) setStart({ key, tasks })
-  const all = start.key === key ? start.tasks : tasks
+  // the starting list plus any task an edit created since: the panel counts what the approve dialog counts
+  const first = start.key === key ? start.tasks : tasks
+  const all = [...first, ...tasks.filter((t) => !first.some((f) => f.id === t.id))]
   const open = new Set(tasks.map((t) => t.id))
   const done = all.filter((t) => !open.has(t.id)).length
   useEffect(() => { if (active && !open.has(active)) useEditorStore.getState().setActiveTask(null) })
