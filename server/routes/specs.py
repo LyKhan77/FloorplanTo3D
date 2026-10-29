@@ -1,17 +1,20 @@
 """/api/projects/{id}/specs (PRD/09 §2.4)."""
 
+import json
 from dataclasses import asdict
 
 from fastapi import APIRouter, Header, Query, Request
 from pydantic import BaseModel, ValidationError
 
+from core.extraction.rooms.labels import labels_from_ocr
 from core.spec.diff import diff_specs
 from core.spec.models import Spec
 from core.spec.ops import OpError, apply
+from core.spec.review_tasks import review_tasks
 from core.spec.store import SpecStore, ValidationFailed, VersionConflict
 from core.spec.validate import validate
 from server.errors import ApiError
-from server.projects import output_versions, touch
+from server.projects import latest_stage_file, output_versions, touch
 
 router = APIRouter(prefix="/api/projects/{pid}/specs")
 
@@ -97,7 +100,18 @@ def dry_run(pid: str, body: OpsBody, request: Request):
     except OpError as e:
         raise ApiError(400, "bad_op", e.message, {"index": e.index, "op": e.op, "message": e.message}) from None
     r = validate(spec)
-    return {"score": r.score, "passed": r.passed, "issues": _issues(r.issues)}
+    return {"score": r.score, "passed": r.passed, "issues": _issues(r.issues),
+            "rooms": [room.model_dump(mode="json") for room in spec.rooms],
+            "tasks": review_tasks(spec, _labels(request, pid))}
+
+
+def _labels(request: Request, pid: str):
+    """Room labels the OCR found (stage 2 of the newest run that has one), for the review's leak tasks."""
+    storage = request.app.state.storage
+    ocr, grid = latest_stage_file(storage, pid, "02_grid/ocr.json"), latest_stage_file(storage, pid, "02_grid/grid.json")
+    if not ocr or not grid:
+        return None
+    return labels_from_ocr(json.loads(ocr.read_text()), json.loads(grid.read_text())["px_to_mm"])
 
 
 @router.post("/import", status_code=201)

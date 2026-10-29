@@ -46,3 +46,14 @@ def test_validate_dry_run_does_not_write(client, project_with_gt):
 def test_import_invalid_spec_422(client, project_id):
     r = client.post(f"/api/projects/{project_id}/specs/import", json={"schema_version": "1.0"})
     assert r.status_code == 422
+
+
+def test_validate_returns_rooms_and_tasks(client, project_with_gt):
+    """M8: the dry run answers with the rooms rebuilt from the ops and the review task list."""
+    pid = project_with_gt
+    base = client.post(f"/api/projects/{pid}/specs/validate", json={"base_version": 1, "ops": []}).json()
+    assert base["rooms"] and isinstance(base["tasks"], list)
+    r = client.post(f"/api/projects/{pid}/specs/validate",
+                    json={"base_version": 1, "ops": [{"op": "delete_wall", "id": "W59", "reason": "uji"}]}).json()
+    assert len(r["rooms"]) < len(base["rooms"])
+    assert all({"id", "kind", "message", "at", "element_ids"} <= set(t) for t in r["tasks"])

@@ -83,6 +83,16 @@ def _score(spec_file: str, mtime: float) -> float:
     return round(validate(Spec.model_validate_json(Path(spec_file).read_text())).score, 3)
 
 
+def latest_stage_file(storage: Storage, pid: str, rel: str) -> Path | None:
+    """`rel` (e.g. "02_grid/ocr.json") under the newest run that has it: a stage-7 regenerate run has no stage 2."""
+    runs = storage.project_dir(pid) / "runs"
+    for run in sorted(runs.iterdir(), reverse=True) if runs.exists() else []:
+        f = run / "stages" / rel
+        if f.exists():
+            return f
+    return None
+
+
 def latest_run(storage: Storage, pid: str) -> dict | None:
     project = storage.read_json(storage.project_dir(pid) / "project.json")
     rid = project.get("latest_run")
