@@ -395,3 +395,33 @@ def test_cancel_during_stage_5_is_not_a_review_pause(app_factory, project_id):
         go.set()
         run = wait_status(client, project_id, rid, {"failed", "needs_review", "succeeded"})
         assert run["status"] == "failed" and run["error"] == "cancelled"
+
+
+def test_dismiss_waits_for_an_approval_in_flight(app_factory, project_id):
+    """M11 final review I1: "Setujui" and "Batalkan review" on the same paused run are serialized; a dismiss that
+    arrives while the approval is starting the build sees the review closed (409) and does not mark it cancelled."""
+    with app_factory(stage_impls=_spec_impls()) as client:
+        rid = client.post(f"/api/projects/{project_id}/runs", json={"kind": "full"}).json()["run_id"]
+        wait_status(client, project_id, rid, {"needs_review"})
+        orch = client.app.state.orchestrator
+        real, inside, go = orch.start_run, threading.Event(), threading.Event()
+
+        def slow_start(*a, **kw):
+            inside.set()
+            go.wait(5)
+            return real(*a, **kw)
+
+        orch.start_run = slow_start
+        results = {}
+        t = threading.Thread(target=lambda: results.update(
+            approve=client.post(f"/api/projects/{project_id}/runs/{rid}/continue", json={}).status_code))
+        t.start()
+        assert inside.wait(5)
+        d = threading.Thread(target=lambda: results.update(
+            dismiss=client.post(f"/api/projects/{project_id}/runs/{rid}/cancel").status_code))
+        d.start()
+        go.set()
+        t.join(10)
+        d.join(10)
+        assert results == {"approve": 202, "dismiss": 409}
+        assert client.get(f"/api/projects/{project_id}/runs/{rid}").json()["status"] == "succeeded"

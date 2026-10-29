@@ -218,6 +218,7 @@ class Orchestrator:
         self._state: dict[str, dict] = {}
         self._running: set[str] = set()
         self._lock = threading.Lock()
+        self.review_lock = threading.Lock()  # approve and dismiss of a paused run, one at a time (M11)
         self.code_version = _code_version()
 
     # lifecycle
@@ -330,8 +331,11 @@ class Orchestrator:
     def cancel(self, pid: str, rid: str) -> dict:
         run = self.load_run(pid, rid)
         if run["status"] == "needs_review":  # M11: a paused run is dismissed (it never builds)
-            self._finish(run, "failed", "cancelled")
-            return {"cancelled": rid}
+            with self.review_lock:
+                run = self.load_run(pid, rid)  # an approval may have closed it meanwhile
+                if run["status"] == "needs_review":
+                    self._finish(run, "failed", "cancelled")
+                    return {"cancelled": rid}
         if self._active.get(pid) != rid:
             raise ApiError(409, "run_not_active", f"run {rid} is already {run['status']}")
         self._cancel[rid].set()

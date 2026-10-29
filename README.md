@@ -31,8 +31,8 @@ Isi `.env`. File ini di-gitignore, jangan di-commit.
 | `DATA_DIR` | folder data (project, run, spec, output), mis. `./data` |
 | `BLENDER_BIN` | mis. `/Applications/Blender.app/Contents/MacOS/Blender` |
 | `BLENDER_RENDER_DEVICE` | `CPU` atau `GPU` |
-| `STRATA_BASE_URL`, `STRATA_MODEL` | server Strata, mis. DGX: `http://192.168.2.21:8080/v1`, `Qwen3.8-Flash-Next` (di luar kantor: `https://dgx.iotech.my.id/v1`) |
-| `STRATA_API_KEY` | bearer key server Strata (DGX wajib) |
+| `STRATA_BASE_URL`, `STRATA_MODEL` | URL `/v1` dan ID model server Strata (untuk server DGX kantor, ambil dari dokumentasi API DGX internal) |
+| `STRATA_API_KEY` | bearer key server Strata, bila servernya mewajibkan (DGX: wajib) |
 | `LLM_TASKS_ENABLED` | tugas LLM aktif, saat ini `T0,T3` (lihat `benchmarks/DECISIONS.md`) |
 | `DYLD_FALLBACK_LIBRARY_PATH` | macOS: `/opt/homebrew/lib` untuk WeasyPrint |
 
@@ -52,8 +52,8 @@ Buka <http://localhost:5173>.
 
 ## Alur penggunaan (E2E)
 
-1. **Project baru.** Upload denah, isi prompt (opsional, mis. "tinggi dinding 4.5 m, pintu 2.4 m"), lalu Mulai. Toggle "Berhenti untuk review sebelum build 3D" menyala secara default.
-2. **Tunggu tahap 0–5.** Gatsu butuh sekitar 2 menit. Status menjadi **Perlu review**.
+1. **Project baru.** Upload denah, isi prompt (opsional, mis. "tinggi dinding 4.5 m, pintu 2.4 m"), lalu "Mulai pipeline". Toggle "Berhenti untuk review sebelum build 3D" menyala secara default.
+2. **Tunggu tahap 0–5.** Gatsu butuh sekitar 2 menit. Status menjadi **Perlu review**. Bila skor validator terlalu rendah, statusnya **Perlu perhatian**; "Lanjutkan tetap" di tahap 5 melanjutkan tanpa kanvas review.
 3. **Buka review.** Di tab Pipeline, buka tahap 5, lalu klik "Buka review". Kanvas review 2D menampilkan hasil ekstraksi di atas gambar asli. Kerjakan daftar **Tugas review** di panel kiri:
    - **Celah terbuka:** klik tugas, lalu klik kedua titik kuning atau tombol "Tutup celah". Centang "Pasang pintu" bila celah itu pintu.
    - **Ruang bocor dan dinding hilang:** pakai Garis bantu (`L`). Tarik garis kasar di atas dinding yang hilang, dan sistem menempelkannya ke garis di gambar. Bila tidak ada garis yang bisa ditempeli, pakai Dinding baru (`W`): klik, klik, berantai, lalu `Esc` untuk berhenti.
@@ -102,10 +102,10 @@ Backup cukup dengan menyalin `DATA_DIR` saat server berhenti. Server menolak sta
 | Render atau build Blender abort (`SIGABRT`, rc 134) | proses tidak punya akses GPU atau sesi layar (mis. dari job background atau SSH tanpa sesi login). Jalankan dari Terminal di sesi login, atau set `BLENDER_RENDER_DEVICE=CPU` |
 | Strata "401 Unauthorized" | `STRATA_API_KEY` kosong atau salah |
 | Strata mati | tahap 6 dilewati, dan pipeline tetap selesai (status Strata terlihat di header) |
-| Status tidak pernah "Perlu review" | project dibuat dengan toggle review dimatikan (`review_pause: false`) |
+| Status tidak pernah "Perlu review" | project dibuat dengan toggle review dimatikan (`review_pause: false`), atau skor tahap 5 terlalu rendah sehingga run berhenti di "Perlu perhatian" |
 | Garis bantu: "Tidak ada garis ganda di dekat garis ini" | tarik garis dalam ±250 mm dari garis di gambar, atau pakai Dinding baru |
 | PDF laporan gagal di macOS | `brew install pango` dan set `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` |
 
 ## Deploy
 
-Docker (`docker/`) dan deploy ke gspe-ai2 adalah milestone M7c, yang menunggu SSH key di server. Lihat `ROADMAP.md`.
+Belum tersedia. Image Docker dan deploy ke gspe-ai2 dikerjakan di milestone M7c, yang menunggu SSH key di server. Lihat `ROADMAP.md`.

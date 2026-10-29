@@ -174,3 +174,16 @@ describe('useEditorStore', () => {
     })
   })
 })
+
+describe('plan-only while a run waits for review (M11)', () => {
+  it('locks the editor on the 2D canvas until released', () => {
+    st().setMode('orbit')
+    st().setPlanOnly(true)
+    expect(st().mode).toBe('plan')
+    st().setMode('walk')  // the toolbar, or key 3
+    expect(st().mode).toBe('plan')
+    st().setPlanOnly(false)
+    st().setMode('walk')
+    expect(st().mode).toBe('walk')
+  })
+})

@@ -31,6 +31,8 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   const flow = useRegenerateFlow(projectId, run)
   const paused = run?.status === 'needs_review'
   const saver = useSave(projectId, flow.regenerate, paused)
+  // a paused run keeps the editor on the 2D review canvas (Orbit/Top/Walk would show the older shell)
+  useEffect(() => { useEditorStore.getState().setPlanOnly(paused) }, [paused])
   const { save } = saver
   const onSave = useCallback(() => void save(), [save])
   useShortcuts(data.templates, onSave)

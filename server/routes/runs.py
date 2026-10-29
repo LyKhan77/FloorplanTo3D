@@ -64,9 +64,14 @@ def continue_run(pid: str, rid: str, body: ContinueBody, request: Request):
     """A run stopped at stage 5 (low score, or paused for review) continues as a new run from stage 6 on HEAD."""
     run = _orch(request).load_run(pid, rid)
     if run["status"] == "needs_review":  # M8: the person approved the corrected spec
-        new = _orch(request).start_run(pid, "from_stage", 6, params_override=run.get("params_override") or {},
-                                       profile_id=run.get("profile_id"), extra={"review_open": _open_review_tasks(request, pid)})
-        _orch(request).close_review(pid, rid)
+        orch = _orch(request)
+        with orch.review_lock:  # M11: a dismiss of the same run waits, then finds it closed
+            run = orch.load_run(pid, rid)
+            if run["status"] != "needs_review":
+                raise ApiError(409, "not_continuable", f"run {rid} is already {run['status']}")
+            new = orch.start_run(pid, "from_stage", 6, params_override=run.get("params_override") or {},
+                                 profile_id=run.get("profile_id"), extra={"review_open": _open_review_tasks(request, pid)})
+            orch.close_review(pid, rid)
         return {"run_id": new["run_id"], "status": new["status"]}
     if run["status"] != "needs_attention" or run["stages"][5]["status"] != "needs_attention":
         raise ApiError(409, "not_continuable", "only runs stopped at stage 5 can continue")

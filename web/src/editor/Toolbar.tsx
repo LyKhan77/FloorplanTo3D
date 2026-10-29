@@ -25,21 +25,21 @@ interface Props {
   regen?: { running: boolean; progress: number | null; stage: string | null }
 }
 
-function Toggle({ label, icon, active, onClick }: { label: string; icon: ComponentType; active: boolean; onClick(): void }) {
+function Toggle({ label, icon, active, onClick, disabled = false }: { label: string; icon: ComponentType; active: boolean; onClick(): void; disabled?: boolean }) {
   return (
     <Button kind={active ? 'secondary' : 'ghost'} size="sm" hasIconOnly renderIcon={icon} iconDescription={label}
-      tooltipPosition="bottom" aria-pressed={active} onClick={onClick} />
+      tooltipPosition="bottom" aria-pressed={active} onClick={onClick} disabled={disabled} />
   )
 }
 
 export function Toolbar({ left, right, onToggleLeft, onToggleRight, onSave, onRegenerate, saving, regen }: Props) {
   const [auto, setAuto] = useState(autoRegenerate)
-  const { mode, tool, snap, ops, past, future, baseVersion, setMode, setTool, setSnap, undo, redo } = useEditorStore()
+  const { mode, tool, snap, ops, past, future, baseVersion, planOnly, setMode, setTool, setSnap, undo, redo } = useEditorStore()
   return (
     <div className="editor__toolbar" role="toolbar" aria-label="Toolbar editor">
       <Toggle label={left ? 'Sembunyikan panel kiri' : 'Tampilkan panel kiri'} icon={left ? SidePanelClose : SidePanelOpen}
         active={false} onClick={onToggleLeft} />
-      <span className="editor__group">{MODES.map(([m, label, icon]) => <Toggle key={m} label={label} icon={icon} active={mode === m} onClick={() => setMode(m)} />)}</span>
+      <span className="editor__group">{MODES.map(([m, label, icon]) => <Toggle key={m} label={label} icon={icon} active={mode === m} onClick={() => setMode(m)} disabled={planOnly && m !== 'plan'} />)}</span>
       <span className="editor__group">{TOOLS.map(([t, label, icon]) => <Toggle key={t} label={label} icon={icon} active={tool === t} onClick={() => setTool(t)} />)}</span>
       <Checkbox id="editor-snap" labelText="Snap 600" checked={snap} onChange={(_, { checked }) => setSnap(checked)} />
       <span className="editor__group">

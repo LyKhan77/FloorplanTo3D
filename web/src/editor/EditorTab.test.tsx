@@ -92,5 +92,6 @@ describe('EditorTab', () => {
     setup(4, [out(3)], paused)
     expect(await screen.findByRole('application', { name: 'Kanvas review' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Setujui & build 3D' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Walk' })).toBeDisabled()  // M11 review I2: no 3D modes while paused
   })
 })

@@ -20,6 +20,11 @@ describe('StagePanel review pause (M11)', () => {
       <StagePanel projectId="p1" run={run} n={5} events={[]} onOpenEditor={vi.fn()} />
     </MemoryRouter></QueryClientProvider>)
     expect(screen.getByRole('button', { name: 'Buka review' })).toBeInTheDocument()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Batalkan review' }))
+    expect(confirm).toHaveBeenCalled()
+    expect(vi.mocked(api.post)).not.toHaveBeenCalled()  // dismissing is final: it asks first
+    confirm.mockReturnValueOnce(true)
     fireEvent.click(screen.getByRole('button', { name: 'Batalkan review' }))
     await waitFor(() => expect(vi.mocked(api.post)).toHaveBeenCalledWith('/api/projects/p1/runs/r1/cancel'))
   })

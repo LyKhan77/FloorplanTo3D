@@ -58,7 +58,9 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
       {n === 5 && run.status === 'needs_review' && (
         <div className="stage-panel__actions">
           <Button renderIcon={Launch} onClick={() => { useEditorStore.getState().setMode('plan'); onOpenEditor() }}>Buka review</Button>
-          <Button kind="ghost" disabled={dismiss.isPending} onClick={() => dismiss.mutate(run.run_id)}>Batalkan review</Button>
+          <Button kind="ghost" disabled={dismiss.isPending} onClick={() => {
+            if (window.confirm('Batalkan review? Run ini tidak akan dibangun; koreksi yang sudah disimpan tetap ada.')) dismiss.mutate(run.run_id)
+          }}>Batalkan review</Button>
         </div>
       )}
       {n <= 5 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
