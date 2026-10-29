@@ -9,6 +9,7 @@ import { formatLogLine } from '../lib/logs'
 import { stageLabel } from '../lib/runState'
 import { strataSummary } from '../lib/strata'
 import { ExtractionStage } from './ExtractionStage'
+import { useEditorStore } from '../editor/store'
 import { StatusTag } from './StatusTag'
 
 interface Props {
@@ -49,6 +50,13 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
           <span className="mono">{formatDuration(stage.duration_ms)}</span></span>
       </div>
 
+      {n === 5 && run.status === 'needs_review' && (
+        <InlineNotification kind="warning" lowContrast hideCloseButton title="Perlu review"
+          subtitle="Pipeline berhenti sebelum build 3D. Koreksi spec di editor, lalu setujui." />
+      )}
+      {n === 5 && run.status === 'needs_review' && (
+        <Button renderIcon={Launch} onClick={() => { useEditorStore.getState().setMode('plan'); onOpenEditor() }}>Buka review</Button>
+      )}
       {n <= 5 && <ExtractionStage projectId={projectId} run={run} n={n} message={messages.at(-1)?.msg} />}
       {n === 6 && <p className="helper">{strataSummary(stage, messages.at(-1)?.msg)}</p>}
 

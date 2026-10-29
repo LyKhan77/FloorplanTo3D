@@ -10,7 +10,7 @@ action per target type, and chained wall drawing (one click and Enter per wall).
 """
 
 import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Point, Polygon
 
 from benchmarks.extraction_metrics import _door_geom, _same_direction
 from benchmarks.failure_modes import wall_coverage
@@ -20,6 +20,9 @@ SECONDS = {"delete_wall": 5, "add_wall": 20, "delete_opening": 5, "add_opening":
            "set_room_type": 8, "rename_room": 8, "set_stair": 20}
 # per action + per element selected: delete N walls, set the type of N rooms in G groups; chained add per wall
 BULK_SECONDS = {"action": 10, "select": 2, "add_wall": 10}
+# M8 review tools: a two-click gap closure (wall extension + door) and a guide line snapped onto the drawing
+REVIEW_SECONDS = {"gap": 8, "guide_line": 12}
+GAP_MATCH_MM = 150
 DOOR_MATCH_MM, DOOR_WIDTH_MM, STAIR_MATCH_MM = 500, 100, 1000
 
 
@@ -78,6 +81,21 @@ def _stair_ops(pred: Spec, gt: Spec) -> int:
     return fixes
 
 
+def _gap_ops(pred: Spec, gt: Spec) -> dict[str, int]:
+    """Review gap tasks of the prediction that lie on a GT wall, and how many of those hold a GT door."""
+    from core.spec.review_tasks import review_tasks
+
+    gwalls = [LineString([w.a, w.b]) for w in gt.walls]
+    doors = [Point(d["center"]) for _, d in _doors(gt)]
+    closures = door_gaps = 0
+    for t in (t for t in review_tasks(pred) if t["kind"] == "gap"):
+        seg = LineString([t["fix"]["a"], t["fix"]["b"]])
+        if any(g.distance(seg.centroid) <= GAP_MATCH_MM for g in gwalls):
+            closures += 1
+            door_gaps += any(seg.distance(c) <= t["fix"]["thickness"] / 2 + GAP_MATCH_MM for c in doors)
+    return {"gap_closures": closures, "gap_doors": door_gaps}
+
+
 def correction_ops(pred: Spec | None, gt: Spec) -> dict[str, int]:
     """Operations per kind; pred None (a stopped run) means drawing every GT element from scratch."""
     if pred is None:
@@ -86,23 +104,35 @@ def correction_ops(pred: Spec | None, gt: Spec) -> dict[str, int]:
                 "set_room_type": sum(r.type != "other" for r in gt.rooms),
                 "room_type_groups": len({r.type for r in gt.rooms if r.type != "other"}),
                 "rename_room": sum(bool(r.name) for r in gt.rooms),
-                "set_stair": sum(len(s.flights) for s in gt.stairs)}
+                "set_stair": sum(len(s.flights) for s in gt.stairs), "gap_closures": 0, "gap_doors": 0}
     return {"delete_wall": sum(wall_coverage(w, gt.walls) < 0.5 for w in pred.walls),
             "add_wall": sum(wall_coverage(g, pred.walls) < 0.5 for g in gt.walls),
-            **_door_ops(pred, gt), **_room_ops(pred, gt), "set_stair": _stair_ops(pred, gt)}
+            **_door_ops(pred, gt), **_room_ops(pred, gt), "set_stair": _stair_ops(pred, gt), **_gap_ops(pred, gt)}
 
 
-def correction_minutes(ops: dict[str, int], bulk: bool = False) -> float:
+def _seconds(ops: dict[str, int], bulk: bool) -> float:
     priced = {k for k in SECONDS if not (bulk and k in ("delete_wall", "set_room_type", "add_wall"))}
     seconds = sum(SECONDS[k] * n for k, n in ops.items() if k in priced)
     if bulk:
         b, dw, rt = BULK_SECONDS, ops.get("delete_wall", 0), ops.get("set_room_type", 0)
         seconds += ((b["action"] if dw else 0) + b["select"] * dw + b["action"] * ops.get("room_type_groups", 0)
                     + b["select"] * rt + b["add_wall"] * ops.get("add_wall", 0))
-    return round(seconds / 60, 1)
+    return seconds
 
 
-def capped_minutes(pred: Spec | None, gt: Spec, bulk: bool = False) -> float:
+def correction_minutes(ops: dict[str, int], bulk: bool = False, review: bool = False) -> float:
+    """`review`: the bulk model with the M8 tools; a gap closure replaces a missing door (or wall) on that gap, every
+    other missing wall is a snapped guide line."""
+    if not review:
+        return round(_seconds(ops, bulk) / 60, 1)
+    doors = min(ops.get("gap_doors", 0), ops.get("add_opening", 0))
+    walls = min(ops.get("gap_closures", 0) - ops.get("gap_doors", 0), ops.get("add_wall", 0))
+    rest = {**ops, "add_opening": ops.get("add_opening", 0) - doors, "add_wall": 0}
+    extra = REVIEW_SECONDS["gap"] * (doors + walls) + REVIEW_SECONDS["guide_line"] * (ops.get("add_wall", 0) - walls)
+    return round((_seconds(rest, True) + extra) / 60, 1)
+
+
+def capped_minutes(pred: Spec | None, gt: Spec, bulk: bool = False, review: bool = False) -> float:
     """Minutes to correct, never more than redrawing from scratch: a reading worse than nothing is redrawn."""
-    redraw = correction_minutes(correction_ops(None, gt), bulk)
-    return redraw if pred is None else min(redraw, correction_minutes(correction_ops(pred, gt), bulk))
+    redraw = correction_minutes(correction_ops(None, gt), bulk, review)
+    return redraw if pred is None else min(redraw, correction_minutes(correction_ops(pred, gt), bulk, review))

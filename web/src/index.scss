@@ -842,3 +842,4 @@ body {
 .review-task__mark { width: 16px; height: 16px; flex: none; border: 2px solid #6f6f6f; border-radius: 50%; display: grid; place-items: center; font-size: 10px; }
 .review-task.is-done .review-task__mark { background: #42be65; border-color: #42be65; color: #000; }
 .review-task__tools { display: flex; gap: 8px; align-items: center; padding: 4px 0 8px 24px; flex-wrap: wrap; }
+.editor__plan-note--review { left: auto; right: 8px; border-left: 3px solid #f1c21b; }

@@ -71,3 +71,15 @@ def test_tasks_are_ordered_gap_leak_loose_type():
     s.rooms[0].type = "other"
     kinds = _kinds(review_tasks(s))
     assert kinds == sorted(kinds, key=["gap", "leak", "loose", "type"].index)
+
+
+def test_gap_from_one_dangling_end_to_the_next_wall():
+    """Gatsu: most door gaps have one dangling jamb; the other side is a wall the end runs into."""
+    s = spec_with_rooms()
+    s.walls = [w for w in s.walls if w.id != "W5"] + [Wall(id="W5", a=(5000, 0), b=(5000, 5100), thickness=100, kind="interior")]
+    s = rebuild_rooms(s.model_copy(update={"rooms": []}))
+    gaps = [t for t in review_tasks(s) if t["kind"] == "gap"]
+    assert len(gaps) == 1
+    fix = gaps[0]["fix"]
+    assert (tuple(fix["a"]), tuple(fix["b"])) == ((5000, 5100), (5000, 6000))  # onto W3's centreline
+    assert fix["ends"] == [{"wall": "W5", "end": "b"}]

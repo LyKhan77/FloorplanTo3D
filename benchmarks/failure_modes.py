@@ -289,7 +289,8 @@ def main(argv: list[str] | None = None) -> dict:
     from benchmarks.correction_effort import capped_minutes, correction_ops
 
     ops = correction_ops(pred, gt)
-    effort = {"ops": ops, "minutes": capped_minutes(pred, gt), "minutes_bulk": capped_minutes(pred, gt, bulk=True)}
+    effort = {"ops": ops, "minutes": capped_minutes(pred, gt), "minutes_bulk": capped_minutes(pred, gt, bulk=True),
+              "minutes_review": capped_minutes(pred, gt, review=True)}
     leaks = classify_leaks(gt, pred)
     leak_counts = dict(Counter(r["cause"] for r in leaks))
     doc = {"metrics": metrics, "missed": missed, "false": false, "rooms": rooms, "effort": effort, "leaks": leaks}
@@ -297,13 +298,15 @@ def main(argv: list[str] | None = None) -> dict:
     a.out.with_suffix(".json").write_text(json.dumps(doc, indent=1))
     a.out.with_suffix(".md").write_text(report(a.out.name, metrics, missed, false, rooms)
                                         + f"\n**Upaya koreksi:** {effort['minutes']} menit satu-per-satu, "
-                                        + f"{effort['minutes_bulk']} menit dengan aksi massal "
+                                        + f"{effort['minutes_bulk']} menit dengan aksi massal, "
+                                        + f"{effort['minutes_review']} menit dengan alat review M8 "
                                         + f"({', '.join(f'{k} {n}' for k, n in ops.items() if n)}).\n"
                                         + "\n**Kebocoran ruang (pasangan ruang GT dalam satu ruang prediksi):** "
                                         + ", ".join(f"{k} {leak_counts.get(k, 0)}" for k in ("door_gap", "wall_missing", "other"))
                                         + ".\n")
     cv2.imwrite(str(a.out.with_suffix(".png")), _overlay(page, gt, pred, missed, false, to_px))
-    print(json.dumps({"minutes": effort["minutes"], "minutes_bulk": effort["minutes_bulk"], "leaks": leak_counts, "missed": Counter(r["mode"] for r in missed),
+    print(json.dumps({"minutes": effort["minutes"], "minutes_bulk": effort["minutes_bulk"],
+                      "minutes_review": effort["minutes_review"], "leaks": leak_counts, "missed": Counter(r["mode"] for r in missed),
                       "false": Counter(r["region"] for r in false),
                       "rooms": {k: v for k, v in rooms.items() if k != "merged"}}))
     return doc

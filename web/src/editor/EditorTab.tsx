@@ -16,6 +16,7 @@ import { useRegenerateFlow } from './useRegenerateFlow'
 import { useSave } from './useSave'
 import { useShortcuts } from './useShortcuts'
 import { useValidate } from './useValidate'
+import { ApproveButton } from './review/ApproveButton'
 import { ReviewWorkspace } from './review/ReviewWorkspace'
 import { TasksPanel } from './review/TasksPanel'
 import { useBackdrop } from './review/useBackdrop'
@@ -111,6 +112,12 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
         {data.shellUrl === null || mode === 'plan' ? (
           // M8: the 2D review canvas works before any 3D shell exists (a run paused for review has none yet)
           <div className="editor__canvas editor__canvas--plan">
+            {run?.status === 'needs_review' && (
+              <div className="editor__plan-note editor__plan-note--review">
+                <span>Run menunggu review: koreksi lalu setujui untuk build 3D.</span>
+                <ApproveButton projectId={projectId} runId={run.run_id} tasksLeft={validation.tasks.length} save={save} />
+              </div>
+            )}
             {data.shellUrl === null && run?.status !== 'needs_review' && (
               <div className="editor__plan-note">
                 <span>Belum ada shell 3D.</span>

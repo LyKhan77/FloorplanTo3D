@@ -76,6 +76,33 @@ def _gaps(spec: Spec) -> list[dict]:
                     "fix": {"a": [round(v) for v in p1], "b": [round(v) for v in p2],
                             "thickness": round((w1.thickness + w2.thickness) / 2), "kind": w1.kind,
                             "ends": [{"wall": w1.id, "end": e1}, {"wall": w2.id, "end": e2}]}})
+    # one dangling jamb whose wall, continued, runs into another wall 0.6-1.3 m on (the far jamb is that wall)
+    for w, p, d, e in ends:
+        if (w.id, p) in used:
+            continue
+        ray = LineString([p, (p[0] + d[0] * GAP_MAX_MM, p[1] + d[1] * GAP_MAX_MM)])
+        hits = []
+        for h in spec.walls:
+            if h.id == w.id:
+                continue
+            centre = LineString([h.a, h.b])
+            near = ray.intersection(centre.buffer(h.thickness / 2 + GAP_LATERAL_SLACK_MM))
+            if near.is_empty:
+                continue
+            reach = Point(p).distance(near)
+            cross = ray.intersection(centre)  # a wall across the ray: end on its centreline
+            q = (cross.x, cross.y) if isinstance(cross, Point) else tuple(centre.interpolate(centre.project(Point(p))).coords[0])
+            hits.append((reach, q, h))
+        if not hits:
+            continue
+        reach, q, h = min(hits, key=lambda t: t[0])
+        gap = math.dist(p, q)
+        if not (GAP_MIN_MM <= gap <= GAP_MAX_MM) or any(LineString([p, q]).distance(c) <= w.thickness / 2 + 1 for c in doors):
+            continue
+        out.append({"id": f"gap:{w.id}:{e}", "kind": "gap", "message": f"Celah {gap / 1000:.1f} m dari ujung dinding ke dinding {h.id}",
+                    "at": [round((p[0] + q[0]) / 2), round((p[1] + q[1]) / 2)], "element_ids": [w.id, h.id],
+                    "fix": {"a": [round(v) for v in p], "b": [round(v) for v in q], "thickness": round(w.thickness),
+                            "kind": w.kind, "ends": [{"wall": w.id, "end": e}]}})
     return out
 
 

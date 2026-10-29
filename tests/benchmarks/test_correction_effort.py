@@ -78,3 +78,25 @@ def test_bulk_minutes_capped_and_reported_beside_one_by_one():
     redraw = correction_minutes(correction_ops(None, gt), bulk=True)
     assert capped_minutes(None, gt, bulk=True) == redraw <= capped_minutes(None, gt)
     assert capped_minutes(gt, gt, bulk=True) == 0.0
+
+
+def test_review_model_prices_gap_walls_lower():
+    """M8: a wall the review closes with the two-click gap tool costs 8 s; any other missing wall a guide line, 12 s."""
+    ops = {"delete_wall": 68, "add_wall": 16, "gap_closures": 6, "gap_doors": 4, "set_room_type": 31,
+           "room_type_groups": 8, "add_opening": 10, "delete_opening": 0, "set_door": 0, "rename_room": 0, "set_stair": 0}
+    review = correction_minutes(ops, review=True)
+    # 6 gap clicks (8 s) replace 4 door adds (15 s) and 2 wall adds; the other 14 walls are guide lines (12 s)
+    assert review == round((10 + 2 * 68 + 8 * 6 + 12 * 14 + 15 * 6 + 10 * 8 + 2 * 31) / 60, 1)
+    assert review < correction_minutes(ops, bulk=True)
+
+
+def test_gap_closures_counted_from_review_tasks():
+    gt = spec_with_rooms()
+    pred = gt.model_copy(deep=True)
+    pred.openings = [o for o in pred.openings if o.id != "D1"]
+    pred.walls = [w for w in pred.walls if w.id != "W5"] + [
+        Wall(id="W5", a=(5000, 0), b=(5000, 2000), thickness=100, kind="interior"),
+        Wall(id="W8", a=(5000, 2900), b=(5000, 6000), thickness=100, kind="interior")]
+    ops = correction_ops(pred, gt)
+    assert (ops["gap_closures"], ops["gap_doors"]) == (1, 1)  # the gap is where the GT has door D1
+    assert correction_ops(gt, gt)["gap_closures"] == 0
