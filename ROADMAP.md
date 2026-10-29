@@ -50,7 +50,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 
 ### Tugas
 - [x] Inisialisasi git repo. Isi `.gitignore`: `data/`, `.env`, **`server-info.txt`**, `.venv/`, `node_modules/`, `web/dist/`.
-- [ ] **Keamanan:** pindahkan kredensial di `server-info.txt` ke password manager, dan pertimbangkan mengganti password yang sudah tersebar (R-15).
+- [x] **Keamanan (R-15):** rotasi password tidak dilakukan; keputusan pengguna 2026-10-29: pengembangan hanya di server lokal. `server-info.txt` tetap di-gitignore.
 - [x] `uv python install 3.12`, `pyproject.toml`, struktur folder sesuai `11-tech-stack.md` §3, ruff, pytest.
 - [x] `.env.example` dengan semua variabel dari `02-architecture.md` §7.
 - [x] **Smoke test Blender:** `builder/build.py` versi minimal (satu kubus + custom property), lalu export `.glb` dengan extras. Cek extras terbaca dengan pygltflib.
@@ -671,6 +671,11 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - run yang menunggu review selalu membuka kanvas review, walaupun ada shell 3D lama;
   - panel tugas ikut menghitung tugas yang muncul setelah edit, sehingga angkanya sama dengan dialog Setujui.
 - **Tes Blender** (dijalankan user di Terminal): 17 passed, 1 xfailed. Kegagalan Blender di sesi agent murni karena lingkungan.
+
+**Status M10 (2026-10-29): gagal gerbang, di-revert** (laporan `benchmarks/reports/m10-final.md`):
+- **Percobaan:** `close_ends` menyambung ujung dinding segaris yang berhadapan sampai 2.0 m.
+- **Hasil:** kebocoran turun sedikit (Gatsu `door_gap` 6 → 5), tapi `room_match` tidak naik di set mana pun. Kodenya disimpan di `3b60f35`.
+- **Kesimpulan:** kebocoran di Gatsu adalah gabungan beberapa celah per ruang, sehingga koreksi manusia (M8) tetap jalur utama. Perbaikan berikutnya ada di deteksi dinding tahap 3, dan sebaiknya diuji dengan denah nyata lain.
 
 ### Tugas — Deploy
 - [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
