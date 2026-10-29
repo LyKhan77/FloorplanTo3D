@@ -831,3 +831,14 @@ body {
 .editor__canvas--plan .review-canvas { flex: 1; width: 100%; height: 100%; }
 .editor__plan-note { position: absolute; top: 8px; left: 8px; display: flex; gap: 8px; align-items: center;
   background: #262626; padding: 4px 4px 4px 12px; color: #c6c6c6; font-size: 13px; z-index: 1; }
+.review-handle { fill: #f1c21b; stroke: #000; stroke-width: 30; cursor: pointer; }
+.review-handle.is-picked { fill: #42be65; }
+.review-tasks { margin-bottom: 16px; }
+.review-task { border-left: 3px solid transparent; margin: 0 -8px; padding: 2px 8px; }
+.review-task.is-active { border-left-color: #4589ff; background: #393939; }
+.review-task.is-done { opacity: .55; }
+.review-task__btn { all: unset; display: flex; gap: 8px; cursor: pointer; padding: 6px 0; color: #f4f4f4; font-size: 13px; width: 100%; }
+.review-task__btn:disabled { cursor: default; }
+.review-task__mark { width: 16px; height: 16px; flex: none; border: 2px solid #6f6f6f; border-radius: 50%; display: grid; place-items: center; font-size: 10px; }
+.review-task.is-done .review-task__mark { background: #42be65; border-color: #42be65; color: #000; }
+.review-task__tools { display: flex; gap: 8px; align-items: center; padding: 4px 0 8px 24px; flex-wrap: wrap; }

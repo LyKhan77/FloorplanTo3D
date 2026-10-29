@@ -26,6 +26,7 @@ def test_gap_between_collinear_dangling_ends():
     fix = gaps[0]["fix"]
     assert (tuple(fix["a"]), tuple(fix["b"])) == ((5000, 2000), (5000, 2900))
     assert fix["thickness"] == 100 and fix["kind"] == "interior"
+    assert fix["ends"] == [{"wall": "W5", "end": "b"}, {"wall": "W8", "end": "a"}]  # which wall end sits at a, at b
     assert gaps[0]["id"] == "gap:W5,W8" and gaps[0]["at"] == [5000, 2450]
 
 

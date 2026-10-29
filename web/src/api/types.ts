@@ -175,7 +175,8 @@ export interface ReviewTask {
   message: string
   at: [number, number]
   element_ids: string[]
-  fix: { a?: [number, number]; b?: [number, number]; thickness?: number; kind?: string }
+  fix: { a?: [number, number]; b?: [number, number]; thickness?: number; kind?: string
+    ends?: { wall: string; end: 'a' | 'b' }[] }
 }
 
 /** GET /backdrop: the newest page image and the px -> mm transform that lays it under the spec. */

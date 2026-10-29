@@ -5,7 +5,7 @@ import { pushOp } from './ops/compose'
 import { allIds } from './ops/ids'
 import { applyOps, type EditorOp, type OpFailure } from './ops/reducer'
 
-export type Tool = 'select' | 'distance' | 'room-area' | 'area' | 'height' | 'add-wall'
+export type Tool = 'select' | 'distance' | 'room-area' | 'area' | 'height' | 'add-wall' | 'close-gap' | 'guide-line'
 export type Mode = 'orbit' | 'top' | 'walk' | 'plan'  // plan: the 2D review canvas (M8)
 export type Gizmo = 'translate' | 'rotate' | 'scale'
 export type Layer = 'walls' | 'columns' | 'doors' | 'objects' | 'labels' | 'grid' | 'axes'
@@ -48,6 +48,7 @@ interface EditorState {
   dragging: Template | null
   gizmo: Gizmo
   wallDraft: { a?: [number, number]; b?: [number, number] }
+  activeTask: string | null  // M8 review: the task the canvas is focused on
   wallSpec: { thickness: number; kind: Wall['kind'] }
   focus: [number, number] | null
   saving: boolean
@@ -76,6 +77,7 @@ interface EditorState {
   setDragging(t: Template | null): void
   setGizmo(g: Gizmo): void
   setWallDraft(d: { a?: [number, number]; b?: [number, number] }): void
+  setActiveTask(id: string | null): void
   setWallSpec(w: { thickness: number; kind: Wall['kind'] }): void
   commitWallDraft(): boolean
   setFocus(p: [number, number] | null): void
@@ -116,10 +118,10 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     projectId: null, baseVersion: null, base: null, ops: [], past: [], future: [], view: null, failed: [],
     selection: [], tool: 'select', mode: 'orbit', snap: true, layers: { ...LAYERS }, cutaway: null,
     measurements: [], notice: null, saveIssues: [], cursor: null, hoverRoom: null, fps: null,
-    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, wallSpec: { thickness: 150, kind: 'partition' }, focus: null,
+    previewBanner: false, missingTemplates: [], dragging: null, gizmo: 'translate', wallDraft: {}, activeTask: null, wallSpec: { thickness: 150, kind: 'partition' }, focus: null,
     saving: false,
 
-    load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {},
+    load: (projectId, spec) => set({ ...fresh(spec), projectId, selection: [], measurements: [], notice: null, wallDraft: {}, activeTask: null,
       wallSpec: { thickness: spec.meta.defaults?.wall_thickness ?? 150, kind: 'partition' } }),
     apply: (op) => get().applyMany([op]),
     applyMany: (list) => {
@@ -179,6 +181,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     setGizmo: (gizmo) => set({ gizmo }),
     setWallDraft: (wallDraft) => set({ wallDraft }),
     setWallSpec: (wallSpec) => set({ wallSpec }),
+    setActiveTask: (activeTask) => set({ activeTask }),
     commitWallDraft: () => {
       const { wallDraft: { a, b }, wallSpec, apply } = get()
       if (!a || !b || (a[0] === b[0] && a[1] === b[1])) return false

@@ -16,7 +16,8 @@ import { useRegenerateFlow } from './useRegenerateFlow'
 import { useSave } from './useSave'
 import { useShortcuts } from './useShortcuts'
 import { useValidate } from './useValidate'
-import { ReviewCanvas } from './review/ReviewCanvas'
+import { ReviewWorkspace } from './review/ReviewWorkspace'
+import { TasksPanel } from './review/TasksPanel'
 import { useBackdrop } from './review/useBackdrop'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
@@ -73,7 +74,12 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
         onSave={onSave} saving={saver.saving} onRegenerate={() => flow.regenerate()} regen={flow} />
       {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
-      {left && <aside className="editor__library" aria-label="Library template"><LibraryPanel templates={data.templates} /></aside>}
+      {left && (
+        <aside className="editor__library" aria-label="Library template">
+          {(data.shellUrl === null || mode === 'plan') && <TasksPanel projectId={projectId} tasks={validation.tasks} />}
+          <LibraryPanel templates={data.templates} />
+        </aside>
+      )}
       <div className="editor__viewport">
         <div className="editor__banners">
         {data.stale && data.shellVersion !== null && (
@@ -111,7 +117,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
                 <Button size="sm" kind="ghost" disabled={regenerate.isPending} onClick={() => regenerate.mutate('HEAD')}>Regenerate</Button>
               </div>
             )}
-            <ReviewCanvas rooms={validation.rooms ?? view?.rooms ?? []} tasks={validation.tasks} backdrop={backdrop} />
+            <ReviewWorkspace projectId={projectId} rooms={validation.rooms ?? view?.rooms ?? []} tasks={validation.tasks} backdrop={backdrop} />
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>

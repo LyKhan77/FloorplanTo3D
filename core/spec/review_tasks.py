@@ -28,7 +28,7 @@ def _unit(a, b):
 
 
 def _dangling(spec: Spec) -> list[tuple]:
-    """(wall, point, outward unit) of every end that touches nothing."""
+    """(wall, point, outward unit, "a" | "b") of every end that touches nothing."""
     out = []
     for w in spec.walls:
         if not math.dist(w.a, w.b):
@@ -36,7 +36,7 @@ def _dangling(spec: Spec) -> list[tuple]:
         u = _unit(w.a, w.b)
         for end, p, d in (("a", w.a, (-u[0], -u[1])), ("b", w.b, u)):
             if not endpoint_connected(spec, w, end):
-                out.append((w, tuple(p), d))
+                out.append((w, tuple(p), d, end))
     return out
 
 
@@ -50,8 +50,8 @@ def _gaps(spec: Spec) -> list[dict]:
             doors.append(Point(w.a[0] + t * (w.b[0] - w.a[0]), w.a[1] + t * (w.b[1] - w.a[1])))
     ends = _dangling(spec)
     pairs = []
-    for i, (w1, p1, d1) in enumerate(ends):
-        for w2, p2, d2 in ends[i + 1:]:
+    for i, (w1, p1, d1, e1) in enumerate(ends):
+        for w2, p2, d2, e2 in ends[i + 1:]:
             if w1.id == w2.id or abs(d1[0] * d2[1] - d1[1] * d2[0]) > math.sin(math.radians(PARALLEL_DEG)):
                 continue
             v = (p2[0] - p1[0], p2[1] - p1[1])
@@ -63,9 +63,9 @@ def _gaps(spec: Spec) -> list[dict]:
             seg = LineString([p1, p2])
             if any(seg.distance(c) <= max(w1.thickness, w2.thickness) / 2 + 1 for c in doors):
                 continue
-            pairs.append((along, w1, p1, w2, p2))
+            pairs.append((along, w1, p1, e1, w2, p2, e2))
     used, out = set(), []
-    for along, w1, p1, w2, p2 in sorted(pairs, key=lambda t: t[0]):
+    for along, w1, p1, e1, w2, p2, e2 in sorted(pairs, key=lambda t: t[0]):
         if (w1.id, p1) in used or (w2.id, p2) in used:
             continue
         used |= {(w1.id, p1), (w2.id, p2)}
@@ -74,7 +74,8 @@ def _gaps(spec: Spec) -> list[dict]:
                     "message": f"Celah {along / 1000:.1f} m di antara ujung dinding segaris",
                     "at": [round((p1[0] + p2[0]) / 2), round((p1[1] + p2[1]) / 2)], "element_ids": ids,
                     "fix": {"a": [round(v) for v in p1], "b": [round(v) for v in p2],
-                            "thickness": round((w1.thickness + w2.thickness) / 2), "kind": w1.kind}})
+                            "thickness": round((w1.thickness + w2.thickness) / 2), "kind": w1.kind,
+                            "ends": [{"wall": w1.id, "end": e1}, {"wall": w2.id, "end": e2}]}})
     return out
 
 

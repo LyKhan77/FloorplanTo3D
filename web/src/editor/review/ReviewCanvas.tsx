@@ -41,6 +41,14 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
   const [box, setBox] = useState<Box | null>(null)
   const vb = box ?? home
   const [drag, setDrag] = useState<{ kind: 'pan' | 'marquee'; a: [number, number]; b: [number, number] } | null>(null)
+  // a task picked in the list (or any setFocus) recentres the canvas, keeping a readable 12 m wide window
+  const focus = useEditorStore((s) => s.focus)
+  const [seenFocus, setSeenFocus] = useState(focus)
+  if (focus && focus !== seenFocus) {  // derived state: recentre once per setFocus call
+    setSeenFocus(focus)
+    const [x, y] = svgPoint(focus)
+    setBox([x - 6000, y - 4000, 12000, 8000])
+  }
   const leak = useMemo(() => new Set(tasks.filter((t) => t.kind === 'leak').flatMap((t) => t.element_ids)), [tasks])
   const sel = useMemo(() => new Set(selection), [selection])
 
