@@ -169,25 +169,3 @@ def test_collinear_gap_is_closed_from_both_sides_to_the_middle():
     west = next(w for w in s.walls if w.a == (0, 2500))
     east = next(w for w in s.walls if w.b == (8000, 2500))
     assert west.b == (3450, 2500) and east.a == (3450, 2500)  # they meet halfway, no overlap
-
-
-# --- M10: collinear wall ends facing each other across a wide (door) gap -----------------------------------------
-
-def test_collinear_ends_close_across_a_two_metre_gap():
-    """Gatsu R29/R33: two pieces of one wall stop 1.4 m apart around a door the extraction missed; beyond the 1.2 m
-    reach, so the rooms leaked. Facing collinear ends now meet up to 2 m apart."""
-    el = box_elements()
-    el["walls"][4:5] = [wall((4000, 0), (4000, 1800), 100, "partition"), wall((4000, 3600), (4000, 5000), 100, "partition")]
-    el["openings"] = [door(0, 1000), door(0, 5500)]
-    labels = [RoomLabel((2000, 2500), "PANTRY", "pantry"), RoomLabel((6000, 2500), "GUDANG", "storage")]
-    spec, issues = assemble_spec(el, GRID, labels, META)
-    assert sorted(r.type for r in spec.rooms) == ["pantry", "storage"] and issues == []
-
-
-def test_a_lone_end_still_reaches_only_1200_mm():
-    """A dangling end with no collinear partner keeps the 1.2 m reach: 1.6 m from the next wall stays open."""
-    el = box_elements()
-    el["walls"][4] = wall((4000, 0), (4000, 3400), 100, "partition")  # 1.6 m short of the far wall, no partner
-    el["openings"] = [door(0, 1000), door(0, 5500)]
-    spec, _ = assemble_spec(el, GRID, [], META)
-    assert len(spec.rooms) == 1

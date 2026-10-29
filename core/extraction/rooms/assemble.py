@@ -16,8 +16,6 @@ from core.spec.rooms import RoomLabel, rebuild_rooms
 BAND_MAX_MM = 2000  # an unlabelled strip this narrow along the outline is the outer band (§2b): outdoor
 NECK_MM = 600
 CLOSE_REACH_MM = 1200  # dangling wall ends are extended this far to meet the next wall (rooms must close)
-# a collinear piece of the same wall facing the end: further (Gatsu R29/R33, 1.4 m around a missed door)
-COLLINEAR_REACH_MM = 2000
 CLOSED_CONF = 0.55  # a wall extended by more than CLOSE_REVIEW_MM goes to review
 CLOSE_REVIEW_MM = 300
 SITE_TYPES = ("data_hall", "data_center", "office", "mixed", "other")
@@ -64,16 +62,13 @@ def close_ends(spec: Spec, reach_mm: float = CLOSE_REACH_MM) -> Spec:
             if endpoint_connected(spec, w, end):
                 continue
             p = w.a if end == "a" else w.b
-            far = max(reach_mm, COLLINEAR_REACH_MM)
-            ray = LineString([p, (p[0] + sign * ux * far, p[1] + sign * uy * far)])
+            ray = LineString([p, (p[0] + sign * ux * reach_mm, p[1] + sign * uy * reach_mm)])
             hits = [(Point(p).distance(ray.intersection(fp)), half, oid) for oid, fp, half in solids
                     if oid != w.id and ray.intersects(fp)]
             if not hits or any(d <= 1 for d, _, _ in hits):
                 continue  # nothing within reach, or the end already sits on a wall face (a thin wall on a thick one)
             d, half, oid = min(hits, key=lambda h: (h[0], h[2] or ""))
             host = walls.get(oid)
-            if d > reach_mm and not (host is not None and _parallel(w, host)):
-                continue  # beyond the normal reach only a collinear piece of the same wall is met
             if host is not None and _parallel(w, host):
                 # a collinear gap: both dangling ends move, so each goes halfway; a closed partner end is met in full
                 facing = min(("a", "b"), key=lambda e: math.dist(p, host.a if e == "a" else host.b))
