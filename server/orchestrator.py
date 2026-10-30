@@ -179,7 +179,7 @@ def _verify(ctx: StageContext) -> dict:
     s["verify"] = v
     status = {"needs_attention": "needs_attention", "failed": "failed"}.get(v["status"], "succeeded")
     return {"status": status, "warnings": v["warnings"],
-            "metrics": {"iou": v["iou"], "glb_max_err_mm": v["glb_check"]["max_err_mm"]}}
+            "metrics": {"fit": v["drawing_fit"]["fit"], "iou": v["iou"], "glb_max_err_mm": v["glb_check"]["max_err_mm"]}}
 
 
 def _report(ctx: StageContext) -> dict:

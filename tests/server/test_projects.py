@@ -50,3 +50,19 @@ def test_patch_and_delete(client, plan_bytes):
     assert client.delete(f"/api/projects/{pid}").status_code == 400
     assert client.delete(f"/api/projects/{pid}?confirm=true").status_code == 200
     assert client.get(f"/api/projects/{pid}").status_code == 404
+
+
+def test_list_shows_drawing_fit_of_latest_output(client, data_dir, plan_bytes):
+    """The list's quality column is the drawing fit; outputs from before it still show their IoU."""
+    pid = _create(client, plan_bytes, name="fit").json()["project_id"]
+    d = data_dir / "projects" / pid
+    for v, verify in ((1, {"iou": 0.71}), (2, {"iou": 0.67, "drawing_fit": {"fit": 0.98}})):
+        out = d / "outputs" / f"v{v}"
+        out.mkdir(parents=True)
+        (out / "shell.glb").write_bytes(b"glb")
+        (out / "verify.json").write_text(json.dumps(verify))
+    item = client.get("/api/projects").json()["items"][0]
+    assert (item["fit"], item["iou"]) == (0.98, 0.67)
+    (d / "outputs" / "v2" / "shell.glb").unlink()
+    item = client.get("/api/projects").json()["items"][0]
+    assert (item["fit"], item["iou"]) == (None, 0.71)

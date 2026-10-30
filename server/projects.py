@@ -111,13 +111,14 @@ def summary(storage: Storage, pid: str) -> dict:
     if head:
         f = d / "specs" / f"spec.v{head}.json"
         score = _score(str(f), f.stat().st_mtime)
-    iou = None
+    iou = fit = None
     versions = output_versions(storage, pid)
     if versions and (d / "outputs" / f"v{versions[0]}" / "verify.json").exists():
-        iou = json.loads((d / "outputs" / f"v{versions[0]}" / "verify.json").read_text()).get("iou")
+        verify = json.loads((d / "outputs" / f"v{versions[0]}" / "verify.json").read_text())
+        iou, fit = verify.get("iou"), (verify.get("drawing_fit") or {}).get("fit")
     return {"project_id": pid, "name": project["name"], "floor": project.get("params", {}).get("floor_name"),
             "status": run["status"] if run else project.get("status", "new"), "active_stage": active,
-            "validator_score": score, "iou": iou, "head_version": head, "updated_at": project["updated_at"]}
+            "validator_score": score, "iou": iou, "fit": fit, "head_version": head, "updated_at": project["updated_at"]}
 
 
 _touch_locks: defaultdict[str, threading.Lock] = defaultdict(threading.Lock)

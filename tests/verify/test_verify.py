@@ -25,11 +25,36 @@ def test_iou_tolerates_one_pixel_shift():
 
 
 def test_status_thresholds():
-    assert verify_status(True, 0.9) == ("succeeded", [])
-    status, warnings = verify_status(True, 0.8)
-    assert status == "succeeded" and warnings
-    assert verify_status(True, 0.6)[0] == "needs_attention" and verify_status(False, 0.95)[0] == "failed"
+    """Drawing fit and glb 1:1 decide the status; IoU is information only."""
+    assert verify_status(True, 0.95) == ("succeeded", [])
+    status, warnings = verify_status(True, 0.85)
+    assert status == "needs_attention" and "0.850" in warnings[0]
+    assert verify_status(False, 0.95)[0] == "failed"
     assert verify_status(True, None) == ("succeeded", [])
+
+
+def test_verify_scores_the_model_against_the_drawing(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    import core.verify.run as run_mod
+    from core.spec.models import Spec
+
+    monkeypatch.setattr(run_mod, "glb_check", lambda path, doc: {"pass": True, "max_err_mm": 0, "checked": 0})
+    gt = Spec.model_validate(json.loads(Path("benchmarks/gatsu/gt_spec.json").read_text()))
+    v = run_verify(tmp_path, gt, {}, Path("floorplan/plan.jpeg"))
+    assert v["drawing_fit"]["fit"] >= 0.90 and v["fit_threshold"] == 0.90 and v["status"] == "succeeded"
+    assert "2 dinding tidak di atas garis gambar: W30, W64" in v["warnings"]
+
+
+def test_low_iou_alone_does_not_need_attention(tmp_path, monkeypatch):
+    import core.verify.run as run_mod
+
+    plan, mask = fake_render(tmp_path, monkeypatch)
+    cv2.imwrite(str(mask), np.zeros((200, 300), np.uint8))  # the extractor saw no wall where the model has one
+    monkeypatch.setattr(run_mod, "drawing_fit", lambda spec, gray: {"fit": 0.97, "walls_off": [], "checked": 5,
+                                                                     "tolerance_mm": 50})
+    v = run_verify(tmp_path, spec_with_rooms(), {}, plan, plan_mask_path=mask)
+    assert v["iou"] < 0.1 and v["status"] == "succeeded"
 
 
 def test_plan_mask_fills_double_line_wall():
