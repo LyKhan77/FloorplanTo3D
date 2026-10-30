@@ -44,6 +44,8 @@ export interface ApiEvent {
   data: Record<string, unknown>
 }
 
+export interface InstallationState { head: number; layout_version: number; layout_changed: boolean }
+
 export interface ProjectSummary {
   project_id: string
   name: string
@@ -53,6 +55,7 @@ export interface ProjectSummary {
   validator_score: number | null
   iou: number | null
   fit?: number | null
+  installation?: InstallationState | null
   head_version: number | null
   updated_at: string
 }
@@ -67,6 +70,7 @@ export interface ProjectDetail {
   latest_run: Run | null
   head: number | null
   outputs: number[]
+  installation?: InstallationState | null
   summary: ProjectSummary
 }
 
