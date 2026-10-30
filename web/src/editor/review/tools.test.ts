@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { ReviewTask } from '../../api/types'
 import type { Spec, Wall } from '../../types/spec'
-import { applyOps } from '../ops/reducer'
-import { closeGapOps, doorAtOps, guideLineOps } from './tools'
+import { applyOps, type EditorOp } from '../ops/reducer'
+import { closeGapOps, doorOps, guideLineOps } from './tools'
 
 const gt = gtJson as unknown as Spec
 const wall = (id: string, a: [number, number], b: [number, number]) =>
@@ -69,28 +69,43 @@ describe('review tools', () => {
   })
 })
 
-describe('doorAtOps', () => {
+describe('doorOps', () => {
+  const door = { id: 'D900', wall_id: 'W900', category: 'door', offset: 3000, width: 800, sill: 0 }
   const spec = () => {
     const s = structuredClone(gt)
-    s.walls = [...s.walls!, wall('W900', [50000, 0], [54000, 0]), wall('W901', [60000, 0], [60800, 0]), wall('W902', [70000, 0], [70500, 0])]
+    s.walls = [...s.walls!, wall('W900', [50000, 0], [54000, 0]), wall('W903', [54900, 0], [58000, 0]),
+      wall('W901', [60000, 0], [60800, 0]), wall('W902', [70000, 0], [70500, 0])]
+    s.openings = [...s.openings!, door as never]
     return s
   }
-  it('puts a 900 mm door centred on the click, on the wall under it', () => {
-    const op = doorAtOps(spec(), [52000, 80])
-    expect(op).toEqual({ op: 'add_opening', wall_id: 'W900', category: 'door', offset: 1550, width: 900,
-      door_type: 'single_swing', hinge: 'start', swing: 'left' })
-    expect(applyOps(spec(), [op!]).failed).toEqual([])
+  const DOOR = { category: 'door', door_type: 'single_swing', hinge: 'start', swing: 'left' }
+
+  it('a click puts a 900 mm door centred on it, on the wall under it', () => {
+    const r = doorOps(spec(), [52000, 80], [52000, 80])
+    expect(r).toEqual({ ops: [{ op: 'add_opening', wall_id: 'W900', offset: 1550, width: 900, ...DOOR }] })
+    expect(applyOps(spec(), (r as { ops: EditorOp[] }).ops).failed).toEqual([])
   })
-  it('keeps 50 mm from either wall end', () => {
-    expect(doorAtOps(spec(), [50100, 0])).toMatchObject({ offset: 50 })
-    expect(doorAtOps(spec(), [53990, 0])).toMatchObject({ offset: 4000 - 900 - 50 })
+  it('a click keeps 50 mm from the wall ends, narrows on a short wall, refuses a wall under 700 mm', () => {
+    expect(doorOps(spec(), [57990, 0], [57990, 0])).toMatchObject({ ops: [{ wall_id: 'W903', offset: 3100 - 900 - 50 }] })
+    expect(doorOps(spec(), [60400, 0], [60400, 0])).toMatchObject({ ops: [{ wall_id: 'W901', offset: 50, width: 700 }] })
+    expect(doorOps(spec(), [70250, 0], [70250, 0])).toHaveProperty('error')
   })
-  it('narrows the door on a short wall, and refuses walls too short for 600 mm', () => {
-    expect(doorAtOps(spec(), [60400, 0])).toMatchObject({ wall_id: 'W901', offset: 50, width: 700 })
-    expect(doorAtOps(spec(), [70250, 0])).toBeNull()
+  it('a click off every wall or on an existing opening only says so', () => {
+    expect(doorOps(spec(), [52000, 1000], [52000, 1000])).toHaveProperty('error')
+    expect(doorOps(spec(), [53400, 0], [53400, 0])).toMatchObject({ error: expect.stringMatching(/bukaan/) })
   })
-  it('refuses a click away from every wall', () => {
-    expect(doorAtOps(spec(), [52000, 1000])).toBeNull()
+  it('a line along a wall is the door: its ends set offset and width, in either direction', () => {
+    const want = { ops: [{ op: 'add_opening', wall_id: 'W900', offset: 1000, width: 1000, ...DOOR }] }
+    expect(doorOps(spec(), [51000, 100], [52000, 90])).toEqual(want)
+    expect(doorOps(spec(), [52000, 90], [51000, 100])).toEqual(want)
+  })
+  it('a line over an existing door moves and resizes that door instead of stacking a second one', () => {
+    expect(doorOps(spec(), [52900, 0], [53900, 0])).toEqual({ ops: [{ op: 'set_door', id: 'D900', offset: 2900, width: 1000 }] })
+  })
+  it('a line across a gap closes it with a new wall that carries the door, its ends snapped to the walls', () => {
+    const r = doorOps(spec(), [54050, 30], [54850, -20])
+    expect(r).toEqual({ ops: [{ op: 'add_wall', a: [54000, 0], b: [54900, 0], thickness: 150, kind: 'partition',
+      openings: [{ offset: 50, width: 800, ...DOOR }] }] })
+    expect(applyOps(spec(), (r as { ops: EditorOp[] }).ops).failed).toEqual([])
   })
 })
-

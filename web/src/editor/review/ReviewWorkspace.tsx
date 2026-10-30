@@ -6,7 +6,7 @@ import type { Room } from '../../types/spec'
 import { useEditorStore } from '../store'
 import { svgPoint } from './planTransform'
 import { ReviewCanvas } from './ReviewCanvas'
-import { closeGapOps, doorAtOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
+import { closeGapOps, doorOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
 
 type Pt = [number, number]
 
@@ -41,20 +41,18 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       }
       return true
     }
-    if (tool === 'add-door' && e.button <= 0) {
-      if (kind === 'up') {
-        const s = useEditorStore.getState(), op = doorAtOps(s.view!, mm)
-        if (op) s.apply(op)
-        else s.setNotice({ kind: 'warning', text: 'Klik di atas dinding yang panjangnya minimal 700 mm' })
-      }
-      return true
-    }
-    if (tool !== 'guide-line' || e.button > 0) return false
+    if ((tool !== 'guide-line' && tool !== 'add-door') || e.button > 0) return false
     if (kind === 'down') setRough({ a: mm, b: mm })
     else if (kind === 'move' && rough) setRough({ ...rough, b: mm })
-    else if (kind === 'up' && rough) {
+    else if (kind === 'up') {
+      const a = rough?.a ?? mm
       setRough(null)
-      if (Math.hypot(mm[0] - rough.a[0], mm[1] - rough.a[1]) > 300) void snapGuide(projectId, rough.a, mm)
+      if (tool === 'add-door') {
+        // a click places a 900 mm door; a line from jamb to jamb is the door (on a wall, over a door, or across a gap)
+        const s = useEditorStore.getState(), r = doorOps(s.view!, a, mm, s.wallSpec.thickness)
+        if ('error' in r) s.setNotice({ kind: 'warning', text: r.error })
+        else s.applyMany(r.ops)
+      } else if (Math.hypot(mm[0] - a[0], mm[1] - a[1]) > 300) void snapGuide(projectId, a, mm)
     }
     return true
   }
@@ -89,7 +87,7 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       })}
       {rough && (() => {
         const [a, b] = [svgPoint(rough.a), svgPoint(rough.b)]
-        return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#42be65" strokeWidth={80} strokeDasharray="200 120" />
+        return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={tool === 'add-door' ? '#ff832b' : '#42be65'} strokeWidth={80} strokeDasharray="200 120" />
       })()}
       {tool === 'add-wall' && draft.a && (() => {
         const [x, y] = svgPoint(draft.a)
@@ -100,4 +98,4 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   )
 }
 
-const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu baru', 'D']]
+const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D']]

@@ -43,24 +43,75 @@ export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { 
 
 const DOOR_MM = 900
 const HIT_MM = 300  // a click this close to a wall's centre line lands on it
+const LINE_HIT_MM = 400  // a door line's midpoint this close to a roughly parallel wall lies on it
+const PARALLEL = Math.cos((15 * Math.PI) / 180)
+const CLICK_MM = 300  // a shorter drag is a click
+const DOOR = { category: 'door' as const, door_type: 'single_swing' as const, hinge: 'start' as const, swing: 'left' as const }
 
-/** "Pintu baru": a 900 mm single door centred on the click, on the nearest wall; narrower on a short wall; null when
- *  the click is off every wall or the wall cannot hold 600 mm plus V008's end margins. */
-export function doorAtOps(view: Spec, p: Pt): EditorOp | null {
-  let best: { id: string; len: number; t: number; d: number } | null = null
+type Hit = { id: string; a: Pt; len: number; u: Pt; d: number }
+const along = (h: Hit, p: Pt) => (p[0] - h.a[0]) * h.u[0] + (p[1] - h.a[1]) * h.u[1]
+
+/** Nearest wall to p within `max` mm whose direction is within 15 degrees of `dir` (any wall when dir is null). */
+function nearestWall(view: Spec, p: Pt, max: number, dir: Pt | null): Hit | null {
+  let best: Hit | null = null
   for (const w of view.walls ?? []) {
-    const dx = w.b[0] - w.a[0], dy = w.b[1] - w.a[1], len = Math.hypot(dx, dy)
+    const len = Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1])
     if (!len) continue
-    const t = Math.min(len, Math.max(0, ((p[0] - w.a[0]) * dx + (p[1] - w.a[1]) * dy) / len))
-    const d = Math.hypot(w.a[0] + (dx * t) / len - p[0], w.a[1] + (dy * t) / len - p[1])
-    if (d <= HIT_MM && (!best || d < best.d)) best = { id: w.id, len, t, d }
+    const h: Hit = { id: w.id, a: w.a as Pt, len, u: [(w.b[0] - w.a[0]) / len, (w.b[1] - w.a[1]) / len], d: 0 }
+    if (dir && Math.abs(dir[0] * h.u[0] + dir[1] * h.u[1]) < PARALLEL) continue
+    const t = Math.min(len, Math.max(0, along(h, p)))
+    h.d = Math.hypot(h.a[0] + h.u[0] * t - p[0], h.a[1] + h.u[1] * t - p[1])
+    if (h.d <= max && (!best || h.d < best.d)) best = h
   }
-  if (!best) return null
-  const room = Math.floor(best.len) - 2 * END_MARGIN_MM
-  const width = Math.min(DOOR_MM, room)
-  if (width < DOOR_MIN_MM) return null
-  const offset = Math.round(Math.min(room - width, Math.max(0, best.t - width / 2 - END_MARGIN_MM))) + END_MARGIN_MM
-  return { op: 'add_opening', wall_id: best.id, category: 'door', offset, width, door_type: 'single_swing', hinge: 'start', swing: 'left' }
+  return best
+}
+
+/** A gap door's wall end: the nearest wall end within reach, else the nearest point on a wall, else where drawn. */
+function snapEnd(view: Spec, p: Pt): Pt {
+  const ends = (view.walls ?? []).flatMap((w) => [w.a, w.b] as Pt[])
+  const end = ends.reduce<Pt | null>((b, e) => (Math.hypot(e[0] - p[0], e[1] - p[1]) <= LINE_HIT_MM
+    && (!b || Math.hypot(e[0] - p[0], e[1] - p[1]) < Math.hypot(b[0] - p[0], b[1] - p[1])) ? e : b), null)
+  if (end) return [end[0], end[1]]
+  const h = nearestWall(view, p, LINE_HIT_MM, null)
+  if (!h) return [Math.round(p[0]), Math.round(p[1])]
+  const t = Math.min(h.len, Math.max(0, along(h, p)))
+  return [Math.round(h.a[0] + h.u[0] * t), Math.round(h.a[1] + h.u[1] * t)]
+}
+
+/**
+ * "Pintu" tool. A click puts a 900 mm door centred on the wall under it. A line (hinge side to the far jamb) is the
+ * door: along a wall it sets offset and width, over an existing door it moves and resizes that door, and across a
+ * gap it becomes a new wall carrying the door. V008's 50 mm end margins hold; nothing stacks on another opening.
+ */
+export function doorOps(view: Spec, a: Pt, b: Pt, thickness = 150): { ops: EditorOp[] } | { error: string } {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1])
+  const click = len < CLICK_MM
+  const mid: Pt = click ? a : [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+  const h = nearestWall(view, mid, click ? HIT_MM : LINE_HIT_MM, click ? null : [(b[0] - a[0]) / len, (b[1] - a[1]) / len])
+  if (!h && click) return { error: 'Klik di atas dinding, atau tarik garis pintu' }
+  const lo0 = END_MARGIN_MM, hi0 = Math.floor(h?.len ?? 0) - END_MARGIN_MM
+  let lo: number, hi: number
+  if (click) {
+    const width = Math.min(DOOR_MM, hi0 - lo0)
+    if (width < DOOR_MIN_MM) return { error: 'Dinding terlalu pendek untuk pintu (< 700 mm)' }
+    lo = Math.round(Math.min(hi0 - width, Math.max(lo0, along(h!, a) - width / 2)))
+    hi = lo + width
+  } else {
+    const [ta, tb] = h ? [along(h, a), along(h, b)].sort((x, y) => x - y) : [0, 0]
+    lo = Math.round(Math.max(lo0, ta))
+    hi = Math.round(Math.min(hi0, tb))
+    if (!h || hi - lo < DOOR_MIN_MM) {
+      const [p, q] = [snapEnd(view, a), snapEnd(view, b)]
+      const width = Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1])) - 2 * END_MARGIN_MM
+      if (width < DOOR_MIN_MM) return { error: 'Garis pintu terlalu pendek (< 700 mm)' }
+      return { ops: [{ op: 'add_wall', a: p, b: q, thickness, kind: 'partition', openings: [{ offset: END_MARGIN_MM, width, ...DOOR }] }] }
+    }
+  }
+  const hits = (view.openings ?? []).filter((o) => o.wall_id === h!.id && lo < o.offset + o.width && hi > o.offset)
+  if (hits.length === 0) return { ops: [{ op: 'add_opening', wall_id: h!.id, offset: lo, width: hi - lo, ...DOOR }] }
+  if (click) return { error: 'Sudah ada bukaan di sini; tarik garis di atasnya untuk memindah atau mengubah lebarnya' }
+  if (hits.length > 1 || hits[0].category !== 'door') return { error: 'Garis pintu menimpa jendela atau lebih dari satu bukaan' }
+  return { ops: [{ op: 'set_door', id: hits[0].id, offset: lo, width: hi - lo }] }
 }
 
 export const DOOR_SKIPPED_TEXT: Record<Exclude<DoorSkipped, null>, string> = {
