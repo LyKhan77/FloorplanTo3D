@@ -34,14 +34,14 @@ def _runs(ink: np.ndarray, offsets: np.ndarray) -> list[float]:
     return out
 
 
-def _vote(samples: list[tuple[float, list[tuple]]], need: float) -> list[tuple[float, tuple]] | None:
+def _vote(samples: list[tuple[float, list[tuple]]], need: float, askew: float = ASKEW) -> list[tuple[float, tuple]] | None:
     """Per sample, the candidate closest to the one most samples share (ties: nearest the rough line). The offset
     window widens along the line by ASKEW, so a rough line up to 2 degrees off the wall still agrees with itself."""
     cands = [(t, c) for t, cs in samples for c in cs]
     if not cands:
         return None
     def near(tc, c, td, d) -> bool:
-        return abs(c[0] - d[0]) <= INLIER_MM + ASKEW * abs(td - tc) and all(abs(x - y) <= INLIER_MM for x, y in zip(c[1:], d[1:]))
+        return abs(c[0] - d[0]) <= INLIER_MM + askew * abs(td - tc) and all(abs(x - y) <= INLIER_MM for x, y in zip(c[1:], d[1:]))
     tb, best = max(cands, key=lambda tc: (sum(any(near(*tc, t, d) for d in cs) for t, cs in samples), -abs(tc[1][0])))
     picked = []
     for t, cs in samples:
