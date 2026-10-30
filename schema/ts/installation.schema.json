@@ -141,6 +141,14 @@
           "title": "Default Mounting",
           "type": "string"
         },
+        "id_seq": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "title": "Id Seq",
+          "type": "object"
+        },
         "layout_version": {
           "title": "Layout Version",
           "type": "integer"

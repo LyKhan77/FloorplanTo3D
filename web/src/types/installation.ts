@@ -91,12 +91,16 @@ export interface InstallMeta {
   ceiling_height?: CeilingHeight;
   created_at?: CreatedAt;
   default_mounting?: DefaultMounting;
+  id_seq?: IdSeq;
   layout_version: LayoutVersion;
   message?: Message;
   parent_version?: ParentVersion;
   raised_floor_height?: RaisedFloorHeight;
   source?: Source1;
   version?: Version;
+}
+export interface IdSeq {
+  [k: string]: number;
 }
 export interface PlacedObject {
   dims: Dims;

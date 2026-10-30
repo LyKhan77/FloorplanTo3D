@@ -57,6 +57,7 @@ class InstallMeta(_Model):
     created_at: datetime | None = None
     source: Literal["editor", "auto", "migration"] = "editor"
     message: str = ""
+    id_seq: dict[str, int] = {}  # highest ID number ever given per prefix: deleted IDs are never reused
 
 
 class Installation(_Model):
