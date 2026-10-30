@@ -3,7 +3,7 @@ import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { ReviewTask } from '../../api/types'
 import type { Spec, Wall } from '../../types/spec'
 import { applyOps } from '../ops/reducer'
-import { closeGapOps, guideLineOps } from './tools'
+import { closeGapOps, doorAtOps, guideLineOps } from './tools'
 
 const gt = gtJson as unknown as Spec
 const wall = (id: string, a: [number, number], b: [number, number]) =>
@@ -64,3 +64,29 @@ describe('review tools', () => {
       [{ op: 'add_wall', a: [0, 0], b: [3000, 0], thickness: 150, kind: 'partition' }])
   })
 })
+
+describe('doorAtOps', () => {
+  const spec = () => {
+    const s = structuredClone(gt)
+    s.walls = [...s.walls!, wall('W900', [50000, 0], [54000, 0]), wall('W901', [60000, 0], [60800, 0]), wall('W902', [70000, 0], [70500, 0])]
+    return s
+  }
+  it('puts a 900 mm door centred on the click, on the wall under it', () => {
+    const op = doorAtOps(spec(), [52000, 80])
+    expect(op).toEqual({ op: 'add_opening', wall_id: 'W900', category: 'door', offset: 1550, width: 900,
+      door_type: 'single_swing', hinge: 'start', swing: 'left' })
+    expect(applyOps(spec(), [op!]).failed).toEqual([])
+  })
+  it('keeps 50 mm from either wall end', () => {
+    expect(doorAtOps(spec(), [50100, 0])).toMatchObject({ offset: 50 })
+    expect(doorAtOps(spec(), [53990, 0])).toMatchObject({ offset: 4000 - 900 - 50 })
+  })
+  it('narrows the door on a short wall, and refuses walls too short for 600 mm', () => {
+    expect(doorAtOps(spec(), [60400, 0])).toMatchObject({ wall_id: 'W901', offset: 50, width: 700 })
+    expect(doorAtOps(spec(), [70250, 0])).toBeNull()
+  })
+  it('refuses a click away from every wall', () => {
+    expect(doorAtOps(spec(), [52000, 1000])).toBeNull()
+  })
+})
+

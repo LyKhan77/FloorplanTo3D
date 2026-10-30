@@ -57,7 +57,9 @@ Buka <http://localhost:5173>.
 3. **Buka review.** Di tab Pipeline, buka tahap 5, lalu klik "Buka review". Kanvas review 2D menampilkan hasil ekstraksi di atas gambar asli. Kerjakan daftar **Tugas review** di panel kiri:
    - **Celah terbuka:** klik tugas, lalu klik kedua titik kuning atau tombol "Tutup celah". Centang "Pasang pintu" bila celah itu pintu.
    - **Ruang bocor dan dinding hilang:** pakai Garis bantu (`L`). Tarik garis kasar di atas dinding yang hilang, dan sistem menempelkannya ke garis di gambar. Bila tidak ada garis yang bisa ditempeli, pakai Dinding baru (`W`): klik, klik, berantai, lalu `Esc` untuk berhenti.
-   - **Dinding lepas atau palsu:** tarik kotak (marquee), lalu "Hapus N dinding".
+   - **Dinding lepas atau palsu:** klik dinding (atau tarik kotak / Shift-klik untuk banyak), lalu tekan `Delete`/`Backspace`. `Ctrl+Z` membatalkan. Untuk mencatat alasan, pakai "Hapus dinding" / "Hapus N dinding" di panel kanan.
+   - **Pintu:** pintu digambar oranye, jendela biru. Pintu baru (`D`): klik di atas dinding, dan pintu 900 mm dipasang di titik itu. Pintu yang salah posisi: klik pintunya, lalu ubah Offset, Lebar, atau Tipe (`double_swing` untuk pintu ganda) di panel kanan.
+   - **Tangga:** digambar kuning bergaris per anak tangga. Klik untuk mengubah jumlah anak tangga, lebar, atau arah naik. Menambah tangga baru belum tersedia.
    - **Tipe ruang:** klik ruang, lalu pilih tipe. Untuk banyak ruang sekaligus, pakai Shift-klik, lalu "Tipe semua ruang".
 4. **Setujui.** Klik "Setujui & build 3D". Koreksi disimpan sebagai versi spec baru, lalu tahap 6–10 berjalan. Tugas yang belum selesai tercatat di run sebagai `review_open`. Review juga bisa dibatalkan ("Batalkan review"), dan run itu tidak dibangun.
 5. **Hasil.** Tab Outputs berisi unduhan model, render, dan dokumen. Tab Versions menyimpan riwayat spec, dan versi mana pun bisa di-regenerate.

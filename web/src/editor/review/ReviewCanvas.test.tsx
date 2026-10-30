@@ -19,6 +19,17 @@ describe('ReviewCanvas', () => {
     expect(st().selection).toEqual([walls[0].getAttribute('data-wall')])
   })
 
+  it('draws stairs (clickable) and columns, and doors in a colour unlike the dark background', () => {
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    const flights = container.querySelectorAll('[data-stair]')
+    expect(flights).toHaveLength(gt.stairs!.flatMap((x) => x.flights).length)
+    fireEvent.click(flights[0])
+    expect(st().selection).toEqual([gt.stairs![0].id])
+    expect(container.querySelectorAll('[data-column]')).toHaveLength(gt.columns!.length)
+    const door = container.querySelector(`[data-opening="${gt.openings!.find((o) => o.category === 'door')!.id}"]`)!
+    expect(door.getAttribute('stroke')).not.toBe('#0b0b0b')
+  })
+
   it('marks the rooms of a leak task', () => {
     const r = gt.rooms![0]
     const leak = { id: `leak:${r.id}`, kind: 'leak' as const, message: 'x', at: [0, 0] as [number, number], element_ids: [r.id], fix: {} }

@@ -6,7 +6,7 @@ import type { Room } from '../../types/spec'
 import { useEditorStore } from '../store'
 import { svgPoint } from './planTransform'
 import { ReviewCanvas } from './ReviewCanvas'
-import { closeGapOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
+import { closeGapOps, doorAtOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
 
 type Pt = [number, number]
 
@@ -41,6 +41,14 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       }
       return true
     }
+    if (tool === 'add-door' && e.button <= 0) {
+      if (kind === 'up') {
+        const s = useEditorStore.getState(), op = doorAtOps(s.view!, mm)
+        if (op) s.apply(op)
+        else s.setNotice({ kind: 'warning', text: 'Klik di atas dinding yang panjangnya minimal 700 mm' })
+      }
+      return true
+    }
     if (tool !== 'guide-line' || e.button > 0) return false
     if (kind === 'down') setRough({ a: mm, b: mm })
     else if (kind === 'move' && rough) setRough({ ...rough, b: mm })
@@ -57,7 +65,7 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       if (ignoredTarget(e.target as Element | null)) return
       const s = useEditorStore.getState()
       if (e.key === 'Escape') { s.setWallDraft({}); s.setTool('select'); setRough(null); return }
-      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall' } as Record<string, Tool>)[e.key.toLowerCase()]
+      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door' } as Record<string, Tool>)[e.key.toLowerCase()]
       if (t && !e.ctrlKey && !e.metaKey && !e.altKey) s.setTool(t)
     }
     window.addEventListener('keydown', key)
@@ -92,4 +100,4 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   )
 }
 
-const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W']]
+const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu baru', 'D']]

@@ -37,6 +37,28 @@ export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { 
   return { ops, doorSkipped: withDoor && width < DOOR_MIN_MM ? 'too-narrow' : null }
 }
 
+const DOOR_MM = 900
+const HIT_MM = 300  // a click this close to a wall's centre line lands on it
+
+/** "Pintu baru": a 900 mm single door centred on the click, on the nearest wall; narrower on a short wall; null when
+ *  the click is off every wall or the wall cannot hold 600 mm plus V008's end margins. */
+export function doorAtOps(view: Spec, p: Pt): EditorOp | null {
+  let best: { id: string; len: number; t: number; d: number } | null = null
+  for (const w of view.walls ?? []) {
+    const dx = w.b[0] - w.a[0], dy = w.b[1] - w.a[1], len = Math.hypot(dx, dy)
+    if (!len) continue
+    const t = Math.min(len, Math.max(0, ((p[0] - w.a[0]) * dx + (p[1] - w.a[1]) * dy) / len))
+    const d = Math.hypot(w.a[0] + (dx * t) / len - p[0], w.a[1] + (dy * t) / len - p[1])
+    if (d <= HIT_MM && (!best || d < best.d)) best = { id: w.id, len, t, d }
+  }
+  if (!best) return null
+  const room = Math.floor(best.len) - 2 * END_MARGIN_MM
+  const width = Math.min(DOOR_MM, room)
+  if (width < DOOR_MIN_MM) return null
+  const offset = Math.round(Math.min(room - width, Math.max(0, best.t - width / 2 - END_MARGIN_MM))) + END_MARGIN_MM
+  return { op: 'add_opening', wall_id: best.id, category: 'door', offset, width, door_type: 'single_swing', hinge: 'start', swing: 'left' }
+}
+
 export const DOOR_SKIPPED_TEXT: Record<Exclude<DoorSkipped, null>, string> = {
   'needs-save': 'Celah ditutup; pintu bisa ditambahkan setelah Simpan',
   'too-narrow': 'Celah ditutup tanpa pintu: terlalu sempit untuk pintu (< 600 mm)',

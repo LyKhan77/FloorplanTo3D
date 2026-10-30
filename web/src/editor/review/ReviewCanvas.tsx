@@ -6,6 +6,7 @@ import { useEditorStore } from '../store'
 import { imageMatrix, svgPoint } from './planTransform'
 
 const PAD_MM = 2000
+const DOOR = '#ff832b', WINDOW = '#33b1ff'  // bright on the dark canvas: a black door read as an open gap
 const ROOM_FILLS = ['#4589ff', '#08bdba', '#a56eff', '#42be65', '#ff7eb6', '#d2a106', '#33b1ff']
 type Box = [number, number, number, number]  // x, y, w, h in SVG units (mm, y flipped)
 
@@ -114,6 +115,31 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
           fill={leak.has(r.id) ? '#fa4d56' : ROOM_FILLS[i % ROOM_FILLS.length]} fillOpacity={leak.has(r.id) ? 0.28 : sel.has(r.id) ? 0.3 : 0.1}
           stroke={sel.has(r.id) ? '#ffffff' : 'none'} strokeWidth={60} onClick={pick(r.id)} style={{ cursor: 'pointer' }} />
       ))}
+      {(view.stairs ?? []).map((st) => (
+        <g key={st.id}>
+          {(st.landings ?? []).map((l, i) => <polygon key={i} points={pts(l as number[][])} fill="#d2a106" fillOpacity={0.15} style={{ pointerEvents: 'none' }} />)}
+          {st.flights.map((f, i) => {
+            const [a, b] = [svgPoint(f.start as number[]), svgPoint(f.end as number[])]
+            const tread = Math.hypot(b[0] - a[0], b[1] - a[1]) / Math.max(1, f.risers)
+            return (
+              <g key={i}>
+                <line data-stair={st.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={f.width} stroke="#d2a106"
+                  strokeOpacity={sel.has(st.id) ? 0.5 : 0.22} onClick={pick(st.id)} style={{ cursor: 'pointer' }} />
+                {/* one stripe per riser, so a flight reads as steps */}
+                <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={f.width} stroke="#d2a106" strokeOpacity={0.6}
+                  strokeDasharray={`30 ${Math.max(1, tread - 30)}`} style={{ pointerEvents: 'none' }} />
+              </g>
+            )
+          })}
+        </g>
+      ))}
+      {(view.columns ?? []).map((c) => {
+        const [x, y] = svgPoint(c.center as number[]), [w, h] = c.size as number[]
+        return c.shape === 'circle'
+          ? <circle key={c.id} data-column={c.id} cx={x} cy={y} r={w / 2} fill="#8d8d8d" style={{ pointerEvents: 'none' }} />
+          : <rect key={c.id} data-column={c.id} x={x - w / 2} y={y - h / 2} width={w} height={h} fill="#8d8d8d"
+              transform={`rotate(${-(c.rotation ?? 0)} ${x} ${y})`} style={{ pointerEvents: 'none' }} />
+      })}
       {(view.walls ?? []).map((w) => {
         const [a, b] = [svgPoint(w.a), svgPoint(w.b)]
         return <line key={w.id} data-wall={w.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={Math.max(w.thickness, 60)}
@@ -127,7 +153,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
         const a = svgPoint([w.a[0] + ux * o.offset, w.a[1] + uy * o.offset])
         const b = svgPoint([w.a[0] + ux * (o.offset + o.width), w.a[1] + uy * (o.offset + o.width)])
         return <line key={o.id} data-opening={o.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={Math.max(w.thickness, 60) + 20}
-          stroke={o.category === 'door' ? '#0b0b0b' : '#8d8d8d'} onClick={pick(o.id)} style={{ cursor: 'pointer' }} />
+          stroke={sel.has(o.id) ? '#ffffff' : o.category === 'door' ? DOOR : WINDOW} onClick={pick(o.id)} style={{ cursor: 'pointer' }} />
       })}
       {rooms.filter((r) => r.name && r.label_pos).map((r) => {
         const [x, y] = svgPoint(r.label_pos!)
