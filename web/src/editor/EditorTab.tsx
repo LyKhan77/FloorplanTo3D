@@ -21,6 +21,9 @@ import { ApproveButton } from './review/ApproveButton'
 import { ReviewWorkspace } from './review/ReviewWorkspace'
 import { TasksPanel } from './review/TasksPanel'
 import { useBackdrop } from './review/useBackdrop'
+import { InstallEditor } from '../install/InstallEditor'
+import { useInstallation } from '../install/api'
+import { useInstallStore } from '../install/store'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
 
@@ -85,11 +88,27 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
     return () => window.removeEventListener('keydown', key)
   }, [])
 
+  // M12a: a project with an installation switches between the layout and the installation layer
+  const { data: installation } = useInstallation(projectId)
+  const installActive = useInstallStore((s) => s.active) && !!installation
+  const modeSwitch = installation ? (
+    <div className="editor-modes" role="group" aria-label="Mode editor">
+      {([[false, 'Layout'], [true, 'Instalasi']] as const).map(([on, label]) => (
+        <Button key={label} size="sm" kind={installActive === on ? 'secondary' : 'ghost'} aria-pressed={installActive === on}
+          onClick={() => useInstallStore.getState().setActive(on)}>{label}</Button>
+      ))}
+    </div>
+  ) : null
+
   if (data.loading) return <Loading withOverlay={false} description="Memuat editor" />
   if (!data.spec) return <p className="helper">Belum ada spec. Impor spec dulu.</p>
 
+  if (installActive) return <>{modeSwitch}<InstallEditor projectId={projectId} backdrop={backdrop} /></>
+
   const cls = ['editor', left ? '' : 'editor--no-left', right ? '' : 'editor--no-right', full ? 'editor--full' : ''].filter(Boolean).join(' ')
   return (
+    <>
+    {modeSwitch}
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
         onSave={onSave} saving={saver.saving} onRegenerate={paused ? undefined : () => flow.regenerate()} regen={flow}
@@ -155,5 +174,6 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
         <LayersPanel /></aside>}
       <StatusBar />
     </div>
+    </>
   )
 }

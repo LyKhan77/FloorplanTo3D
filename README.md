@@ -65,6 +65,18 @@ Buka <http://localhost:5173>.
 5. **Hasil.** Tab Outputs berisi unduhan model, render, dan dokumen. Tab Versions menyimpan riwayat spec, dan versi mana pun bisa di-regenerate.
 6. **Edit lanjutan.** Tab Editor berisi editor 3D (Orbit/Top/Walk) dan editor 2D (Plan 2D). Setelah Save, klik Regenerate untuk membangun ulang.
 
+### Instalasi (opsional): cable tray dan rack
+
+Setelah layout punya output, klik **Mulai instalasi** di halaman project. Isi tinggi plafon (kosong: dari prompt, atau tinggi dinding), raised floor bila ada, dan pemasangan tray default. Editor lalu terbuka dalam mode **Instalasi** (toggle Layout | Instalasi di atas editor). Layout tampil, tapi terkunci.
+
+1. **Rack (`K`):** klik di dalam kotak rack di denah. Ukuran dan arah diambil dari kotak, dan template dipilih otomatis. Shift-tarik kotak di atas sederet rack.
+2. **Tray (`T`):** pilih Data atau Power, klik titik-titik di sepanjang pita tray di denah, lalu Enter. Jalur menempel ke pita, dan lebarnya dibulatkan ke ukuran standar. Kalau tidak ada pita, jalur dipakai seperti digambar.
+3. **Drop:** drop ke rack terdekat (≤ 1.5 m) muncul otomatis.
+4. **Cek panel kanan:** Properti, Masalah (I001–I007), dan Panjang tray per kelas.
+5. **Save** (`Ctrl+S`). Hapus tray atau rack wajib diberi alasan.
+
+Kalau layout diubah setelah instalasi dibuat, halaman project menampilkan "Layout berubah": klik **Rebase**. Build 3D instalasi (tray perforated, hanger, laporan) menyusul di M12b.
+
 Panduan sesi koreksi berwaktu (untuk kriteria MVP "koreksi ≤ 15 menit") ada di `docs/calibration-correction.md`.
 
 ## CLI (tanpa server)

@@ -13,6 +13,8 @@ import { LogViewer } from '../components/LogViewer'
 import { ReviewTab } from '../components/ReviewTab'
 import { OutputsTab } from '../components/OutputsTab'
 import { RunPicker } from '../components/RunPicker'
+import { InstallationBanner } from '../install/InstallationBanner'
+import { useInstallStore } from '../install/store'
 import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
 import { StatusTag } from '../components/StatusTag'
@@ -68,6 +70,7 @@ export function ProjectDetailPage() {
           </div>
         </div>
         <div className="detail-actions">
+          <InstallationBanner project={project} onStarted={() => { useInstallStore.getState().setActive(true); setParams({ tab: 'editor' }) }} />
           <Button kind="tertiary" size="md" onClick={() => setImportOpen(true)}>Impor spec</Button>
           <OverflowMenu aria-label="Jalankan ulang" renderIcon={() => <span className="overflow-label">Jalankan ulang ▾</span>} size="lg" flipped>
             <OverflowMenuItem itemText="Full (0–10)" onClick={() => startRun.mutate({ kind: 'full' }, { onError: fail })} />

@@ -17,6 +17,9 @@ interface State {
   trayDraft: Pt[]
   trayClass: 'data' | 'power'
   notice: InstallNotice | null
+  /** the editor tab shows mode Instalasi */
+  active: boolean
+  setActive(active: boolean): void
   load(inst: Installation): void
   apply(op: InstallOp): boolean
   applyMany(ops: InstallOp[]): boolean
@@ -33,7 +36,8 @@ const UNDO_CAP = 100
 
 /** The installation being edited (M12a): base version + pending ops, like the layout editor's store. */
 export const useInstallStore = create<State>((set, get) => ({
-  base: null, ops: [], view: null, past: [], future: [], selection: [], tool: 'select', trayDraft: [], trayClass: 'data', notice: null,
+  base: null, ops: [], view: null, past: [], future: [], selection: [], tool: 'select', trayDraft: [], trayClass: 'data', notice: null, active: false,
+  setActive: (active) => set({ active }),
   load: (inst) => set({ base: inst, ops: [], view: inst, past: [], future: [], selection: [], trayDraft: [], notice: null }),
   apply: (op) => get().applyMany([op]),
   applyMany: (more) => {

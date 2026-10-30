@@ -683,6 +683,12 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Kalibrasi: Gatsu GT 0.93; GT bergeser 300 mm 0.71; GT skala +1% 0.84.
 - Batas: garis anotasi juga tinta, jadi dinding palsu di atas garis anotasi tetap dianggap cocok. Itu tugas review.
 
+**Status M12a (2026-10-30): lapisan instalasi, telusur tray dan rack** (desain `docs/superpowers/specs/2026-10-30-installation-cable-tray-design.md`, rencana `docs/superpowers/plans/2026-10-30-m12a-installation-annotate.md`).
+- **Dokumen instalasi:** opsional dan berversi (`installations/`), merujuk ke satu versi layout. Op wajib alasan, validasi I001–I007, rebase.
+- **Snap:** pita tray (pita terisi atau berarsir, maupun dua garis tepi) dan kotak rack dari gambar.
+- **Editor:** mode Instalasi dengan alat Tray `T` dan Rack `K`, drop otomatis, tabel panjang tray per kelas.
+- **Berikutnya:** M12b, build 3D instalasi (tray perforated, hanger, plafon dan raised floor, sleeve), laporan, dan layer 3D.
+
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.

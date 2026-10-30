@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { Template } from '../api/types'
 import { ignoredTarget, keyAction } from './lib/keys'
 import { deleteGeometryOps, deleteOps, duplicateOps, rotateOps, templateOf } from './lib/transform'
+import { useInstallStore } from '../install/store'
 import { useEditorStore } from './store'
 
 /** PRD/07 §10 shortcuts while the Editor tab is shown; typing in fields and open Carbon modals are left alone. */
@@ -9,6 +10,7 @@ export function useShortcuts(templates: Template[], save: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (ignoredTarget(e.target as Element | null) || document.querySelector('.cds--modal.is-visible')) return
+      if (useInstallStore.getState().active) return  // mode Instalasi has its own keys (InstallEditor, InstallWorkspace)
       const action = keyAction(e, useEditorStore.getState().mode)
       if (!action) return
       if (['save', 'undo', 'redo', 'duplicate'].includes(action)) e.preventDefault()
