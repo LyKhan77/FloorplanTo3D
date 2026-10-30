@@ -3,7 +3,7 @@
 import re
 
 KNOWN = ("wall_height", "door_height", "wall_thickness", "floor_name", "site_type", "mm_per_px", "use_strata",
-         "review_pause")
+         "review_pause", "ceiling_height", "raised_floor_height")
 _NUM = r"(\d+(?:[.,]\d+)?)"
 _UNIT = r"\s*(mm|cm|m)\b"
 _TO_MM = {"mm": 1, "cm": 10, "m": 1000}
@@ -20,6 +20,10 @@ def parse_prompt(prompt: str) -> dict:
         out["door_height"] = _mm(m[1], m[2])
     if m := re.search(rf"tinggi(?:\s+dinding)?\s+{_NUM}{_UNIT}", p):  # "tinggi pintu …" has no number right after "tinggi"
         out["wall_height"] = _mm(m[1], m[2])
+    if m := re.search(rf"tinggi\s+plafon\s+{_NUM}{_UNIT}", p):  # installation layer (M12a)
+        out["ceiling_height"] = _mm(m[1], m[2])
+    if m := re.search(rf"raised\s*floor\s+(?:setinggi\s+)?{_NUM}{_UNIT}", p):
+        out["raised_floor_height"] = _mm(m[1], m[2])
     if m := re.search(rf"tebal(?:\s+dinding)?\s+{_NUM}{_UNIT}", p):
         out["wall_thickness"] = _mm(m[1], m[2])
     if m := re.search(r"lantai\s+(\d+)", p):

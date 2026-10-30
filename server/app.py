@@ -15,7 +15,7 @@ from core.config import Settings, load_settings
 from server.errors import ApiError, install_error_handlers
 from server.events import EventBus
 from server.orchestrator import Orchestrator
-from server.routes import events, outputs, projects, runs, specs, system, templates
+from server.routes import events, installations, outputs, projects, runs, specs, system, templates
 from server.storage import Storage
 
 
@@ -72,6 +72,7 @@ def create_app(settings: Settings | None = None, stage_impls: dict | None = None
     app.include_router(events.router)
     app.include_router(projects.router)
     app.include_router(specs.router)
+    app.include_router(installations.router)
     app.include_router(runs.router)
     app.include_router(outputs.router)
     app.include_router(templates.router)

@@ -13,6 +13,7 @@ from core.spec.store import SpecStore
 from server.errors import ApiError
 from server.projects import (
     create_project,
+    installation_state,
     latest_run,
     latest_stage_file,
     output_versions,
@@ -80,6 +81,7 @@ def detail(pid: str, request: Request):
     d = st.project_dir(pid)
     project = st.read_json(d / "project.json")
     return project | {"latest_run": latest_run(st, pid), "head": SpecStore(d / "specs").head(),
+                      "installation": installation_state(st, pid),
                       "outputs": output_versions(st, pid), "summary": summary(st, pid)}
 
 

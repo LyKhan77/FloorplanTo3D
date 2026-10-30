@@ -100,6 +100,20 @@ def latest_run(storage: Storage, pid: str) -> dict | None:
     return storage.read_json(path) if rid and path.exists() else None
 
 
+def installation_state(storage, pid: str) -> dict | None:
+    """For the project list and detail: None when the project has no installation."""
+    d = storage.project_dir(pid)
+    from core.installation.store import InstallationStore
+
+    store = InstallationStore(d / "installations")
+    head = store.head()
+    if head is None:
+        return None
+    layout_version = store.load(head).meta.layout_version
+    return {"head": head, "layout_version": layout_version,
+            "layout_changed": (SpecStore(d / "specs").head() or 0) > layout_version}
+
+
 def summary(storage: Storage, pid: str) -> dict:
     d = storage.project_dir(pid)
     project = storage.read_json(d / "project.json")
@@ -118,7 +132,8 @@ def summary(storage: Storage, pid: str) -> dict:
         iou, fit = verify.get("iou"), (verify.get("drawing_fit") or {}).get("fit")
     return {"project_id": pid, "name": project["name"], "floor": project.get("params", {}).get("floor_name"),
             "status": run["status"] if run else project.get("status", "new"), "active_stage": active,
-            "validator_score": score, "iou": iou, "fit": fit, "head_version": head, "updated_at": project["updated_at"]}
+            "validator_score": score, "iou": iou, "fit": fit, "head_version": head, "updated_at": project["updated_at"],
+            "installation": installation_state(storage, pid)}
 
 
 _touch_locks: defaultdict[str, threading.Lock] = defaultdict(threading.Lock)

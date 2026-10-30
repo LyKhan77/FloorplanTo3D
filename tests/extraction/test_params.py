@@ -62,3 +62,9 @@ def test_stage_input_records_llm_params(tmp_path):
     assert doc["params_final"]["floor_name"] == "Lantai 1" and doc["params_final"]["site_type"] == "data_center"
     stage_input(project, work)
     assert json.loads((work / "input.json").read_text())["params_parsed_llm"] is None
+
+
+def test_prompt_sets_ceiling_and_raised_floor():
+    from core.extraction.params import parse_prompt
+    got = parse_prompt("tinggi dinding 4 m, tinggi plafon 3.2 m, raised floor 600 mm")
+    assert (got["ceiling_height"], got["raised_floor_height"], got["wall_height"]) == (3200, 600, 4000)
