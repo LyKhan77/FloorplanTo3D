@@ -55,3 +55,19 @@ export function withEvents(run: Run, events: ApiEvent[]): Run {
   if (run.status !== 'queued' && run.status !== 'running') return run
   return events.reduce(applyEvent, run)
 }
+
+const NOT_RUN = new Set(['skipped', 'pending', 'queued'])
+
+/** A run that started mid-way (approve: stage 6, regenerate: stage 7) skips the stages before; their results live in
+ *  the latest earlier run that ran them. `runs` is newest first, as the API lists them. */
+export function originRun(runs: Run[], run: Run, n: number): Run | null {
+  if (!NOT_RUN.has(run.stages[n]?.status)) return null
+  return runs.find((r) => r.created_at < run.created_at && !NOT_RUN.has(r.stages[n]?.status)) ?? null
+}
+
+const STATUS_TEXT: Record<string, string> = {
+  pending: 'Menunggu', queued: 'Menunggu', running: 'Berjalan', succeeded: 'Selesai', needs_attention: 'Perlu perhatian',
+  needs_review: 'Perlu review', failed: 'Gagal', skipped: 'Dilewati',
+}
+export const statusText = (status: string) => STATUS_TEXT[status] ?? status
+

@@ -146,6 +146,9 @@ body {
   width: auto;
 }
 
+.run-picker { max-width: 28rem; margin-bottom: 1rem; }
+.stage-panel__origin { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+
 .pipeline-grid {
   display: grid;
   grid-template-columns: 20rem 1fr;

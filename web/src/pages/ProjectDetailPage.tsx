@@ -12,12 +12,13 @@ import type { ApiEvent } from '../api/types'
 import { LogViewer } from '../components/LogViewer'
 import { ReviewTab } from '../components/ReviewTab'
 import { OutputsTab } from '../components/OutputsTab'
+import { RunPicker } from '../components/RunPicker'
 import { StagePanel } from '../components/StagePanel'
 import { StageTimeline } from '../components/StageTimeline'
 import { StatusTag } from '../components/StatusTag'
 import { VersionsTab } from '../components/VersionsTab'
 import { EditorTab } from '../editor/EditorTab'
-import { stageLabel, withEvents } from '../lib/runState'
+import { originRun, stageLabel, withEvents } from '../lib/runState'
 
 const TABS = ['pipeline', 'logs', 'review', 'editor', 'outputs', 'versions']
 const TAB_LABELS = ['Pipeline', 'Logs', 'Review', 'Editor', 'Outputs', 'Versions']
@@ -47,6 +48,9 @@ export function ProjectDetailPage() {
   })
   const latest = project?.latest_run ?? null
   const run = useMemo(() => (latest ? withEvents(latest, events) : null), [latest, events])
+  // the Pipeline tab may show an earlier run (an approve or regenerate run skips the extraction stages)
+  const [shownId, setShownId] = useState<string | null>(null)
+  const shown = (shownId && shownId !== run?.run_id && runs.find((r) => r.run_id === shownId)) || run
 
   if (isLoading || !project) return <Loading withOverlay={false} description="Memuat project" />
   const active = run && (run.status === 'queued' || run.status === 'running')
@@ -85,11 +89,15 @@ export function ProjectDetailPage() {
         <TabList aria-label="Bagian project">{TAB_LABELS.map((t) => <Tab key={t}>{t}</Tab>)}</TabList>
         <TabPanels>
           <TabPanel>
-            {run ? (
-              <div className="pipeline-grid">
-                <StageTimeline run={run} selected={selected} onSelect={setSelected} />
-                <StagePanel projectId={id} run={run} n={selected} events={events} onOpenEditor={() => setParams({ tab: 'editor' })} />
-              </div>
+            {shown ? (
+              <>
+                {runs.length > 1 && <RunPicker runs={runs} value={shown.run_id} onChange={setShownId} />}
+                <div className="pipeline-grid">
+                  <StageTimeline run={shown} selected={selected} onSelect={setSelected} />
+                  <StagePanel projectId={id} run={shown} n={selected} events={events} onOpenEditor={() => setParams({ tab: 'editor' })}
+                    origin={originRun(runs, shown, selected)} onShowRun={setShownId} />
+                </div>
+              </>
             ) : (
               <p className="helper">Belum ada run. Impor spec lalu tekan Regenerate, atau jalankan pipeline penuh.</p>
             )}

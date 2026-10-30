@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api, outputsBase } from '../api/client'
 import { useCancelRun, useOutputs } from '../api/hooks'
 import type { ApiEvent, Run } from '../api/types'
-import { formatBytes, formatDuration } from '../lib/format'
+import { formatBytes, formatDuration, formatTime } from '../lib/format'
 import { formatLogLine } from '../lib/logs'
 import { stageLabel } from '../lib/runState'
 import { strataSummary } from '../lib/strata'
@@ -18,6 +18,9 @@ interface Props {
   n: number
   events: ApiEvent[]
   onOpenEditor: () => void
+  /** the earlier run that ran this stage when this run skipped it (lib/runState originRun) */
+  origin?: Run | null
+  onShowRun?: (runId: string) => void
 }
 
 interface Verify {
@@ -31,7 +34,7 @@ interface Verify {
   grid_check: { status?: string; pass?: boolean; max_err_mm?: number }
 }
 
-export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
+export function StagePanel({ projectId, run, n, events, onOpenEditor, origin, onShowRun }: Props) {
   const stage = run.stages[n]
   const out = outputsBase(projectId, run.version)
   const { data: outputs } = useOutputs(projectId)
@@ -53,6 +56,13 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
           <span className="mono">{formatDuration(stage.duration_ms)}</span></span>
       </div>
 
+      {origin && (
+        <div className="stage-panel__origin">
+          <p className="helper">Tahap ini tidak dijalankan di run ini (dimulai dari tahap {run.from_stage}). Hasilnya ada di run{' '}
+            <span className="mono">{origin.run_id}</span> ({formatTime(origin.created_at)}).</p>
+          {onShowRun && <Button kind="tertiary" size="sm" aria-label={`Lihat run ${origin.run_id}`} onClick={() => onShowRun(origin.run_id)}>Lihat</Button>}
+        </div>
+      )}
       {n === 5 && run.status === 'needs_review' && (
         <InlineNotification kind="warning" lowContrast hideCloseButton title="Perlu review"
           subtitle="Pipeline berhenti sebelum build 3D. Koreksi spec di editor, lalu setujui." />

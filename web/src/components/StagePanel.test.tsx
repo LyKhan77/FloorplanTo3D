@@ -58,3 +58,18 @@ describe('StagePanel verify (drawing fit)', () => {
     expect(screen.getByText(/Kecocokan gambar/)).toBeInTheDocument()
   })
 })
+
+describe('StagePanel skipped stage', () => {
+  it('points to the run that ran it, and shows that run on click', () => {
+    const skipped = { run_id: 'r3', project_id: 'p1', status: 'succeeded', kind: 'regenerate', from_stage: 7, version: 20,
+      stages: Array.from({ length: 11 }, (_, n) => stage(n, n < 7 ? 'skipped' : 'succeeded')) } as unknown as Run
+    const origin = { ...skipped, run_id: 'r1', created_at: '2026-10-30T09:00:00+07:00' } as Run
+    const onShowRun = vi.fn()
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter>
+      <StagePanel projectId="p1" run={skipped} n={2} events={[]} onOpenEditor={vi.fn()} origin={origin} onShowRun={onShowRun} />
+    </MemoryRouter></QueryClientProvider>)
+    expect(screen.getByText((_, el) => el?.tagName === 'P' && /Hasilnya ada di run r1/.test(el.textContent ?? ''))).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Lihat run r1' }))
+    expect(onShowRun).toHaveBeenCalledWith('r1')
+  })
+})

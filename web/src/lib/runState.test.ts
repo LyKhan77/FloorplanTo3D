@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ApiEvent, Run } from '../api/types'
-import { applyEvent, emptyRun, stageLabel, withEvents } from './runState'
+import { applyEvent, emptyRun, originRun, stageLabel, withEvents } from './runState'
 
 function ev(type: string, stage: number | null, data: Record<string, unknown> = {}): ApiEvent {
   return { seq: 1, ts: '2026-10-26T10:00:00.000+07:00', run_id: 'r1', stage, type, level: 'info', msg: '', data }
@@ -45,3 +45,22 @@ describe('incomplete event logs (restart, shutdown)', () => {
     expect(run.stages[8].status).toBe('running')
   })
 })
+
+describe('originRun', () => {
+  const run = (id: string, at: string, statuses: string[]): Run => ({ ...emptyRun(id, 'full'), created_at: at,
+    stages: emptyRun(id, 'full').stages.map((s, n) => ({ ...s, status: (statuses[n] ?? 'pending') as never })) })
+  const extraction = run('r1', '2026-10-30T09:00:00+07:00', Array(6).fill('succeeded').concat(['pending']))
+  const approve = run('r2', '2026-10-30T09:30:00+07:00', [...Array(6).fill('skipped'), 'succeeded', 'failed'])
+  const regen = run('r3', '2026-10-30T10:00:00+07:00', [...Array(7).fill('skipped'), 'succeeded', 'succeeded'])
+  const runs = [regen, approve, extraction]  // the API lists newest first
+
+  it('finds the latest earlier run that ran the stage a later run skipped', () => {
+    expect(originRun(runs, regen, 2)?.run_id).toBe('r1')
+    expect(originRun(runs, regen, 6)?.run_id).toBe('r2')
+  })
+  it('is null for a stage the run ran itself, or that no earlier run ran', () => {
+    expect(originRun(runs, regen, 8)).toBeNull()
+    expect(originRun(runs, extraction, 7)).toBeNull()
+  })
+})
+
