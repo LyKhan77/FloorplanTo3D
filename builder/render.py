@@ -76,11 +76,11 @@ def _render_doc(scene, cols, engine: str, item: dict) -> list:
     scene.view_settings.view_transform = "Standard"
     scene.world.color = (0.95, 0.95, 0.95)
     hidden = []
-    if item["name"] != "cam_top":  # annotations (labels, grid) only on the top view
-        for o in cols.objects(["Annotations"]):
-            if not o.hide_render:
-                o.hide_render = True
-                hidden.append(o)
+    off = (["Annotations"] if item["name"] != "cam_top" else []) + list(item.get("hide", []))  # labels: top view only
+    for o in cols.objects(off) if off else []:  # objects([]) would be every object
+        if not o.hide_render:
+            o.hide_render = True
+            hidden.append(o)
     return hidden
 
 

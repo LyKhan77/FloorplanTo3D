@@ -71,6 +71,7 @@ class CameraItem(TypedDict):
     output: str
     mode: Literal["verify", "doc"]
     cutaway_mm: float | None
+    hide: NotRequired[list[str]]  # collections left out of this render (M12b: the ceiling, the raised floor panels)
 
 
 class ExportItem(TypedDict):
