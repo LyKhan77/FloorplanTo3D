@@ -7,7 +7,13 @@ from typing import Annotated, Any, ClassVar, Literal
 from pydantic import Field, TypeAdapter, ValidationError, field_validator
 
 from core.installation.models import (
-    SIDE_HEIGHTS, TRAY_WIDTHS, CableTray, Installation, Mounting, TrayClass, TrayProvenance,
+    SIDE_HEIGHTS,
+    TRAY_WIDTHS,
+    CableTray,
+    Installation,
+    Mounting,
+    TrayClass,
+    TrayProvenance,
 )
 from core.spec.models import Mm, PlacedObject, Point, Provenance, ProvenanceLogEntry
 from core.spec.ops import OpError, Reason, _Op
