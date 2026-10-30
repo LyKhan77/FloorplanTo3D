@@ -13,6 +13,16 @@ def test_add_wall_gets_new_id_and_provenance():
     assert len(s.rooms) == 3
 
 
+def test_add_wall_carries_its_openings():
+    """A door on a wall drawn in the same unsaved session rides on the add_wall op (the wall has no ID yet)."""
+    s = apply(spec_with_rooms(), [{"op": "add_wall", "a": (2500, 100), "b": (2500, 5900), "thickness": 100,
+                                   "kind": "partition", "openings": [{"category": "door", "offset": 1000, "width": 900,
+                                                                      "door_type": "single_swing"}]}], "editor", 2)
+    w, d = s.walls[-1], s.openings[-1]
+    assert (d.wall_id, d.category, d.offset, d.width, d.door_type, d.sill) == (w.id, "door", 1000, 900, "single_swing", 0)
+    assert d.provenance.source == "editor"
+
+
 def test_apply_is_atomic_on_bad_op():
     base = spec_with_rooms()
     before = base.model_dump()

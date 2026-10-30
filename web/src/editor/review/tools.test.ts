@@ -35,11 +35,15 @@ describe('review tools', () => {
     expect(closeGapOps(task, false, spec).ops).toEqual([{ op: 'move_wall', id: 'W900', b: [52900, 0] }])
   })
 
-  it('when no wall has its b end at the gap, a new wall closes it and the door waits for a save', () => {
+  it('when no wall has its b end at the gap, a new wall closes it and carries the door', () => {
     const { spec, task } = withGap('a')
     const r = closeGapOps(task, true, spec)
-    expect(r.ops).toEqual([{ op: 'add_wall', a: [52000, 0], b: [52900, 0], thickness: 120, kind: 'interior' }])
-    expect(r.doorSkipped).toBe('needs-save')
+    expect(r.ops).toEqual([{ op: 'add_wall', a: [52000, 0], b: [52900, 0], thickness: 120, kind: 'interior',
+      openings: [{ category: 'door', offset: 50, width: 800, door_type: 'single_swing', hinge: 'start', swing: 'left' }] }])
+    expect(r.doorSkipped).toBeNull()
+    const out = applyOps(spec, r.ops)
+    expect(out.failed).toEqual([])
+    expect(out.spec.openings!.at(-1)).toMatchObject({ wall_id: out.spec.walls!.at(-1)!.id, offset: 50, width: 800 })
   })
 
   it('a gap too narrow for a door is closed without one', () => {

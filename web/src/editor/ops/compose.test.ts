@@ -38,14 +38,16 @@ describe('pushOp', () => {
     ops = push(gt, [addWall], { op: 'move_wall', id: 'W78', b: [4000, 0] })
     expect(ops).toEqual([{ ...addWall, b: [4000, 0] }])
     expect(push(gt, ops, { op: 'delete_wall', id: 'W78', reason: 'x' })).toEqual([])
+    // a door on the unsaved wall rides on its add_wall (no ID to point at until Save)
+    ops = push(gt, [addWall], { op: 'add_opening', wall_id: 'W78', category: 'door', offset: 1000, width: 900, height: null })
+    expect(ops).toEqual([{ ...addWall, openings: [{ category: 'door', offset: 1000, width: 900 }] }])
+    expect(applyOps(gt, ops).spec.openings!.at(-1)).toMatchObject({ wall_id: 'W78', offset: 1000, width: 900 })
   })
 
   it('rejects ops that would reference a predicted id', () => {
     const addWall: EditorOp = { op: 'add_wall', a: [0, 0], b: [3000, 0], thickness: 150, kind: 'partition' }
     const split = pushOp(gt, [addWall], { op: 'split_wall', id: 'W78', at_offset: 1000 })
     expect('error' in split && split.error).toContain('belum disimpan')
-    const door = pushOp(gt, [addWall], { op: 'add_opening', wall_id: 'W78', category: 'door', offset: 100, width: 900 })
-    expect('error' in door && door.error).toContain('belum disimpan')
     const lock = pushOp(gt, [addAt(0)], { op: 'update_object', id: 'O1', locked: true })
     expect('error' in lock && lock.error).toContain('Save dulu')
     const piece = pushOp(gt, [{ op: 'split_wall', id: 'W1', at_offset: 1000 }], { op: 'move_wall', id: 'W78', b: [0, 0] })

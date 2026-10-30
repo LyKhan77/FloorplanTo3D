@@ -131,14 +131,6 @@ class MoveWall(_Op):
     kind: WallKind | None = None
 
 
-class AddWall(_Op):
-    op: Literal["add_wall"]
-    a: Point
-    b: Point
-    thickness: Mm
-    kind: WallKind
-
-
 class SetDoor(_Op):
     op: Literal["set_door"]
     nullable: ClassVar[frozenset[str]] = frozenset({"door_type", "hinge", "swing", "height"})
@@ -157,10 +149,9 @@ class DeleteOpening(_Op):
     reason: Reason
 
 
-class AddOpening(_Op):
-    op: Literal["add_opening"]
+class WallOpening(_Op):
+    """An opening created together with its wall (add_wall.openings): an unsaved wall has no ID to point at."""
     nullable: ClassVar[frozenset[str]] = frozenset({"height", "sill", "door_type", "hinge", "swing", "leaf_split"})
-    wall_id: str
     category: Literal["door", "window"]
     offset: Mm
     width: Mm
@@ -170,6 +161,20 @@ class AddOpening(_Op):
     hinge: Literal["start", "end", "both"] | None = None
     swing: Literal["left", "right"] | None = None
     leaf_split: float | None = None
+
+
+class AddOpening(WallOpening):
+    op: Literal["add_opening"]
+    wall_id: str
+
+
+class AddWall(_Op):
+    op: Literal["add_wall"]
+    a: Point
+    b: Point
+    thickness: Mm
+    kind: WallKind
+    openings: list[WallOpening] = []
 
 
 class SetStair(_Op):
@@ -368,6 +373,8 @@ def _add_wall(s: Spec, op: AddWall, ctx: Ctx) -> None:
     wid = take_id(s, "W")
     s.walls.append(Wall(id=wid, a=op.a, b=op.b, thickness=op.thickness, kind=op.kind, provenance=ctx.prov()))
     _log(s, ctx, op.op, wid)
+    for o in op.openings:
+        _add_opening(s, AddOpening(op="add_opening", wall_id=wid, **_set_fields(o, set())), ctx)
 
 
 def _set_door(s: Spec, op: SetDoor, ctx: Ctx) -> None:

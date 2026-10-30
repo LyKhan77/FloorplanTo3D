@@ -40,6 +40,13 @@ export function pushOp(base: Spec, ops: EditorOp[], op: EditorOp): { ops: Editor
   const k = applyOps(base, ops).created[id]
   const rule = FOLD[op.op]
   if (k === undefined) return { error: `unknown id ${id}` }
+  const creator = ops[k]
+  if (op.op === 'add_opening' && creator.op === 'add_wall' && predicted.length === 1) {
+    // a door on an unsaved wall rides on its add_wall: the server gives both IDs on Save
+    const { op: _, wall_id: __, ...fields } = op
+    const opening = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== null && v !== undefined))
+    return { ops: ops.map((o, i) => (i === k ? { ...creator, openings: [...(creator.openings ?? []), opening] } as EditorOp : o)) }
+  }
   if (!rule || predicted.length > 1 || ops[k].op !== rule.creator) return { error: `Save dulu: ${id} belum disimpan` }
   if (op.op === 'update_object' && op.locked != null) return { error: 'Save dulu sebelum mengunci objek baru' }
   if (!rule.fields) return { ops: ops.filter((_, i) => i !== k) }

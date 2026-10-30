@@ -90,29 +90,39 @@ export type A1 = [number, number];
 export type B1 = [number, number];
 export type Kind1 = "exterior" | "interior" | "partition" | "glass" | "low";
 export type Op11 = "add_wall";
-export type Thickness1 = number;
+export type Category = "door" | "window";
 export type DoorType = ("single_swing" | "double_swing" | "sliding" | "opening" | "rolling") | null;
 export type Height1 = number | null;
 export type Hinge = ("start" | "end" | "both") | null;
-export type Id8 = string;
-export type Offset = number | null;
-export type Op12 = "set_door";
+export type LeafSplit = number | null;
+export type Offset = number;
+export type Sill = number | null;
 export type Swing = ("left" | "right") | null;
-export type Width = number | null;
-export type Id9 = string;
-export type Op13 = "delete_opening";
-export type Reason2 = string;
-export type Category = "door" | "window";
+export type Width = number;
+export type Openings = WallOpening[];
+export type Thickness1 = number;
 export type DoorType1 = ("single_swing" | "double_swing" | "sliding" | "opening" | "rolling") | null;
 export type Height2 = number | null;
 export type Hinge1 = ("start" | "end" | "both") | null;
-export type LeafSplit = number | null;
-export type Offset1 = number;
-export type Op14 = "add_opening";
-export type Sill = number | null;
+export type Id8 = string;
+export type Offset1 = number | null;
+export type Op12 = "set_door";
 export type Swing1 = ("left" | "right") | null;
+export type Width1 = number | null;
+export type Id9 = string;
+export type Op13 = "delete_opening";
+export type Reason2 = string;
+export type Category1 = "door" | "window";
+export type DoorType2 = ("single_swing" | "double_swing" | "sliding" | "opening" | "rolling") | null;
+export type Height3 = number | null;
+export type Hinge2 = ("start" | "end" | "both") | null;
+export type LeafSplit1 = number | null;
+export type Offset2 = number;
+export type Op14 = "add_opening";
+export type Sill1 = number | null;
+export type Swing2 = ("left" | "right") | null;
 export type WallId = string;
-export type Width1 = number;
+export type Width2 = number;
 export type Flights = [Flight, ...Flight[]] | null;
 /**
  * @minItems 2
@@ -125,7 +135,7 @@ export type Risers = number;
  * @maxItems 2
  */
 export type Start = [number, number];
-export type Width2 = number;
+export type Width3 = number;
 export type Id10 = string;
 export type Landings = [number, number][][] | null;
 export type Op15 = "set_stair";
@@ -231,17 +241,32 @@ export interface AddWall {
   b: B1;
   kind: Kind1;
   op: Op11;
+  openings?: Openings;
   thickness: Thickness1;
 }
-export interface SetDoor {
+/**
+ * An opening created together with its wall (add_wall.openings): an unsaved wall has no ID to point at.
+ */
+export interface WallOpening {
+  category: Category;
   door_type?: DoorType;
   height?: Height1;
   hinge?: Hinge;
-  id: Id8;
-  offset?: Offset;
-  op: Op12;
+  leaf_split?: LeafSplit;
+  offset: Offset;
+  sill?: Sill;
   swing?: Swing;
-  width?: Width;
+  width: Width;
+}
+export interface SetDoor {
+  door_type?: DoorType1;
+  height?: Height2;
+  hinge?: Hinge1;
+  id: Id8;
+  offset?: Offset1;
+  op: Op12;
+  swing?: Swing1;
+  width?: Width1;
 }
 export interface DeleteOpening {
   id: Id9;
@@ -249,17 +274,17 @@ export interface DeleteOpening {
   reason: Reason2;
 }
 export interface AddOpening {
-  category: Category;
-  door_type?: DoorType1;
-  height?: Height2;
-  hinge?: Hinge1;
-  leaf_split?: LeafSplit;
-  offset: Offset1;
+  category: Category1;
+  door_type?: DoorType2;
+  height?: Height3;
+  hinge?: Hinge2;
+  leaf_split?: LeafSplit1;
+  offset: Offset2;
   op: Op14;
-  sill?: Sill;
-  swing?: Swing1;
+  sill?: Sill1;
+  swing?: Swing2;
   wall_id: WallId;
-  width: Width1;
+  width: Width2;
 }
 export interface SetStair {
   flights?: Flights;
@@ -272,7 +297,7 @@ export interface Flight {
   end: End;
   risers: Risers;
   start: Start;
-  width: Width2;
+  width: Width3;
 }
 export interface DeleteStair {
   id: Id11;

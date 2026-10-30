@@ -10,11 +10,11 @@ const END_MARGIN_MM = 50  // V008: an opening keeps 50 mm from the wall end
 const DOOR_MIN_MM = 600  // V010's narrowest door
 
 /**
- * Close a gap task. A door goes onto a wall the server already knows (pushOp refuses edits of unsaved elements),
- * so the wall whose b end sits at the gap is extended across it and the door is placed in the extension;
- * extending an a end would shift that wall's doors. With no b end at the gap, a new wall closes it without a door.
+ * Close a gap task. The wall whose b end sits at the gap is extended across it and the door is placed in the
+ * extension; extending an a end would shift that wall's doors. With no b end at the gap, a new wall closes it and
+ * carries the door in its add_wall op (an unsaved wall has no ID to point at).
  */
-export type DoorSkipped = null | 'needs-save' | 'too-narrow'
+export type DoorSkipped = null | 'too-narrow'
 
 export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { ops: EditorOp[]; doorSkipped: DoorSkipped } {
   const { a, b, thickness, kind, ends = [] } = task.fix
@@ -22,8 +22,12 @@ export function closeGapOps(task: ReviewTask, withDoor: boolean, view: Spec): { 
   const i = ends.findIndex((e) => e.end === 'b')
   const w = i >= 0 ? view.walls?.find((x) => x.id === ends[i].wall) : undefined
   if (!w) {
-    return { ops: [{ op: 'add_wall', a, b, thickness: thickness ?? 150, kind: (kind ?? 'partition') as 'partition' }],
-      doorSkipped: withDoor ? 'needs-save' : null }
+    // the door rides on the new wall's add_wall, keeping V008's margin at both ends
+    const width = Math.floor(Math.hypot(b[0] - a[0], b[1] - a[1])) - 2 * END_MARGIN_MM
+    const door = withDoor && width >= DOOR_MIN_MM
+    return { ops: [{ op: 'add_wall', a, b, thickness: thickness ?? 150, kind: (kind ?? 'partition') as 'partition',
+      ...(door ? { openings: [{ category: 'door' as const, offset: END_MARGIN_MM, width, door_type: 'single_swing' as const, hinge: 'start' as const, swing: 'left' as const }] } : {}) }],
+      doorSkipped: withDoor && !door ? 'too-narrow' : null }
   }
   const to = i === 0 ? b : a  // the other end of the gap
   const len = Math.ceil(Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]))
@@ -60,7 +64,6 @@ export function doorAtOps(view: Spec, p: Pt): EditorOp | null {
 }
 
 export const DOOR_SKIPPED_TEXT: Record<Exclude<DoorSkipped, null>, string> = {
-  'needs-save': 'Celah ditutup; pintu bisa ditambahkan setelah Simpan',
   'too-narrow': 'Celah ditutup tanpa pintu: terlalu sempit untuk pintu (< 600 mm)',
 }
 

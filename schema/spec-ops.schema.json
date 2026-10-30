@@ -196,11 +196,11 @@
         }
       },
       "required": [
-        "op",
-        "wall_id",
         "category",
         "offset",
-        "width"
+        "width",
+        "op",
+        "wall_id"
       ],
       "title": "AddOpening",
       "type": "object"
@@ -308,6 +308,14 @@
           "const": "add_wall",
           "title": "Op",
           "type": "string"
+        },
+        "openings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/WallOpening"
+          },
+          "title": "Openings",
+          "type": "array"
         },
         "thickness": {
           "title": "Thickness",
@@ -1038,6 +1046,123 @@
         "id"
       ],
       "title": "UpdateObject",
+      "type": "object"
+    },
+    "WallOpening": {
+      "additionalProperties": false,
+      "description": "An opening created together with its wall (add_wall.openings): an unsaved wall has no ID to point at.",
+      "properties": {
+        "category": {
+          "enum": [
+            "door",
+            "window"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "door_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "single_swing",
+                "double_swing",
+                "sliding",
+                "opening",
+                "rolling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Door Type"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "hinge": {
+          "anyOf": [
+            {
+              "enum": [
+                "start",
+                "end",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hinge"
+        },
+        "leaf_split": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Leaf Split"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "sill": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sill"
+        },
+        "swing": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swing"
+        },
+        "width": {
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "category",
+        "offset",
+        "width"
+      ],
+      "title": "WallOpening",
       "type": "object"
     }
   },

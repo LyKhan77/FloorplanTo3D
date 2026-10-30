@@ -144,6 +144,7 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
         free_ends: false, allow_skew: false,
       })
       created[id] = index
+      for (const o of op.openings ?? []) step(s, { ...o, op: 'add_opening', wall_id: id }, index, created)
       return
     }
     case 'set_door': {
