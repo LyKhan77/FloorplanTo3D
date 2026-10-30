@@ -1,6 +1,7 @@
 import { Grid, Html, Line } from '@react-three/drei'
 import { useMemo } from 'react'
 import { toThree } from '../lib/coords'
+import { labelAt } from '../lib/geom'
 import { useEditorStore } from '../store'
 import { specBounds } from './bounds'
 
@@ -29,8 +30,8 @@ export function SceneHelpers() {
           </group>
         )
       })}
-      {layers.labels && (view.rooms ?? []).filter((r) => r.label_pos && r.name).map((r) => (
-        <Html key={r.id} position={toThree([r.label_pos![0], r.label_pos![1], 50])} center className="editor-room-label">
+      {layers.labels && (view.rooms ?? []).filter((r) => r.name).map((r) => (
+        <Html key={r.id} position={toThree([...labelAt(r), 50])} center className="editor-room-label">
           {r.name}
         </Html>
       ))}

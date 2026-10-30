@@ -39,6 +39,12 @@ describe('ReviewCanvas', () => {
     expect(svg.getAttribute('viewBox')).not.toBe(before)
   })
 
+  it('names a room named in the editor too (no OCR label position)', () => {
+    const r = { ...gt.rooms![0], name: 'Battery Room', label_pos: null }
+    const { container } = render(<ReviewCanvas rooms={[r]} tasks={[]} backdrop={null} />)
+    expect([...container.querySelectorAll('text')].map((t) => t.textContent)).toContain('Battery Room')
+  })
+
   it('marks the rooms of a leak task', () => {
     const r = gt.rooms![0]
     const leak = { id: `leak:${r.id}`, kind: 'leak' as const, message: 'x', at: [0, 0] as [number, number], element_ids: [r.id], fix: {} }

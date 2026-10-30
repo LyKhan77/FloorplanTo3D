@@ -1,4 +1,5 @@
 import { Button, Checkbox, Slider } from '@carbon/react'
+import { labelAt } from '../lib/geom'
 import { useEditorStore, type Layer } from '../store'
 
 const LABELS: [Layer, string][] = [
@@ -25,7 +26,7 @@ export function LayersPanel() {
       <ul className="editor-rooms">
         {(view?.rooms ?? []).map((r) => (
           <li key={r.id}>
-            <Button kind={selection.includes(r.id) ? 'secondary' : 'ghost'} size="sm" onClick={() => { select([r.id]); if (r.label_pos) setFocus([r.label_pos[0], r.label_pos[1]]) }}
+            <Button kind={selection.includes(r.id) ? 'secondary' : 'ghost'} size="sm" onClick={() => { select([r.id]); setFocus(labelAt(r)) }}
               title={mode === 'walk' ? 'Teleport ke ruang ini' : 'Fokus kamera ke ruang ini'}>
               {r.name ? `${r.name} · ${r.id}` : r.id}
             </Button>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Polygon, Spec } from '../../types/spec'
-import { pointInPolygon, roomAt, roundHalfEven } from './geom'
+import { labelAt, pointInPolygon, roomAt, roundHalfEven } from './geom'
 
 const square = (x0: number, y0: number, x1: number, y1: number): Polygon => [
   [x0, y0], [x1, y0], [x1, y1], [x0, y1],
@@ -40,5 +40,20 @@ describe('geom', () => {
     expect(roundHalfEven(-2.5)).toBe(-2)
     expect(roundHalfEven(2.6)).toBe(3)
     expect(roundHalfEven(-2.6)).toBe(-3)
+  })
+})
+
+describe('labelAt', () => {
+  const room = (polygon: number[][], label_pos: [number, number] | null = null) => ({ id: 'R1', polygon, label_pos }) as never
+  it('keeps the OCR label position when there is one', () => {
+    expect(labelAt(room([[0, 0], [10, 0], [10, 10], [0, 10]], [2, 3]))).toEqual([2, 3])
+  })
+  it('falls back to the centroid of a convex room (named in the editor: no label_pos)', () => {
+    expect(labelAt(room([[0, 0], [4000, 0], [4000, 2000], [0, 2000]]))).toEqual([2000, 1000])
+  })
+  it('stays inside an L-shaped room whose centroid falls outside it', () => {
+    const L = [[0, 0], [6000, 0], [6000, 1000], [1000, 1000], [1000, 6000], [0, 6000]]
+    const p = labelAt(room(L))
+    expect(pointInPolygon(p, L as [number, number][])).toBe('inside')
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import type { Backdrop, ReviewTask } from '../../api/types'
 import type { Room } from '../../types/spec'
+import { labelAt } from '../lib/geom'
 import { idsInRect } from '../lib/rectPick'
 import { useEditorStore } from '../store'
 import { imageMatrix, svgPoint } from './planTransform'
@@ -167,8 +168,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
         return <line key={o.id} data-opening={o.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={Math.max(w.thickness, 60) + 20}
           stroke={sel.has(o.id) ? '#ffffff' : o.category === 'door' ? DOOR : WINDOW} onClick={pick(o.id)} style={{ cursor: 'pointer' }} />
       })}
-      {rooms.filter((r) => r.name && r.label_pos).map((r) => {
-        const [x, y] = svgPoint(r.label_pos!)
+      {rooms.filter((r) => r.name).map((r) => {
+        const [x, y] = svgPoint(labelAt(r))
         return <text key={`t${r.id}`} x={x} y={y} fill="#f4f4f4" fontSize={350} textAnchor="middle" style={{ pointerEvents: 'none' }}>{r.name}</text>
       })}
       {tasks.map((t) => {

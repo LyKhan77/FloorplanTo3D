@@ -1,4 +1,4 @@
-import type { Spec } from '../../types/spec'
+import type { Room, Spec } from '../../types/spec'
 
 type Pt = [number, number]
 
@@ -37,3 +37,32 @@ export function roomAt(spec: Spec, x: number, y: number): string | null {
   }
   return null
 }
+
+/** Where a room's name is drawn: the OCR label position, else a point inside the room (rooms named in the editor
+ *  have none). The area centroid when it lies inside, else the middle of the widest span across the centroid's row. */
+export function labelAt(room: Pick<Room, 'polygon' | 'label_pos'>): Pt {
+  if (room.label_pos) return [room.label_pos[0], room.label_pos[1]]
+  const poly = room.polygon as Pt[]
+  let a = 0, cx = 0, cy = 0
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const k = poly[j][0] * poly[i][1] - poly[i][0] * poly[j][1]
+    a += k
+    cx += (poly[j][0] + poly[i][0]) * k
+    cy += (poly[j][1] + poly[i][1]) * k
+  }
+  if (!a) return poly[0]
+  const c: Pt = [cx / (3 * a), cy / (3 * a)]
+  if (pointInPolygon(c, poly) === 'inside') return c
+  const xs: number[] = []
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [p, q] = [poly[j], poly[i]]
+    if ((p[1] > c[1]) !== (q[1] > c[1])) xs.push(p[0] + ((c[1] - p[1]) * (q[0] - p[0])) / (q[1] - p[1]))
+  }
+  xs.sort((u, v) => u - v)
+  let best: Pt = poly[0], width = -1
+  for (let i = 0; i + 1 < xs.length; i += 2) {
+    if (xs[i + 1] - xs[i] > width) { width = xs[i + 1] - xs[i]; best = [(xs[i] + xs[i + 1]) / 2, c[1]] }
+  }
+  return best
+}
+
