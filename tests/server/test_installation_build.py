@@ -32,6 +32,10 @@ def test_build_runs_stages_7_to_10_and_publishes(app_factory, project_with_gt, d
         run = wait_status(c, pid, r.json()["run_id"], {"succeeded", "failed", "needs_attention"})
         assert run["status"] == "succeeded", run
         assert run["kind"] == "installation"
+        # review I3: the run names the layout version it built on; the installation version has its own field
+        assert (run["version"], run["installation_version"]) == (1, 2)
+        listing = c.get(f"{base}/outputs").json()[0]
+        assert listing["version"] == 2 and listing["built_at"] > 0  # the viewer reloads a rebuilt model by this
         out = data_dir / "projects" / pid / "installation_outputs" / "v2"
         assert json.loads((out / "installation.json").read_text())["lengths"]["data"]["horizontal"] == 4000
         assert json.loads((out / "verify.json").read_text())["glb_ok"] is True

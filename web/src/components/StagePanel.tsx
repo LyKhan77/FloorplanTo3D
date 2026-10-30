@@ -38,7 +38,8 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor, origin, on
   const stage = run.stages[n]
   const out = outputsBase(projectId, run.version)
   const { data: outputs } = useOutputs(projectId)
-  const published = outputs?.find((o) => o.version === run.version)
+  // an installation run's outputs are in installation_outputs (mode Instalasi), never the layout's outputs of that version
+  const published = run.kind === 'installation' ? undefined : outputs?.find((o) => o.version === run.version)
   const verify = useQuery({
     queryKey: ['verify', projectId, run.run_id, run.version],
     queryFn: () => api.get<Verify>(`/api/projects/${projectId}/runs/${run.run_id}/artifacts/07_build/work/verify.json`),

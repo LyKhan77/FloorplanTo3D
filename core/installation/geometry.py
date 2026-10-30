@@ -38,8 +38,9 @@ def _u_section(path, width: float, side: float, z: float) -> tuple[MeshData, Mes
     return walls, lips
 
 
-def _stations(path) -> list[tuple[float, float, float]]:
-    """(x, y, heading degrees) every HANGER_STEP_MM from the start, at the end, and at every corner."""
+def _stations(path) -> list[tuple[float, float, float, float]]:
+    """(x, y, heading, turn) every HANGER_STEP_MM from the start, at the end, and at every corner. At a corner the
+    heading is the bisector and `turn` the deflection (degrees): the mitred tray is wider there."""
     line = LineString(path)
     ds = sorted({*(d for d in _arange(line.length)), line.length, *(line.project(Point(p)) for p in path[1:-1])})
     out, last = [], None
@@ -49,7 +50,11 @@ def _stations(path) -> list[tuple[float, float, float]]:
         last = d
         p, q = line.interpolate(max(0, d - 1)), line.interpolate(min(line.length, d + 1))
         at = line.interpolate(d)
-        out.append((at.x, at.y, math.degrees(math.atan2(q.y - p.y, q.x - p.x))))
+        a, b = line.interpolate(max(0, d - 200)), line.interpolate(min(line.length, d + 200))
+        h1 = math.atan2(at.y - a.y, at.x - a.x) if d > 0 else None
+        h2 = math.atan2(b.y - at.y, b.x - at.x) if d < line.length else None
+        turn = abs(math.degrees((h2 - h1 + math.pi) % (2 * math.pi) - math.pi)) if h1 is not None and h2 is not None else 0.0
+        out.append((at.x, at.y, math.degrees(math.atan2(q.y - p.y, q.x - p.x)), turn))
     return out
 
 
@@ -57,12 +62,13 @@ def _arange(length: float) -> list[float]:
     return [k * HANGER_STEP_MM for k in range(int(length // HANGER_STEP_MM) + 1)]
 
 
-def _hanger(x: float, y: float, heading: float, width: float, z: float, top: float) -> MeshData:
-    """Trapeze strut under the tray, two rods from the strut up to the ceiling."""
+def _hanger(x: float, y: float, heading: float, width: float, z: float, top: float, turn: float = 0.0) -> MeshData:
+    """Trapeze strut under the tray, two rods from the strut up to the ceiling, clear of the (mitred) tray."""
     a = math.radians(heading)
     nx, ny = -math.sin(a), math.cos(a)
-    half = width / 2 + ROD_MM * 2
-    strut = box(x, y, z - CHANNEL_MM / 2, CHANNEL_MM, width + 2 * SLEEVE_PAD_MM, CHANNEL_MM, heading)
+    reach = width / (2 * math.cos(math.radians(min(turn, 150)) / 2))  # how far the mitred tray reaches across here
+    half = reach + ROD_MM * 2
+    strut = box(x, y, z - CHANNEL_MM / 2, CHANNEL_MM, 2 * half + 60, CHANNEL_MM, heading)
     rods = [box(x + s * nx * half, y + s * ny * half, (z - CHANNEL_MM + top) / 2, ROD_MM, ROD_MM, top - (z - CHANNEL_MM), heading)
             for s in (1, -1)]
     return merge(strut, *rods)
@@ -101,18 +107,20 @@ def installation_items(inst: Installation, layout: Spec, templates: dict[str, st
         meshes.append(mesh_item(f"tray_{t.tray_class}_{t.id}", COLLECTION[t.tray_class], body, "tray_galv", props) | {"uv_box_mm": UV_TILE_MM})
         meshes.append(mesh_item(f"tray_{t.tray_class}_{t.id}_lip", COLLECTION[t.tray_class], lips, f"tray_edge_{t.tray_class}", props))
         overhead = mounting(t, inst.meta) == "overhead"
-        for k, (x, y, heading) in enumerate(_stations(t.path)):
-            part = _hanger(x, y, heading, t.width, z, top) if overhead else box(x, y, (slab + z) / 2, CHANNEL_MM, CHANNEL_MM, z - slab, heading)
+        for k, (x, y, heading, turn) in enumerate(_stations(t.path)):
+            part = _hanger(x, y, heading, t.width, z, top, turn) if overhead else box(x, y, (slab + z) / 2, CHANNEL_MM, CHANNEL_MM, z - slab, heading)
             meshes.append(mesh_item(f"hanger_{t.id}_{k}", "Hangers", part, "hanger", {"spec_id": t.id, "spec_type": "hanger"}))
         if overhead:
             line = LineString(t.path)
-            sleeve = line.buffer(t.width / 2 + SLEEVE_PAD_MM, cap_style="flat", join_style="mitre")
             for w in layout.walls:
                 if math.dist(w.a, w.b) == 0:
                     continue
                 wz = (w.base_z, w.base_z + (w.height or layout.meta.defaults.wall_height))
                 wall = LineString([w.a, w.b]).buffer(w.thickness / 2 + 10, cap_style="flat")
-                cut = sleeve.intersection(wall)
+                inside = line.intersection(wall)  # only where the tray's axis goes through the wall: a tray alongside cuts nothing
+                if inside.is_empty or inside.length == 0:
+                    continue
+                cut = inside.buffer(t.width / 2 + SLEEVE_PAD_MM, cap_style="square", join_style="mitre").intersection(wall)
                 if cut.is_empty or z + t.side_height < wz[0] or z > wz[1] or not isinstance(cut, SPolygon | MultiPolygon):
                     continue
                 m = prism(cut, z - SLEEVE_PAD_MM, z + t.side_height + SLEEVE_PAD_MM)
@@ -123,7 +131,13 @@ def installation_items(inst: Installation, layout: Spec, templates: dict[str, st
         z = tray_elevation(t, inst.meta, layout)
         w = min(t.width, DROP_MAX_WIDTH_MM)
         parts = []
-        heading = math.degrees(math.atan2(d["to"][1] - d["at"][1], d["to"][0] - d["at"][0])) if d["horizontal"] else 0.0
+        if d["horizontal"]:
+            heading = math.degrees(math.atan2(d["to"][1] - d["at"][1], d["to"][0] - d["at"][0]))
+        else:  # straight down from the tray: the back plate runs along the tray
+            line = LineString(t.path)
+            s0 = line.project(Point(d["at"]))
+            p, q = line.interpolate(max(0, s0 - 1)), line.interpolate(min(line.length, s0 + 1))
+            heading = math.degrees(math.atan2(q.y - p.y, q.x - p.x)) + 90
         if d["horizontal"] > 0:
             parts.append(_u_section([d["at"], d["to"]], w, t.side_height, z)[0])
         if mounting(t, inst.meta) == "overhead":

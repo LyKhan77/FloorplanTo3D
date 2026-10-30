@@ -25,7 +25,7 @@ export const saveInstallation = (pid: string, base: number, ops: InstallOp[], me
 export const rebaseInstallation = (pid: string) => api.post<{ version: number; issues: InstallIssue[] }>(`${P(pid)}/rebase`)
 export const snapTray = (pid: string, points: Pt[]) => api.post<{ path: Pt[]; width: number }>(`${P(pid)}/snap-tray`, { points })
 export const snapBox = (pid: string, at: Pt) => api.post<SnapBox>(`${P(pid)}/snap-box`, { at })
-export interface InstallOutput { version: number; files: string[] }
+export interface InstallOutput { version: number; built_at: number; files: string[] }
 export const useInstallOutputs = (pid: string) => useQuery({ queryKey: ['installation-outputs', pid],
   queryFn: () => api.get<InstallOutput[]>(`${P(pid)}/outputs`) })
 export const outputUrl = (pid: string, v: number, file: string) => `${P(pid)}/outputs/${v}/${file}`

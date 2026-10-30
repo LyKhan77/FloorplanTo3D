@@ -85,3 +85,30 @@ def test_raised_floor_only_when_set():
     lo, hi = bbox(by_name(meshes, "raised_floor_panels")[0])
     assert (lo[2], hi[2]) == (-30, 0) and floor_drop(layout, raised) == -600
     assert by_name(meshes, "ceiling")
+
+
+def test_corner_hanger_rods_stay_outside_the_tray():
+    """Review I1: at a 90 degree corner the mitred tray reaches w/(2 cos 45); the rods must clear it."""
+    from shapely.geometry import LineString as L
+    path, w = [(1000, 1000), (2000, 1000), (2000, 2000)], 300
+    meshes, _ = installation_items(inst([CableTray(id="T1", path=path, tray_class="data", width=w)]), spec_with_rooms(), TEMPLATES)
+    foot = L(path).buffer(w / 2, cap_style="flat", join_style="mitre")
+    for h in by_name(meshes, "hanger_T1_"):
+        rods = [Point(v[0], v[1]) for v in h["verts"] if v[2] > 2700 + 5]  # above the tray: rod vertices only
+        assert rods and not any(foot.contains(p) for p in rods), h["name"]
+
+
+def test_no_sleeve_for_a_tray_alongside_a_wall():
+    """Review I2: a tray running 10 mm from a wall face cuts nothing; only crossings get a sleeve."""
+    # W5 is x = 5000, 100 thick (faces at 4950 / 5050); a 300 tray centred at x = 4790 has its edge at 4940
+    _, cutters = installation_items(inst([CableTray(id="T1", path=[(4790, 1000), (4790, 5000)], tray_class="data", width=300)]),
+                                    spec_with_rooms(), TEMPLATES)
+    assert [c["target"] for c in cutters] == []
+
+
+def test_drop_without_horizontal_run_follows_the_tray():
+    """Review M1: a rack right under an east-running tray gets a waterfall whose back plate runs along the tray."""
+    tray = CableTray(id="T1", path=[(1000, 3000), (4500, 3000)], tray_class="data")
+    meshes, _ = installation_items(inst([tray], [rack("RK1", 3000, 3000)]), spec_with_rooms(), TEMPLATES)
+    lo, hi = bbox(by_name(meshes, "drop_RK1_T1")[0])
+    assert hi[0] - lo[0] >= 190 and hi[1] - lo[1] <= 110  # 200 wide along the tray (x), 100 deep across it (y)

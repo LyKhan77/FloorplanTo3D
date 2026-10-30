@@ -11,6 +11,7 @@ services:
       DATA_DIR: /data
       BLENDER_BIN: /opt/blender/blender
       BLENDER_RENDER_DEVICE: CPU
+      BLENDER_INSTALL_ENGINE: BLENDER_WORKBENCH  # EEVEE needs a GPU; no GPU in this container
       DYLD_FALLBACK_LIBRARY_PATH: ""
     volumes:
       - ${FLOORPLAN_DATA_DIR:-../data}:/data

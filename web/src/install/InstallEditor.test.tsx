@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, ApiError } from '../api/client'
 import type { Installation } from '../types/installation'
 import { InstallEditor } from './InstallEditor'
+vi.mock('./InstallViewer', () => ({ InstallViewer: ({ url }: { url: string }) => <p data-testid="viewer">{url}</p> }))
 import { useInstallStore } from './store'
 
 const base = { schema_version: '1.0', meta: { version: 1, layout_version: 1, default_mounting: 'overhead', id_seq: {} },
@@ -11,7 +12,7 @@ const base = { schema_version: '1.0', meta: { version: 1, layout_version: 1, def
 const other = { ...base, meta: { ...base.meta }, cable_trays: [{ id: 'T7', path: [[0, 0], [2000, 0]], tray_class: 'power', width: 400 }] } as unknown as Installation
 let headP1 = base
 vi.mock('../api/client', async (orig) => ({ ...(await orig<typeof import('../api/client')>()),
-  api: { get: vi.fn((url: string) => Promise.resolve(url.includes('/p2/') ? other : url.endsWith('/HEAD') ? headP1 : [])), post: vi.fn() } }))
+  api: { get: vi.fn((url: string) => Promise.resolve(url.endsWith('/HEAD') ? (url.includes('/p2/') ? other : headP1) : [])), post: vi.fn() } }))
 const ui = (pid: string, qc = new QueryClient()) => <QueryClientProvider client={qc}><InstallEditor projectId={pid} backdrop={null} /></QueryClientProvider>
 
 describe('InstallEditor save', () => {
@@ -98,6 +99,30 @@ describe('InstallEditor build and views (M12b)', () => {
     expect(document.body.style.overflow).toBe('hidden')
     fireEvent.keyDown(window, { key: 'f' })
     expect(document.body.style.overflow).toBe('')
+  })
+})
+
+describe('InstallEditor outputs (M12b review)', () => {
+  beforeEach(() => { headP1 = base; useInstallStore.getState().load(base, 'p1') })
+  const outs = [{ version: 1, built_at: 1700000000, files: ['installation_report.html', 'layout_installation.glb'] }]
+
+  it('the viewer loads a rebuilt model (built_at in the URL) and the report opens in a tab', async () => {
+    vi.mocked(api.get).mockImplementation((url: string) => Promise.resolve(url.endsWith('/HEAD') ? base : url.endsWith('/outputs') ? outs : []) as never)
+    vi.mocked(api.post).mockResolvedValue({ issues: [], drops: [], lengths: null } as never)
+    render(ui('p1'))
+    const report = await screen.findByRole('link', { name: 'installation_report.html' })
+    expect(report.getAttribute('target')).toBe('_blank')
+    expect(report.hasAttribute('download')).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: '3D' }))
+    expect((await screen.findByTestId('viewer')).textContent).toMatch(/layout_installation\.glb\?b=1700000000$/)
+  })
+
+  it('a build already running (editor reopened) shows progress and keeps Build 3D off', async () => {
+    const running = { run_id: 'r9', kind: 'installation', status: 'running', stages: Array.from({ length: 11 }, (_, n) => ({ n, status: n === 7 ? 'running' : 'pending' })) }
+    vi.mocked(api.get).mockImplementation((url: string) => Promise.resolve(url.endsWith('/HEAD') ? base : url.endsWith('/runs') ? [running]
+      : url.includes('/runs/r9') ? running : []) as never)
+    render(ui('p1'))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Build 3D' })).toBeDisabled())
   })
 })
 

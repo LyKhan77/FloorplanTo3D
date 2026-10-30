@@ -37,7 +37,8 @@ COPY builder builder
 COPY schema schema
 COPY --from=web /src/web/dist web/dist
 
-ENV PATH=/app/.venv/bin:$PATH DATA_DIR=/data BLENDER_BIN=/opt/blender/blender BLENDER_RENDER_DEVICE=CPU
+ENV PATH=/app/.venv/bin:$PATH DATA_DIR=/data BLENDER_BIN=/opt/blender/blender BLENDER_RENDER_DEVICE=CPU \
+    BLENDER_INSTALL_ENGINE=BLENDER_WORKBENCH
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
     CMD curl -fsS http://localhost:8000/api/health || exit 1

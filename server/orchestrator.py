@@ -296,10 +296,14 @@ class Orchestrator:
                 raise ApiError(409, "run_in_progress", f"project {pid} already has an active run",
                                {"run_id": self._active[pid]})
             head = SpecStore(project_dir / "specs").head()
+            install = None
             if kind == "installation":  # M12b: `version` names the installation version; stages 7-10 build it
                 from core.installation.store import InstallationStore
 
-                head = InstallationStore(project_dir / "installations").head()
+                istore = InstallationStore(project_dir / "installations")
+                iv = istore.head() if version == "HEAD" else int(version)
+                install = {"installation_version": iv}
+                head = version = istore.load(iv).meta.layout_version  # the run's version is the layout it built on
                 from_stage = FIRST_BLENDER_STAGE
             if kind == "regenerate" or from_stage > FIRST_BLENDER_STAGE:
                 from_stage = FIRST_BLENDER_STAGE  # stages 8-10 need stage 7's spec and Blender output from this run
@@ -318,7 +322,7 @@ class Orchestrator:
                                "started_at": None, "ended_at": None, "duration_ms": None, "progress": None,
                                "metrics": {}, "warnings": []} for n, name in STAGES],
                    "code_version": self.code_version, "blender_version": None, "created_at": _now(), "error": None,
-                   "params_override": params_override or {}, "profile_id": profile_id, **(extra or {})}
+                   "params_override": params_override or {}, "profile_id": profile_id, **(install or {}), **(extra or {})}
             if seed is not None:
                 target = project_dir / "runs" / rid / "stages"
                 for n in range(from_stage):
@@ -416,7 +420,8 @@ class Orchestrator:
         def register(proc: subprocess.Popen) -> None:
             self._procs[rid] = proc
 
-        return StageContext(pid, rid, n, run.get("version"), work, project_dir, self.storage, self.settings,
+        version = run.get("installation_version") if run.get("kind") == "installation" else run.get("version")
+        return StageContext(pid, rid, n, version, work, project_dir, self.storage, self.settings,
                             emit_log, emit_progress, self._cancel[rid], self._state[rid], register,
                             params_override=run.get("params_override") or {},
                             profile=load_profile(self.storage, run["profile_id"]) if run.get("profile_id") else None,

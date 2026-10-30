@@ -221,7 +221,10 @@ def snap_boxes_route(pid: str, body: SnapBoxesBody, request: Request):
 def build(pid: str, body: BuildBody, request: Request):
     """M12b: build the installation in 3D (run kind "installation", stages 7-10); refused while it has errors."""
     store, specs = _store(request, pid), _specs(request, pid)
-    inst = _head(store) if body.version == "HEAD" else store.load(body.version)
+    try:
+        inst = _head(store) if body.version == "HEAD" else store.load(body.version)
+    except (FileNotFoundError, OSError):
+        raise ApiError(404, "no_installation", f"installation version {body.version} not found") from None
     issues = validate_installation(inst, specs.load(inst.meta.layout_version), _templates(request), layout_head=specs.head())
     if any(i.severity == "error" for i in issues):
         raise ApiError(409, "installation_invalid", "instalasi masih punya error; perbaiki lalu Save",
@@ -239,7 +242,9 @@ def outputs(pid: str, request: Request):
     root = _outputs_root(request, pid)
     versions = sorted((int(d.name[1:]) for d in root.iterdir() if d.is_dir() and d.name[1:].isdigit() and d.name.startswith("v")),
                       reverse=True) if root.exists() else []
-    return [{"version": v, "files": sorted(str(f.relative_to(root / f"v{v}")) for f in (root / f"v{v}").rglob("*") if f.is_file())}
+    # built_at (mtime): a rebuilt version keeps its file names, so the viewer adds it to the URL to skip a cached model
+    return [{"version": v, "built_at": int((root / f"v{v}").stat().st_mtime),
+             "files": sorted(str(f.relative_to(root / f"v{v}")) for f in (root / f"v{v}").rglob("*") if f.is_file())}
             for v in versions]
 
 

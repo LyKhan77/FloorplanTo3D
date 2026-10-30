@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { api, ApiError } from '../api/client'
 import type { Backdrop, Run } from '../api/types'
 import { ignoredTarget } from '../editor/lib/keys'
+import { useRuns } from '../api/hooks'
 import { stageLabel } from '../lib/runState'
 import type { Installation } from '../types/installation'
 import { buildInstallation, outputUrl, saveInstallation, useInstallation, useInstallOutputs, useInstallValidate, type InstallIssue } from './api'
@@ -31,12 +32,16 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
   const { data: outputs = [] } = useInstallOutputs(projectId)
   const latest = outputs[0]
   // polls the installation run; when it ends: show the outputs (or why it failed) and stop polling
-  const run = useQuery({ queryKey: ['run', projectId, buildRun], enabled: !!buildRun, refetchInterval: 2000,
+  // a build started before this editor opened (reopened mid-build) is followed too
+  const { data: runs = [] } = useRuns(projectId)
+  const active = runs.find((r) => r.kind === 'installation' && (r.status === 'queued' || r.status === 'running'))
+  const tracked = buildRun ?? active?.run_id ?? null
+  const run = useQuery({ queryKey: ['run', projectId, tracked], enabled: !!tracked, refetchInterval: 2000,
     queryFn: async () => {
-      const r = await api.get<Run>(`/api/projects/${projectId}/runs/${buildRun}`)
+      const r = await api.get<Run>(`/api/projects/${projectId}/runs/${tracked}`)
       if (['succeeded', 'failed', 'needs_attention'].includes(r.status)) {
         setBuildRun(null)
-        qc.invalidateQueries({ queryKey: ['installation-outputs', projectId] })
+        for (const k of ['installation-outputs', 'runs']) qc.invalidateQueries({ queryKey: [k, projectId] })
         useInstallStore.getState().setNotice(r.status === 'failed'
           ? { kind: 'error', text: `Build 3D gagal: ${r.error ?? 'lihat tab Pipeline'}` }
           : { kind: 'info', text: 'Build 3D selesai: lihat tampilan 3D dan unduhan di panel kiri' })
@@ -44,7 +49,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
       }
       return r
     } })
-  const building = !!buildRun
+  const building = !!tracked && !['succeeded', 'failed', 'needs_attention'].includes(run.data?.status ?? '')
 
   // full screen (F): the installation editor covers the window, the page under it stops scrolling
   useEffect(() => {
@@ -154,7 +159,9 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
             <ul className="install-outputs">
               <li className="helper">instalasi v{latest.version}</li>
               {latest.files.filter((f) => !f.startsWith('renders/') && f !== 'report.css').map((f) => (
-                <li key={f}><a href={outputUrl(projectId, latest.version, f)} download>{f}</a></li>
+                <li key={f}>{f.endsWith('.html')  // the report needs its CSS and renders next to it: open it, do not save it alone
+                  ? <a href={outputUrl(projectId, latest.version, f)} target="_blank" rel="noreferrer">{f}</a>
+                  : <a href={outputUrl(projectId, latest.version, f)} download>{f}</a>}</li>
               ))}
               {latest.files.filter((f) => f.startsWith('renders/')).map((f) => (
                 <li key={f}><a href={outputUrl(projectId, latest.version, f)} target="_blank" rel="noreferrer">{f.replace('renders/', '')}</a></li>
@@ -168,7 +175,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
         {view3d ? (
           <div className="editor__canvas">
             {latest?.files.includes('layout_installation.glb')
-              ? <InstallViewer url={outputUrl(projectId, latest.version, 'layout_installation.glb')} />
+              ? <InstallViewer url={`${outputUrl(projectId, latest.version, 'layout_installation.glb')}?b=${latest.built_at}`} />
               : <p className="helper">Belum ada build 3D. Klik Build 3D setelah Save.</p>}
           </div>
         ) : (

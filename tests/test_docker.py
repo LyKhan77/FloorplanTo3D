@@ -28,3 +28,9 @@ def test_runtime_code_imports_no_dev_only_package():
     hits = [str(p.relative_to(ROOT)) for d in ("core", "server", "builder") for p in (ROOT / d).rglob("*.py")
             if pattern.search(p.read_text())]
     assert hits == []
+
+
+def test_container_renders_the_installation_with_workbench():
+    """M12b review I4: EEVEE needs a GPU; the CPU-only image renders installations with Workbench."""
+    assert "BLENDER_INSTALL_ENGINE=BLENDER_WORKBENCH" in (ROOT / "docker" / "Dockerfile").read_text().replace(" ", "")
+

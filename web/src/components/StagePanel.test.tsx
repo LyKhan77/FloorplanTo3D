@@ -73,3 +73,23 @@ describe('StagePanel skipped stage', () => {
     expect(onShowRun).toHaveBeenCalledWith('r1')
   })
 })
+
+describe('StagePanel installation runs (M12b review I3)', () => {
+  it('never shows the layout outputs of the same version as this run\'s result', async () => {
+    vi.mocked(api.get).mockImplementation((url: string) => Promise.resolve(url.endsWith('/outputs')
+      ? [{ version: 1, files: [{ name: 'report.html', bytes: 10 }, { name: 'shell.glb', bytes: 10 }], renders: [] }]
+      : url.endsWith('verify.json') ? { trays: 6, glb_ok: true } : []) as never)
+    const run = { run_id: 'r9', project_id: 'p1', status: 'succeeded', kind: 'installation', from_stage: 7, version: 1,
+      installation_version: 3, stages: Array.from({ length: 11 }, (_, n) => stage(n, n < 7 ? 'skipped' : 'succeeded')) } as unknown as Run
+    for (const n of [7, 9]) {
+      const { unmount } = render(<QueryClientProvider client={new QueryClient()}><MemoryRouter>
+        <StagePanel projectId="p1" run={run} n={n} events={[]} onOpenEditor={vi.fn()} />
+      </MemoryRouter></QueryClientProvider>)
+      await new Promise((r) => setTimeout(r, 20))
+      expect(screen.queryByText('shell.glb')).toBeNull()
+      expect(screen.queryByText(/report\.html/)).toBeNull()
+      unmount()
+    }
+  })
+})
+
