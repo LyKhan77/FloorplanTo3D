@@ -88,7 +88,7 @@ class AddObject(_Op):
     rotation: float = 0
     dims: tuple[Mm, Mm, Mm]
     label: str | None = None
-    evidence: dict[str, Any] = {}
+    evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class UpdateObject(_Op):
