@@ -5,6 +5,7 @@ from dataclasses import asdict
 from typing import Literal
 
 from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core.installation.derive import drops, lengths, rack_categories
@@ -31,6 +32,10 @@ class OpsBody(BaseModel):
     base_version: int
     ops: list[dict]
     message: str = ""
+
+
+class BuildBody(BaseModel):
+    version: int | Literal["HEAD"] = "HEAD"
 
 
 class SnapTrayBody(BaseModel):
@@ -210,3 +215,36 @@ def snap_boxes_route(pid: str, body: SnapBoxesBody, request: Request):
 
     binary, t = _page(request, pid)
     return [_with_template(request, b) for b in snap_boxes(binary, t, body.a, body.b)]
+
+
+@router.post("/build", status_code=202)
+def build(pid: str, body: BuildBody, request: Request):
+    """M12b: build the installation in 3D (run kind "installation", stages 7-10); refused while it has errors."""
+    store, specs = _store(request, pid), _specs(request, pid)
+    inst = _head(store) if body.version == "HEAD" else store.load(body.version)
+    issues = validate_installation(inst, specs.load(inst.meta.layout_version), _templates(request), layout_head=specs.head())
+    if any(i.severity == "error" for i in issues):
+        raise ApiError(409, "installation_invalid", "instalasi masih punya error; perbaiki lalu Save",
+                       {"issues": _issues(i for i in issues if i.severity == "error")})
+    run = request.app.state.orchestrator.start_run(pid, "installation", version=inst.meta.version)
+    return {"run_id": run["run_id"], "status": run["status"]}
+
+
+def _outputs_root(request: Request, pid: str):
+    return request.app.state.storage.project_dir(pid) / "installation_outputs"
+
+
+@router.get("/outputs")
+def outputs(pid: str, request: Request):
+    root = _outputs_root(request, pid)
+    versions = sorted((int(d.name[1:]) for d in root.iterdir() if d.is_dir() and d.name[1:].isdigit() and d.name.startswith("v")),
+                      reverse=True) if root.exists() else []
+    return [{"version": v, "files": sorted(str(f.relative_to(root / f"v{v}")) for f in (root / f"v{v}").rglob("*") if f.is_file())}
+            for v in versions]
+
+
+@router.get("/outputs/{v}/{path:path}")
+def output_file(pid: str, v: int, path: str, request: Request):
+    storage = request.app.state.storage
+    return FileResponse(storage.safe_join(_outputs_root(request, pid) / f"v{v}", path))
+

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><title>Laporan instalasi — {{ project }}</title>
+<link rel="stylesheet" href="report.css"></head>
+<body>
+{% macro m(mm) %}{{ "%.1f"|format(mm / 1000) }}{% endmacro %}
+<header><h1>Laporan instalasi cable tray</h1>
+  <p>{{ project }} · instalasi v{{ s.version }} · layout v{{ s.layout_version }}</p></header>
+
+<section><h2>Panjang tray (m)</h2>
+<table><thead><tr><th>Kelas</th><th>Jalur</th><th>Drop</th><th>Total</th></tr></thead><tbody>
+{% for cls, label in [("data", "Data"), ("power", "Power")] %}{% set L = s.lengths[cls] %}
+<tr><td>{{ label }}</td><td>{{ m(L.horizontal) }}</td><td>{{ m(L.drops) }}</td><td><strong>{{ m(L.total) }}</strong></td></tr>
+{% endfor %}</tbody></table></section>
+
+<section><h2>Tray</h2>
+<table><thead><tr><th>ID</th><th>Kelas</th><th>Lebar (mm)</th><th>Pemasangan</th><th>Elevasi bawah (mm)</th><th>Panjang (m)</th></tr></thead><tbody>
+{% for t in s.trays %}<tr><td>{{ t.id }}</td><td>{{ t.tray_class }}</td><td>{{ t.width }}</td><td>{{ t.mounting }}</td><td>{{ t.elevation }}</td><td>{{ m(t.length) }}</td></tr>
+{% endfor %}</tbody></table></section>
+
+<section><h2>Rack dan drop</h2>
+<table><thead><tr><th>Rack</th><th>Tray</th><th>Kelas</th><th>Horizontal (m)</th><th>Vertikal (m)</th></tr></thead><tbody>
+{% for d in s.drops %}<tr><td>{{ d.rack_id }}</td><td>{{ d.tray_id }}</td><td>{{ d.tray_class }}</td><td>{{ m(d.horizontal) }}</td><td>{{ m(d.vertical) }}</td></tr>
+{% endfor %}</tbody></table>
+{% set loose = s.issues | selectattr("code", "equalto", "I006") | list %}
+{% if loose %}<h3>Rack belum terhubung</h3><ul>{% for i in loose %}<li>{{ i.message }}</li>{% endfor %}</ul>{% endif %}
+</section>
+
+{% set warns = s.issues | rejectattr("code", "equalto", "I006") | list %}
+{% if warns %}<section><h2>Catatan</h2><ul>{% for i in warns %}<li><span class="mono">{{ i.code }}</span> {{ i.message }}</li>{% endfor %}</ul></section>{% endif %}
+
+<section class="figures"><h2>Render</h2><div class="grid">
+{% for key, path in renders.items() %}<figure><img src="{{ path }}" alt="{{ key }}"><figcaption>{{ key }}</figcaption></figure>{% endfor %}
+</div></section>
+</body></html>

@@ -209,6 +209,9 @@ class Orchestrator:
                  stage_impls: dict[int, Callable[[StageContext], dict]] | None = None):
         self.storage, self.bus, self.settings = storage, bus, settings
         self.impls = DEFAULT_IMPLS | (stage_impls or {})
+        from server.installation_stages import INSTALL_IMPLS
+
+        self.install_impls = INSTALL_IMPLS
         self._loop: asyncio.AbstractEventLoop | None = None
         self._queues: dict[str, asyncio.Queue] = {}
         self._workers: list[asyncio.Task] = []
@@ -293,6 +296,11 @@ class Orchestrator:
                 raise ApiError(409, "run_in_progress", f"project {pid} already has an active run",
                                {"run_id": self._active[pid]})
             head = SpecStore(project_dir / "specs").head()
+            if kind == "installation":  # M12b: `version` names the installation version; stages 7-10 build it
+                from core.installation.store import InstallationStore
+
+                head = InstallationStore(project_dir / "installations").head()
+                from_stage = FIRST_BLENDER_STAGE
             if kind == "regenerate" or from_stage > FIRST_BLENDER_STAGE:
                 from_stage = FIRST_BLENDER_STAGE  # stages 8-10 need stage 7's spec and Blender output from this run
             seed = None
@@ -427,7 +435,8 @@ class Orchestrator:
         self.bus.emit(pid, rid, n, "stage.started", data={"status": "running"})
         t0 = asyncio.get_running_loop().time()
         try:
-            result = await asyncio.to_thread(self.impls[n], self._context(run, n))
+            impl = self.install_impls[n] if run["kind"] == "installation" else self.impls[n]
+            result = await asyncio.to_thread(impl, self._context(run, n))
         except Exception as e:  # noqa: BLE001 - a failing stage fails the run, not the server
             result = {"status": "failed", "message": f"{type(e).__name__}: {e}"}
         finally:
