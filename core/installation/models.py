@@ -4,15 +4,19 @@ layout spec so an automatic pass can work on installation items only. Units: int
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from core.spec.models import Mm, PlacedObject, Point, ProvenanceLogEntry, _Model
+from core.spec.models import Mm, PlacedObject, Point, ProvenanceLogEntry
 
 TrayClass = Literal["data", "power"]
 Mounting = Literal["overhead", "underfloor"]
 TRAY_WIDTHS = (100, 150, 200, 300, 400, 500, 600)
 SIDE_HEIGHTS = (50, 100, 150)
 DEFAULT_WIDTH = {"data": 200, "power": 400}
+
+
+class _Model(BaseModel):  # a direct BaseModel subclass, so lint knows list defaults are copied per instance
+    model_config = ConfigDict(extra="forbid")
 
 
 class TrayProvenance(_Model):
