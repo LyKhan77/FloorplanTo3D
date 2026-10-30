@@ -8,6 +8,7 @@ are fitted along the segment. The tray width is the band's outer width less one 
 Box: the smallest closed region of paper (4-connected background) around the click, when it is rack-sized.
 """
 
+import itertools
 import math
 
 import cv2
@@ -93,10 +94,10 @@ def snap_tray(binary: np.ndarray, px_to_mm: list[float], points: list) -> dict |
     to_px = px_from_mm(px_to_mm)
     step = abs(px_to_mm[0]) / 2 or 1.0  # half a pixel along the profile
     pts = [tuple(p) for p in points]
-    snapped = [_snap_segment(binary, to_px, step, p, q) for p, q in zip(pts, pts[1:])]
+    snapped = [_snap_segment(binary, to_px, step, p, q) for p, q in itertools.pairwise(pts)]
     if not any(snapped):
         return None
-    lines = [(s[0], s[1]) if s else (p, q) for s, p, q in zip(snapped, pts, pts[1:])]
+    lines = [(s[0], s[1]) if s else seg for s, seg in zip(snapped, itertools.pairwise(pts), strict=True)]
     widths = [x for s in snapped if s for x in s[2]]
     thin = [x for s in snapped if s for x in s[3]]
     line_mm = float(np.median(thin)) if thin else step * 2
