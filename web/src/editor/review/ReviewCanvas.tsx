@@ -25,10 +25,12 @@ function useImageSize(url: string | undefined) {
 const pts = (ring: number[][]) => ring.map((p) => svgPoint(p).join(',')).join(' ')
 
 /** M8 review canvas: the spec in 2D over the page it was read from (works before any 3D shell exists). */
-export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, children, onCanvasPointer }: {
+export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, children, onCanvasPointer, readOnly = false }: {
   rooms: Room[]; tasks: ReviewTask[]; backdrop: Backdrop | null; showImage?: boolean; children?: ReactNode
   /** tools (Task 5) take the pointer first; returning true stops the default select/marquee/pan */
   onCanvasPointer?: (kind: 'down' | 'move' | 'up', mm: [number, number], e: RPointerEvent) => boolean
+  /** M12a: the layout under the installation layer, shown but never selected */
+  readOnly?: boolean
 }) {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
@@ -87,7 +89,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     if (onCanvasPointer?.('down', mm(s), e)) return
     if (e.button === 1 || e.altKey) setDrag({ kind: 'pan', a: s, b: s })
     // rooms fill the whole interior: a marquee starts on them too (a click without a drag still picks the room)
-    else if (e.button === 0 && (e.target === e.currentTarget || (e.target as Element).hasAttribute?.('data-room'))) setDrag({ kind: 'marquee', a: s, b: s })
+    else if (!readOnly && e.button === 0 && (e.target === e.currentTarget || (e.target as Element).hasAttribute?.('data-room'))) setDrag({ kind: 'marquee', a: s, b: s })
   }
   const move = (e: RPointerEvent<SVGSVGElement>) => {
     const s = toSvg(e)
@@ -109,6 +111,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     useEditorStore.getState().select(idsInRect(view, { xa, xb, ya, yb }, (p) => svgPoint(p)), e.shiftKey)
   }
   const pick = (id: string) => (e: React.MouseEvent) => {
+    if (readOnly) return
     e.stopPropagation()
     if (!dragged.current) useEditorStore.getState().select([id], e.shiftKey)
   }
