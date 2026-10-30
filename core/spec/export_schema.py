@@ -5,6 +5,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
+from core.installation.models import Installation
 from core.spec.models import Spec
 from core.spec.ops import SpecOp
 from core.templates.model import TemplateMeta
@@ -30,6 +31,7 @@ def build_schemas() -> dict[str, dict]:
         "layout-spec.schema.json": Spec.model_json_schema(),
         "spec-ops.schema.json": TypeAdapter(list[SpecOp]).json_schema(),
         "template.schema.json": TemplateMeta.model_json_schema(),
+        "installation.schema.json": Installation.model_json_schema(),
     }
     return canonical | {f"ts/{name}": _draft7_tuples(schema) for name, schema in canonical.items()}
 

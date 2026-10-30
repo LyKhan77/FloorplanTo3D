@@ -1,0 +1,478 @@
+{
+  "$defs": {
+    "CableTray": {
+      "additionalProperties": false,
+      "description": "Only what a person decides is stored; drops, hangers, fittings and lengths are derived (\u00a75.2).",
+      "properties": {
+        "elevation": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Elevation"
+        },
+        "flow": {
+          "default": "forward",
+          "enum": [
+            "forward",
+            "reverse"
+          ],
+          "title": "Flow",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "mounting": {
+          "anyOf": [
+            {
+              "enum": [
+                "overhead",
+                "underfloor"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mounting"
+        },
+        "path": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Path",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/TrayProvenance",
+          "default": {
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "editor"
+          }
+        },
+        "side_height": {
+          "default": 100,
+          "title": "Side Height",
+          "type": "integer"
+        },
+        "tray_class": {
+          "enum": [
+            "data",
+            "power"
+          ],
+          "title": "Tray Class",
+          "type": "string"
+        },
+        "tray_type": {
+          "const": "perforated",
+          "default": "perforated",
+          "title": "Tray Type",
+          "type": "string"
+        },
+        "width": {
+          "default": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "tray_class"
+      ],
+      "title": "CableTray",
+      "type": "object"
+    },
+    "InstallMeta": {
+      "additionalProperties": false,
+      "properties": {
+        "ceiling_height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ceiling Height"
+        },
+        "created_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Created At"
+        },
+        "default_mounting": {
+          "default": "overhead",
+          "enum": [
+            "overhead",
+            "underfloor"
+          ],
+          "title": "Default Mounting",
+          "type": "string"
+        },
+        "layout_version": {
+          "title": "Layout Version",
+          "type": "integer"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "parent_version": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Version"
+        },
+        "raised_floor_height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raised Floor Height"
+        },
+        "source": {
+          "default": "editor",
+          "enum": [
+            "editor",
+            "auto",
+            "migration"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "version": {
+          "default": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "layout_version"
+      ],
+      "title": "InstallMeta",
+      "type": "object"
+    },
+    "PlacedObject": {
+      "additionalProperties": false,
+      "properties": {
+        "dims": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Dims",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "locked": {
+          "default": false,
+          "title": "Locked",
+          "type": "boolean"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": {
+            "candidate": null,
+            "changed_in": 0,
+            "confidence": 1.0,
+            "evidence": {},
+            "source": "manual"
+          }
+        },
+        "room_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Room Id"
+        },
+        "rotation": {
+          "default": 0,
+          "title": "Rotation",
+          "type": "number"
+        },
+        "template_id": {
+          "title": "Template Id",
+          "type": "string"
+        },
+        "template_version": {
+          "title": "Template Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "template_id",
+        "template_version",
+        "position",
+        "dims"
+      ],
+      "title": "PlacedObject",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate"
+        },
+        "changed_in": {
+          "default": 0,
+          "title": "Changed In",
+          "type": "integer"
+        },
+        "confidence": {
+          "default": 1.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Evidence",
+          "type": "object"
+        },
+        "source": {
+          "default": "manual",
+          "enum": [
+            "cv",
+            "llm",
+            "editor",
+            "manual"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ProvenanceLogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "By"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "op": {
+          "title": "Op",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "ProvenanceLogEntry",
+      "type": "object"
+    },
+    "TrayProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "changed_in": {
+          "default": 0,
+          "title": "Changed In",
+          "type": "integer"
+        },
+        "confidence": {
+          "default": 1.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Evidence",
+          "type": "object"
+        },
+        "source": {
+          "default": "editor",
+          "enum": [
+            "editor",
+            "auto",
+            "manual"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "title": "TrayProvenance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "cable_trays": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CableTray"
+      },
+      "title": "Cable Trays",
+      "type": "array"
+    },
+    "meta": {
+      "$ref": "#/$defs/InstallMeta"
+    },
+    "objects": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PlacedObject"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "provenance_log": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProvenanceLogEntry"
+      },
+      "title": "Provenance Log",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "meta"
+  ],
+  "title": "Installation",
+  "type": "object"
+}
