@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Template } from '../../api/types'
 import type { PlacedObject, Spec } from '../../types/spec'
-import { deleteOps, duplicateOps, gizmoYawDeg, groupCenter, moveOps, rotateOps } from './transform'
+import { deleteGeometryOps, deleteOps, duplicateOps, gizmoYawDeg, groupCenter, moveOps, rotateOps } from './transform'
 
 const gt = gtJson as unknown as Spec
 const [mx, my] = gt.rooms!.find((r) => r.name === 'R. MEETING')!.label_pos as [number, number]
@@ -57,5 +57,20 @@ describe('gizmoYawDeg', () => {
     expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 })], 'scale')).toBe(90)
     expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 })], 'translate')).toBe(0)
     expect(gizmoYawDeg([obj('O1', 0, 0, { rotation: 90 }), obj('O2', 0, 0)], 'scale')).toBe(0)
+  })
+
+  it('deleteGeometryOps deletes picked walls, doors and stairs; a door on a deleted wall goes with its wall', () => {
+    const w1 = gt.walls![0], w2 = gt.walls![1]
+    const onW1 = gt.openings!.find((o) => o.wall_id === w1.id) ?? { id: 'D-x', wall_id: w1.id }
+    const other = gt.openings!.find((o) => o.wall_id !== w1.id && o.wall_id !== w2.id)!
+    const spec = { ...gt, openings: [...gt.openings!.filter((o) => o.id !== onW1.id), onW1] } as Spec
+    const st = gt.stairs?.[0]
+    const ids = [w1.id, onW1.id, other.id, w2.id, ...(st ? [st.id] : []), 'R-unknown']
+    expect(deleteGeometryOps(spec, ids, 'tombol Delete')).toEqual([
+      { op: 'delete_opening', id: other.id, reason: 'tombol Delete' },
+      { op: 'delete_wall', id: w1.id, reason: 'tombol Delete' },
+      { op: 'delete_wall', id: w2.id, reason: 'tombol Delete' },
+      ...(st ? [{ op: 'delete_stair', id: st.id, reason: 'tombol Delete' }] : []),
+    ])
   })
 })

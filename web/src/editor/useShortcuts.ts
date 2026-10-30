@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { Template } from '../api/types'
 import { ignoredTarget, keyAction } from './lib/keys'
-import { deleteOps, duplicateOps, rotateOps, templateOf } from './lib/transform'
+import { deleteGeometryOps, deleteOps, duplicateOps, rotateOps, templateOf } from './lib/transform'
 import { useEditorStore } from './store'
 
 /** PRD/07 §10 shortcuts while the Editor tab is shown; typing in fields and open Carbon modals are left alone. */
@@ -32,10 +32,14 @@ export function useShortcuts(templates: Template[], save: () => void) {
           lockedNotice()
           if (picked.length) s.applyMany(rotateOps(picked, arg === '+90' ? 90 : -90))
           return
-        case 'delete':
+        case 'delete': {
           lockedNotice()
-          if (picked.length) s.applyMany(deleteOps(picked))
+          // walls, doors and stairs too (reviewing a plan is mostly deleting false walls); Ctrl+Z undoes it
+          const geometry = s.view ? deleteGeometryOps(s.view, s.selection, 'tombol Delete') : []
+          const ops = [...deleteOps(picked), ...geometry]
+          if (ops.length && s.applyMany(ops) && geometry.length) s.select([])
           return
+        }
         case 'duplicate': {
           lockedNotice()
           const ops = duplicateOps(picked, (picked[0] && templateOf(picked[0], templates)?.snap?.grid_mm) || 600)

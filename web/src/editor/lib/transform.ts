@@ -59,6 +59,18 @@ export function duplicateOps(objs: PlacedObject[], stepMm: number): EditorOp[] {
 export const deleteOps = (objs: PlacedObject[]): EditorOp[] =>
   unlocked(objs).sort((a, b) => compareIds(b.id, a.id)).map((o) => ({ op: 'delete_object', id: o.id }))
 
+/** Delete key on spec geometry (walls, doors/windows, stairs): its openings go with a deleted wall, so they get no op. */
+export function deleteGeometryOps(view: Spec, ids: string[], reason: string): EditorOp[] {
+  const picked = new Set(ids)
+  const walls = (view.walls ?? []).filter((w) => picked.has(w.id))
+  const gone = new Set(walls.map((w) => w.id))
+  return [
+    ...(view.openings ?? []).filter((o) => picked.has(o.id) && !gone.has(o.wall_id)).map((o) => ({ op: 'delete_opening' as const, id: o.id, reason })),
+    ...walls.map((w) => ({ op: 'delete_wall' as const, id: w.id, reason })),
+    ...(view.stairs ?? []).filter((s) => picked.has(s.id)).map((s) => ({ op: 'delete_stair' as const, id: s.id, reason })),
+  ]
+}
+
 /** The scale gizmo turns with a single object, so its X/Z handles are the object's w/d. */
 export const gizmoYawDeg = (objs: PlacedObject[], mode: 'translate' | 'rotate' | 'scale'): number =>
   mode === 'scale' && objs.length === 1 ? objs[0].rotation ?? 0 : 0
