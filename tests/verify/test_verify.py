@@ -107,3 +107,18 @@ def test_mask_follows_parent_versions_after_editor_commits(tmp_path):
     mask.parent.mkdir(parents=True)
     mask.write_bytes(b"png")
     assert v2.meta.run_id is None and plan_mask_for(tmp_path, v2) == mask
+
+
+def _box(x0, y0, z0, x1, y1, z1):
+    return [[x, y, z] for x in (x0, x1) for y in (y0, y1) for z in (z0, z1)]
+
+
+def test_expected_wall_box_rises_when_a_door_spans_the_whole_wall():
+    """A door filling a gap (W215, Gatsu review) leaves only the lintel: the wall's box starts at the door head."""
+    from core.verify.glb_check import expected_box
+    wall = {"name": "wall_W1", "verts": _box(0, 0, 0, 1500, 150, 3000)}
+    full = {"target": "wall_W1", "verts": _box(-25, -10, 0, 1525, 160, 2100)}
+    part = {"target": "wall_W1", "verts": _box(100, -10, 0, 1000, 160, 2100)}
+    other = {"target": "wall_W2", "verts": _box(-25, -10, 0, 1525, 160, 2100)}
+    assert list(expected_box(wall, [part, other])) == [0, 0, 0, 1500, 150, 3000]
+    assert list(expected_box(wall, [full])) == [0, 0, 2100, 1500, 150, 3000]
