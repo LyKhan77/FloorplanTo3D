@@ -6,6 +6,7 @@ import { RebaseDialog } from './RebaseDialog'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from './Toolbar'
 import { geometryDiff, isEmptyDiff } from './lib/geometryDiff'
+import { ignoredTarget } from './lib/keys'
 import { IssuesPanel } from './panels/IssuesPanel'
 import { LayersPanel } from './panels/LayersPanel'
 import { LibraryPanel } from './panels/LibraryPanel'
@@ -69,14 +70,30 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
     return () => window.removeEventListener('beforeunload', warn)
   }, [])
 
+  // full screen: the editor covers the window and the page under it stops scrolling (review and 3D alike)
+  const [full, setFull] = useState(false)
+  useEffect(() => {
+    document.body.style.overflow = full ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [full])
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'f' || e.ctrlKey || e.metaKey || e.altKey || ignoredTarget(e.target as Element | null)) return
+      if (useEditorStore.getState().mode !== 'walk') setFull((f) => !f)
+    }
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  }, [])
+
   if (data.loading) return <Loading withOverlay={false} description="Memuat editor" />
   if (!data.spec) return <p className="helper">Belum ada spec. Impor spec dulu.</p>
 
-  const cls = ['editor', left ? '' : 'editor--no-left', right ? '' : 'editor--no-right'].filter(Boolean).join(' ')
+  const cls = ['editor', left ? '' : 'editor--no-left', right ? '' : 'editor--no-right', full ? 'editor--full' : ''].filter(Boolean).join(' ')
   return (
     <div className={cls}>
       <Toolbar left={left} right={right} onToggleLeft={() => setLeft(!left)} onToggleRight={() => setRight(!right)}
-        onSave={onSave} saving={saver.saving} onRegenerate={paused ? undefined : () => flow.regenerate()} regen={flow} />
+        onSave={onSave} saving={saver.saving} onRegenerate={paused ? undefined : () => flow.regenerate()} regen={flow}
+        full={full} onToggleFull={() => setFull((f) => !f)} />
       {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
       {left && (
         <aside className="editor__library" aria-label="Library template">

@@ -65,10 +65,22 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
   }
   const mm = (s: [number, number]): [number, number] => [s[0], -s[1]]
 
-  const onWheel = (e: React.WheelEvent) => {
-    const [cx, cy] = toSvg(e), k = e.deltaY > 0 ? 1.15 : 1 / 1.15
-    setBox([cx - (cx - vb[0]) * k, cy - (cy - vb[1]) * k, vb[2] * k, vb[3] * k])
-  }
+  // the wheel zooms the canvas, never the page: React's onWheel is passive and cannot preventDefault
+  const zoom = useRef<(e: WheelEvent) => void>(() => {})
+  useEffect(() => {
+    zoom.current = (e) => {
+      const [cx, cy] = toSvg(e), k = e.deltaY > 0 ? 1.15 : 1 / 1.15
+      setBox([cx - (cx - vb[0]) * k, cy - (cy - vb[1]) * k, vb[2] * k, vb[3] * k])
+    }
+  })
+  const hasView = !!view
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg) return
+    const onWheel = (e: WheelEvent) => { e.preventDefault(); zoom.current(e) }
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    return () => svg.removeEventListener('wheel', onWheel)
+  }, [hasView])
   const down = (e: RPointerEvent<SVGSVGElement>) => {
     const s = toSvg(e)
     if (onCanvasPointer?.('down', mm(s), e)) return
@@ -104,7 +116,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
   const walls = new Map((view.walls ?? []).map((w) => [w.id, w]))
   return (
     <svg ref={svgRef} className="review-canvas" viewBox={vb.join(' ')} role="application" aria-label="Kanvas review"
-      onWheel={onWheel} onPointerDown={down} onPointerMove={move} onPointerUp={up} style={{ background: '#0b0b0b', touchAction: 'none' }}>
+      onPointerDown={down} onPointerMove={move} onPointerUp={up} style={{ background: '#0b0b0b', touchAction: 'none' }}>
       {backdrop && showImage && imgSize && (
         <image href={backdrop.url} width={imgSize[0]} height={imgSize[1]} transform={imageMatrix(backdrop.px_to_mm)} opacity={0.5}
           style={{ pointerEvents: 'none', filter: 'invert(1)' }} />

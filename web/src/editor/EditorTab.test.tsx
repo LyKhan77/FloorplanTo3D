@@ -48,6 +48,19 @@ describe('EditorTab', () => {
     expect(screen.getAllByRole('button', { name: 'Regenerate' }).length).toBeGreaterThan(0)
   })
 
+  it('fills the window from the toolbar or F, and F again leaves', async () => {
+    const { fireEvent } = await import('@testing-library/react')
+    setup(4, [out(4)])
+    await screen.findByText('v4')
+    const editor = () => document.querySelector('.editor')!
+    fireEvent.click(screen.getByRole('button', { name: 'Layar penuh (F)' }))
+    expect(editor().classList.contains('editor--full')).toBe(true)
+    expect(document.body.style.overflow).toBe('hidden')
+    fireEvent.keyDown(window, { key: 'f' })
+    expect(editor().classList.contains('editor--full')).toBe(false)
+    expect(document.body.style.overflow).toBe('')
+  })
+
   it('toolbar shows version and unsaved count', async () => {
     setup(4, [out(4)])
     await screen.findByText('v4')

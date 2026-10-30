@@ -1,5 +1,5 @@
 import {
-  Area, AreaCustom, ArrowsVertical, Cube, Cursor_1, Grid, Map, Pedestrian, Redo, Renew, RightPanelClose, RightPanelOpen,
+  Area, AreaCustom, ArrowsVertical, Cube, Cursor_1, Grid, Map, Maximize, Minimize, Pedestrian, Redo, Renew, RightPanelClose, RightPanelOpen,
   Ruler, Save, SidePanelClose, SidePanelOpen, Undo,
 } from '@carbon/icons-react'
 import { Button, Checkbox, ProgressBar } from '@carbon/react'
@@ -23,6 +23,8 @@ interface Props {
   onRegenerate?: () => void
   saving?: boolean
   regen?: { running: boolean; progress: number | null; stage: string | null }
+  full?: boolean
+  onToggleFull?: () => void
 }
 
 function Toggle({ label, icon, active, onClick, disabled = false }: { label: string; icon: ComponentType; active: boolean; onClick(): void; disabled?: boolean }) {
@@ -32,7 +34,7 @@ function Toggle({ label, icon, active, onClick, disabled = false }: { label: str
   )
 }
 
-export function Toolbar({ left, right, onToggleLeft, onToggleRight, onSave, onRegenerate, saving, regen }: Props) {
+export function Toolbar({ left, right, onToggleLeft, onToggleRight, onSave, onRegenerate, saving, regen, full = false, onToggleFull }: Props) {
   const [auto, setAuto] = useState(autoRegenerate)
   const { mode, tool, snap, ops, past, future, baseVersion, planOnly, setMode, setTool, setSnap, undo, redo } = useEditorStore()
   return (
@@ -62,6 +64,7 @@ export function Toolbar({ left, right, onToggleLeft, onToggleRight, onSave, onRe
           setAuto(checked)
           try { localStorage.setItem(AUTO_REGENERATE_KEY, checked ? '1' : '0') } catch { /* private mode: keep the session choice */ }
         }} />
+      {onToggleFull && <Toggle label={full ? 'Keluar layar penuh (F)' : 'Layar penuh (F)'} icon={full ? Minimize : Maximize} active={full} onClick={onToggleFull} />}
       <Toggle label={right ? 'Sembunyikan panel kanan' : 'Tampilkan panel kanan'} icon={right ? RightPanelClose : RightPanelOpen}
         active={false} onClick={onToggleRight} />
     </div>

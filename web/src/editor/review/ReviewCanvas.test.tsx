@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../../types/spec'
@@ -28,6 +28,15 @@ describe('ReviewCanvas', () => {
     expect(container.querySelectorAll('[data-column]')).toHaveLength(gt.columns!.length)
     const door = container.querySelector(`[data-opening="${gt.openings!.find((o) => o.category === 'door')!.id}"]`)!
     expect(door.getAttribute('stroke')).not.toBe('#0b0b0b')
+  })
+
+  it('a wheel over the canvas zooms it without scrolling the page', () => {
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    const svg = container.querySelector('svg')!, before = svg.getAttribute('viewBox')
+    const e = new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true })
+    act(() => { svg.dispatchEvent(e) })
+    expect(e.defaultPrevented).toBe(true)
+    expect(svg.getAttribute('viewBox')).not.toBe(before)
   })
 
   it('marks the rooms of a leak task', () => {
