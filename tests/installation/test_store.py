@@ -41,3 +41,18 @@ def test_rebase_saves_even_with_errors(tmp_path):
     inst, issues = store.rebase(5, layout, {"rack-48u": "rack"})
     assert inst.meta.layout_version == 5 and store.head() == 3 and inst.cable_trays[0].id == "T1"
     assert any(i.code == "I002" for i in issues)
+
+
+def test_rebase_reports_a_layout_rack_that_is_gone(tmp_path):
+    """Review I5: a rack placed in the old layout version and missing from the new one is named."""
+    from core.spec.models import PlacedObject
+
+    store, old = InstallationStore(tmp_path), spec_with_rooms()
+    old.objects = [PlacedObject(id="O1", template_id="rack-48u", template_version="1", position=(2000, 3000, 0),
+                                dims=(800, 1200, 2500))]
+    store.start(1, None, None, "overhead")
+    new = spec_with_rooms()
+    new.meta.version = 2
+    _, issues = store.rebase(2, new, {"rack-48u": "rack"}, previous=old)
+    assert [i.element_ids for i in issues if i.code == "I008"] == [["O1"]]
+

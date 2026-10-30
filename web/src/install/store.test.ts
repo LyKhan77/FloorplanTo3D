@@ -38,3 +38,14 @@ describe('useInstallStore', () => {
     expect(st().base!.meta.version).toBe(2)
   })
 })
+
+describe('useInstallStore per project (review C1)', () => {
+  it('remembers whose installation it holds', () => {
+    st().load(base, 'p1')
+    st().apply({ op: 'add_tray', path: [[0, 0], [3000, 0]], tray_class: 'data' })
+    expect(st().projectId).toBe('p1')
+    st().load(base, 'p2')
+    expect([st().projectId, st().ops.length]).toEqual(['p2', 0])
+  })
+})
+

@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import gtJson from '../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../types/spec'
+import { useInstallStore } from '../install/store'
 import { useEditorStore } from './store'
 import { useShortcuts } from './useShortcuts'
 
@@ -25,3 +26,16 @@ describe('useShortcuts', () => {
     expect(st().view!.walls).toHaveLength(gt.walls!.length)
   })
 })
+
+describe('useShortcuts and mode Instalasi (review I7)', () => {
+  it('keeps working for the layout unless the installation editor is on screen', () => {
+    useEditorStore.getState().load('p-1', gt)
+    useInstallStore.getState().setActive(true)  // left over from another project; no installation editor mounted
+    renderHook(() => useShortcuts([], () => {}))
+    useEditorStore.getState().select([gt.walls![0].id])
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete' })) })
+    expect(useEditorStore.getState().view!.walls!.map((w) => w.id)).not.toContain(gt.walls![0].id)
+    useInstallStore.getState().setActive(false)
+  })
+})
+

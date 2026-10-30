@@ -49,6 +49,28 @@ function RackForm({ o }: { o: PlacedObject }) {
   )
 }
 
+function MetaForm() {
+  const meta = useInstallStore((s) => s.view?.meta)
+  if (!meta) return null
+  const height = (field: 'ceiling_height' | 'raised_floor_height', raw: string) => {
+    const v = raw.trim() === '' ? null : Math.round(Number(raw))
+    if (Number.isNaN(v as number) || v === (meta[field] ?? null)) return
+    apply({ op: 'set_installation_meta', [field]: v } as InstallOp)
+  }
+  return (
+    <>
+      <h5 className="editor-panel__sub">Instalasi</h5>
+      <NumberInput id="im-ceiling" label="Tinggi plafon (mm, kosong = tinggi dinding)" size="sm" allowEmpty hideSteppers
+        defaultValue={meta.ceiling_height ?? ''} onBlur={(e) => height('ceiling_height', (e.target as HTMLInputElement).value)} />
+      <NumberInput id="im-raised" label="Tinggi raised floor (mm, kosong = tidak ada)" size="sm" allowEmpty hideSteppers
+        defaultValue={meta.raised_floor_height ?? ''} onBlur={(e) => height('raised_floor_height', (e.target as HTMLInputElement).value)} />
+      <Dropdown id="im-mount" titleText="Pemasangan default" label="Pemasangan" size="sm" items={['overhead', 'underfloor'] as const}
+        selectedItem={meta.default_mounting ?? 'overhead'} itemToString={(v) => (v === 'underfloor' ? 'Underfloor' : 'Overhead')}
+        onChange={({ selectedItem }) => selectedItem && selectedItem !== meta.default_mounting && apply({ op: 'set_installation_meta', default_mounting: selectedItem })} />
+    </>
+  )
+}
+
 /** Right panel in mode Instalasi: the selected tray or rack, the issues, and the tray lengths (M12a). */
 export function InstallPanels({ validation, saveIssues }: { validation: InstallValidation; saveIssues: InstallIssue[] }) {
   const view = useInstallStore((s) => s.view)
@@ -62,7 +84,7 @@ export function InstallPanels({ validation, saveIssues }: { validation: InstallV
       <section className="editor-panel" aria-label="Properti instalasi">
         <h4 className="editor-panel__title">Properti</h4>
         {tray ? <TrayForm key={tray.id} t={tray} /> : rack ? <RackForm key={rack.id} o={rack} />
-          : <p className="helper">Pilih tray atau rack. Tray: T, klik jalur, Enter. Rack: K, klik di dalam kotak.</p>}
+          : <><MetaForm /><p className="helper">Pilih tray atau rack. Tray: T, klik jalur, Enter. Rack: K, klik di dalam kotak.</p></>}
       </section>
       <section className="editor-panel" aria-label="Masalah instalasi">
         <h4 className="editor-panel__title">Masalah ({issues.length})</h4>

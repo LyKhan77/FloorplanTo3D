@@ -39,11 +39,12 @@ def test_update_object_position_needs_a_reason_label_does_not():
     add = {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.0.0",
            "position": (1000, 1000, 0), "dims": (600, 1200, 2000)}
     inst = apply(base(), [add], "editor", 2)
-    assert apply(inst, [{"op": "update_object", "id": "O1", "label": "R01"}], "editor", 3).objects[0].label == "R01"
+    assert inst.objects[0].id == "RK1"  # never O<n>: layout objects use that prefix (review I2)
+    assert apply(inst, [{"op": "update_object", "id": "RK1", "label": "R01"}], "editor", 3).objects[0].label == "R01"
     with pytest.raises(OpError):
-        apply(inst, [{"op": "update_object", "id": "O1", "position": (1500, 1000, 0)}], "editor", 3)
+        apply(inst, [{"op": "update_object", "id": "RK1", "position": (1500, 1000, 0)}], "editor", 3)
     with pytest.raises(OpError):
-        apply(inst, [{"op": "delete_object", "id": "O1"}], "editor", 3)
+        apply(inst, [{"op": "delete_object", "id": "RK1"}], "editor", 3)
 
 
 def test_width_outside_standard_sizes_is_rejected():

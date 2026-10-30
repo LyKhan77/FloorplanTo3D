@@ -10,7 +10,7 @@ import * as installApi from './api'
 import { InstallWorkspace } from './InstallWorkspace'
 import { useInstallStore } from './store'
 
-vi.mock('./api', async (orig) => ({ ...(await orig<typeof import('./api')>()), snapTray: vi.fn(), snapBox: vi.fn() }))
+vi.mock('./api', async (orig) => ({ ...(await orig<typeof import('./api')>()), snapTray: vi.fn(), snapBox: vi.fn(), snapBoxes: vi.fn() }))
 vi.mock('../api/hooks', async (orig) => ({ ...(await orig<typeof import('../api/hooks')>()),
   useTemplates: () => ({ data: [{ id: 'rack-42u-600x1200', version: '1.0.0', category: 'rack', dims: { w: 600, d: 1200, h: 2000 } }] }) }))
 
@@ -74,3 +74,36 @@ describe('InstallWorkspace', () => {
     expect(useEditorStore.getState().selection).toEqual([])
   })
 })
+
+describe('InstallWorkspace racks (review I3, I8)', () => {
+  beforeEach(() => {
+    useEditorStore.getState().load('p1', gt)
+    ist().load(base)
+  })
+  const box = (x: number, y: number) => ({ center: [x, y] as [number, number], size: [600, 1200] as [number, number], rotation: 0,
+    template_id: 'rack-42u-600x1200', template_version: '1.0.0', dims: [600, 1200, 2000] as [number, number, number] })
+
+  it('a second click on the same box adds no second rack', async () => {
+    vi.mocked(installApi.snapBox).mockResolvedValue(box(2300, 4400))
+    const { click } = setup()
+    fireEvent.keyDown(window, { key: 'k' })
+    click(2300, 4400)
+    await waitFor(() => expect(ist().view!.objects).toHaveLength(1))
+    click(2310, 4390)
+    await waitFor(() => expect(ist().notice?.text).toMatch(/sudah ada/))
+    expect(ist().view!.objects).toHaveLength(1)
+  })
+
+  it('Shift-drag traces a row with one request', async () => {
+    vi.mocked(installApi.snapBoxes).mockResolvedValue([box(2300, 4400), box(2920, 4400), box(3540, 4400)])
+    const { svg } = setup()
+    fireEvent.keyDown(window, { key: 'k' })
+    fireEvent.pointerDown(svg, { clientX: 1500, clientY: -5500, button: 0, shiftKey: true })
+    fireEvent.pointerMove(svg, { clientX: 4500, clientY: -3500, button: 0, shiftKey: true })
+    fireEvent.pointerUp(svg, { clientX: 4500, clientY: -3500, button: 0, shiftKey: true })
+    await waitFor(() => expect(ist().view!.objects).toHaveLength(3))
+    expect(vi.mocked(installApi.snapBoxes)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(installApi.snapBox)).not.toHaveBeenCalled()
+  })
+})
+

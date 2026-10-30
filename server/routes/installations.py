@@ -41,6 +41,11 @@ class SnapBoxBody(BaseModel):
     at: tuple[float, float]
 
 
+class SnapBoxesBody(BaseModel):
+    a: tuple[float, float]
+    b: tuple[float, float]
+
+
 def _store(request: Request, pid: str) -> InstallationStore:
     return InstallationStore(request.app.state.storage.project_dir(pid) / "installations")
 
@@ -141,7 +146,8 @@ def rebase(pid: str, request: Request):
     store, specs = _store(request, pid), _specs(request, pid)
     _head(store)
     layout_head = specs.head()
-    inst, issues = store.rebase(layout_head, specs.load(layout_head), _templates(request))
+    previous = specs.load(_head(store).meta.layout_version)
+    inst, issues = store.rebase(layout_head, specs.load(layout_head), _templates(request), previous=previous)
     touch(request.app.state.storage, pid)
     return {"version": inst.meta.version, "issues": _issues(issues)}
 
@@ -168,6 +174,24 @@ def snap_tray_route(pid: str, body: SnapTrayBody, request: Request):
     return found
 
 
+def _with_template(request: Request, found: dict) -> dict:
+    """The rack template whose footprint matches the box within RACK_MATCH_MM in either orientation, else None."""
+    short, long_ = found["size"]
+    found["template_id"] = None
+    for f in sorted(request.app.state.storage.templates_dir.glob("*/*/template.json")):
+        try:
+            meta = json.loads(f.read_text())
+        except (OSError, ValueError):
+            continue
+        if meta.get("category") != "rack":
+            continue
+        w, d = sorted((meta["dims"]["w"], meta["dims"]["d"]))
+        if abs(w - short) <= RACK_MATCH_MM and abs(d - long_) <= RACK_MATCH_MM:
+            return found | {"template_id": meta["id"], "template_version": meta["version"],
+                            "dims": [meta["dims"]["w"], meta["dims"]["d"], meta["dims"]["h"]]}
+    return found
+
+
 @router.post("/snap-box")
 def snap_box_route(pid: str, body: SnapBoxBody, request: Request):
     from core.installation.snap import snap_box
@@ -176,16 +200,13 @@ def snap_box_route(pid: str, body: SnapBoxBody, request: Request):
     found = snap_box(binary, t, body.at)
     if found is None:
         raise ApiError(422, "no_box", "tidak ada kotak rack di sini")
-    short, long_ = found["size"]
-    found["template_id"] = None
-    root = request.app.state.storage.templates_dir
-    for f in sorted(root.glob("*/*/template.json")):
-        try:
-            meta = json.loads(f.read_text())
-        except (OSError, ValueError):
-            continue
-        w, d = sorted((meta["dims"]["w"], meta["dims"]["d"]))
-        if meta.get("category") == "rack" and abs(w - short) <= RACK_MATCH_MM and abs(d - long_) <= RACK_MATCH_MM:
-            found |= {"template_id": meta["id"], "template_version": meta["version"], "dims": [meta["dims"]["w"], meta["dims"]["d"], meta["dims"]["h"]]}
-            break
-    return found
+    return _with_template(request, found)
+
+
+@router.post("/snap-boxes")
+def snap_boxes_route(pid: str, body: SnapBoxesBody, request: Request):
+    """Shift-drag over a row of racks: every rack-sized box in the rectangle, the page labelled once."""
+    from core.installation.snap import snap_boxes
+
+    binary, t = _page(request, pid)
+    return [_with_template(request, b) for b in snap_boxes(binary, t, body.a, body.b)]

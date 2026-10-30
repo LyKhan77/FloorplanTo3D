@@ -25,6 +25,7 @@ export const saveInstallation = (pid: string, base: number, ops: InstallOp[], me
 export const rebaseInstallation = (pid: string) => api.post<{ version: number; issues: InstallIssue[] }>(`${P(pid)}/rebase`)
 export const snapTray = (pid: string, points: Pt[]) => api.post<{ path: Pt[]; width: number }>(`${P(pid)}/snap-tray`, { points })
 export const snapBox = (pid: string, at: Pt) => api.post<SnapBox>(`${P(pid)}/snap-box`, { at })
+export const snapBoxes = (pid: string, a: Pt, b: Pt) => api.post<SnapBox[]>(`${P(pid)}/snap-boxes`, { a, b })
 
 /** Live dry run of the pending ops (POST /installations/validate), debounced 300 ms; the base answer while none are pending. */
 export function useInstallValidate(pid: string, base: number | null, ops: InstallOp[]): InstallValidation {

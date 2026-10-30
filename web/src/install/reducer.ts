@@ -64,7 +64,7 @@ function step(s: Installation, op: InstallOp): void {
       Object.assign(s.meta, given(op, ['op']))
       return
     case 'add_object':
-      ;(s.objects ??= []).push({ rotation: 0, locked: false, ...given(op, ['op', 'evidence']), id: take(s, 'O') } as PlacedObject)
+      ;(s.objects ??= []).push({ rotation: 0, locked: false, ...given(op, ['op', 'evidence']), id: take(s, 'RK') } as PlacedObject)  // not O<n>: layout objects use that
       return
     case 'update_object':
       Object.assign(find(s.objects, op.id), given(op, ['op', 'id', 'reason']))

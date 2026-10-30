@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { api } from '../api/client'
 import type { ProjectDetail } from '../api/types'
 import { InstallationBanner } from './InstallationBanner'
+import { useInstallStore } from './store'
 
 vi.mock('../api/client', async (orig) => ({ ...(await orig<typeof import('../api/client')>()),
   api: { get: vi.fn(), post: vi.fn(() => Promise.resolve({ meta: { version: 1 } })) } }))
@@ -42,3 +43,20 @@ describe('InstallationBanner', () => {
     await waitFor(() => expect(vi.mocked(api.post)).toHaveBeenCalledWith('/api/projects/p1/installations/rebase'))
   })
 })
+
+describe('InstallationBanner rebase safety (review I5, I6)', () => {
+  it('Rebase waits until pending installation work is saved, and reports what it found', async () => {
+    const changed = project({ head: 5, installation: { head: 2, layout_version: 3, layout_changed: true } })
+    useInstallStore.getState().load({ meta: { version: 2, layout_version: 3 }, cable_trays: [], objects: [] } as never, 'p1')
+    useInstallStore.getState().apply({ op: 'add_tray', path: [[0, 0], [3000, 0]], tray_class: 'data' })
+    const { unmount } = show(changed)
+    expect(screen.getByRole('button', { name: 'Rebase' })).toBeDisabled()
+    unmount()
+    useInstallStore.getState().load({ meta: { version: 2, layout_version: 3 }, cable_trays: [], objects: [] } as never, 'p1')
+    vi.mocked(api.post).mockResolvedValueOnce({ version: 3, issues: [{ code: 'I008', severity: 'warning', element_ids: ['O1'], message: 'rack O1 tidak ada lagi' }] })
+    show(changed)
+    fireEvent.click(screen.getByRole('button', { name: 'Rebase' }))
+    expect(await screen.findByText(/Rebase ke v5: 1 masalah/)).toBeInTheDocument()
+  })
+})
+

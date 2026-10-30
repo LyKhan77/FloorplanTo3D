@@ -108,17 +108,9 @@ def snap_tray(binary: np.ndarray, px_to_mm: list[float], points: list) -> dict |
     return {"path": [[round(x), round(y)] for x, y in path], "width": width}
 
 
-def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
-    """{"center": [x, y], "size": [short, long] mm, "rotation": 0 | 90} of the closed region around `at`.
-
-    Rotation 0: the long side runs along y, as a template's depth does; 90: along x."""
-    u, v = (round(c) for c in px_from_mm(px_to_mm)(*at))
-    h, w = binary.shape[:2]
-    if not (0 <= u < w and 0 <= v < h) or binary[v, u] > 0:
-        return None
-    paper = (binary == 0).astype(np.uint8)
-    _, labels, stats, _ = cv2.connectedComponentsWithStats(paper, connectivity=4)
-    x, y, bw, bh, _ = stats[labels[v, u]]
+def _box(stats_row, px_to_mm: list[float], w: int, h: int) -> dict | None:
+    """A closed paper region (connected-component stats) as a rack box in mm, or None when open or not rack-sized."""
+    x, y, bw, bh, _ = (int(v) for v in stats_row)
     if x == 0 or y == 0 or x + bw >= w or y + bh >= h:  # open to the page edge: not a closed box
         return None
     a, b, c, d, e, f = px_to_mm
@@ -130,3 +122,34 @@ def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
     center = (a * cu + b * cv_ + c, d * cu + e * cv_ + f)
     return {"center": [round(center[0]), round(center[1])], "size": sorted([round(size_x), round(size_y)]),
             "rotation": 0 if size_y >= size_x else 90}
+
+
+def _paper(binary: np.ndarray):
+    return cv2.connectedComponentsWithStats((binary == 0).astype(np.uint8), connectivity=4)
+
+
+def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
+    """{"center": [x, y], "size": [short, long] mm, "rotation": 0 | 90} of the closed region around `at`.
+
+    Rotation 0: the long side runs along y, as a template's depth does; 90: along x."""
+    u, v = (round(c) for c in px_from_mm(px_to_mm)(*at))
+    h, w = binary.shape[:2]
+    if not (0 <= u < w and 0 <= v < h) or binary[v, u] > 0:
+        return None
+    _, labels, stats, _ = _paper(binary)
+    return _box(stats[labels[v, u]], px_to_mm, w, h)
+
+
+def snap_boxes(binary: np.ndarray, px_to_mm: list[float], a, b) -> list[dict]:
+    """Every rack-sized closed region whose centre lies inside the rectangle a-b (mm): a row traced in one pass."""
+    to_px = px_from_mm(px_to_mm)
+    (u0, v0), (u1, v1) = to_px(*a), to_px(*b)
+    lo_u, hi_u, lo_v, hi_v = min(u0, u1), max(u0, u1), min(v0, v1), max(v0, v1)
+    h, w = binary.shape[:2]
+    n, _, stats, centroids = _paper(binary)
+    out = []
+    for k in range(1, n):
+        cu, cv_ = centroids[k]
+        if lo_u <= cu <= hi_u and lo_v <= cv_ <= hi_v and (box := _box(stats[k], px_to_mm, w, h)):
+            out.append(box)
+    return sorted(out, key=lambda r: (r["center"][1], r["center"][0]))

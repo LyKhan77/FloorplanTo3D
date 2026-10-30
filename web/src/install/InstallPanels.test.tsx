@@ -35,3 +35,16 @@ describe('InstallPanels', () => {
     expect(ist().selection).toEqual(['T1'])
   })
 })
+
+describe('InstallPanels meta (review I4)', () => {
+  beforeEach(() => ist().load(base))
+  it('with nothing selected, the installation heights can be changed', () => {
+    render(<InstallPanels validation={{ issues: [], drops: [], lengths: null, pending: false, error: null }} saveIssues={[]} />)
+    const raised = screen.getByLabelText('Tinggi raised floor (mm, kosong = tidak ada)')
+    fireEvent.change(raised, { target: { value: '600' } })
+    fireEvent.blur(raised)
+    expect(ist().ops.at(-1)).toEqual({ op: 'set_installation_meta', raised_floor_height: 600 })
+    expect(ist().view!.meta.raised_floor_height).toBe(600)
+  })
+})
+

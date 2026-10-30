@@ -57,11 +57,18 @@ class InstallationStore(SpecStore):
                 raise ValidationFailed(issues)
             return self._save(new, by if by != "llm" else "editor", message), issues
 
-    def rebase(self, layout_version: int, layout: Spec, templates: dict[str, str]) -> tuple[Installation, list[Issue]]:
-        """Move onto a newer layout version. Always saves: the errors it brings are fixed in the installation."""
+    def rebase(self, layout_version: int, layout: Spec, templates: dict[str, str],
+               previous: Spec | None = None) -> tuple[Installation, list[Issue]]:
+        """Move onto a newer layout version. Always saves: the errors it brings are fixed in the installation.
+        `previous` (the layout it was on) names the layout racks the new version no longer has (I008)."""
         with self._locked():
             inst = self.load("HEAD")
             inst.meta.layout_version = layout_version
             inst.provenance_log = []
             saved = self._save(inst, "editor", f"rebase ke layout v{layout_version}")
-            return saved, validate_installation(saved, layout, templates)
+            issues = validate_installation(saved, layout, templates)
+            if previous is not None:
+                kept = {o.id for o in layout.objects}
+                issues += [Issue("I008", "warning", [o.id], f"rack {o.id} tidak ada lagi di layout v{layout_version}")
+                           for o in previous.objects if templates.get(o.template_id) == "rack" and o.id not in kept]
+            return saved, issues

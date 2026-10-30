@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import pytest
 
-from core.installation.snap import snap_box, snap_tray
+from core.installation.snap import snap_box, snap_boxes, snap_tray
 
 PX_TO_MM = [10, 0, 0, 0, -10, 8000]  # 10 mm/px, y up
 
@@ -73,3 +73,14 @@ def test_snap_tray_on_an_upscaled_page_with_broken_band(gatsu):
         big[top + 3:bottom - 3, u - 4:u + 5] = 0
     r = snap_tray(big, half, [(24500, 600), (30000, 250)])
     assert r is not None and r["width"] == 200 and all(abs(p[1] - 395) <= 60 for p in r["path"])
+
+
+def test_snap_boxes_finds_a_row_in_one_pass():
+    """Review I8: Shift-drag over a row labels the page once and returns every rack-sized box inside the rectangle."""
+    img = np.zeros((800, 800), np.uint8)
+    for k in range(3):
+        cv2.rectangle(img, (200 + k * 62, 300), (260 + k * 62, 420), 255, 1)
+    got = snap_boxes(img, PX_TO_MM, (1500, 8000 - 2500), (4500, 8000 - 4500))
+    assert len(got) == 3 and all(abs(b["size"][1] - 1200) <= 20 for b in got)
+    assert snap_boxes(img, PX_TO_MM, (6000, 8000 - 6000), (7000, 8000 - 7000)) == []
+

@@ -5,13 +5,13 @@ import { ignoredTarget } from '../editor/lib/keys'
 import { ReviewCanvas } from '../editor/review/ReviewCanvas'
 import { svgPoint } from '../editor/review/planTransform'
 import { useEditorStore } from '../editor/store'
-import { snapBox, snapTray, type Drop, type SnapBox } from './api'
+import { snapBox, snapBoxes, snapTray, type Drop, type SnapBox } from './api'
 import { InstallLayer } from './InstallLayer'
 import { cleanPath, DEFAULT_WIDTH, TRAY_COLOUR, type InstallOp } from './reducer'
 import { useInstallStore, type InstallTool } from './store'
 
 type Pt = [number, number]
-const GRID_MM = 600  // a Shift-drag box looks for racks on this grid inside it
+const SAME_RACK_MM = 100  // a traced box whose centre is this close to a placed rack is that rack again
 
 /** Mode Instalasi (M12a): the layout read-only over the plan, with the tray tool (T) and the rack tool (K). */
 export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: string; backdrop: Backdrop | null; drops: Drop[] }) {
@@ -30,30 +30,36 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
       evidence: { box: r.size } }
   }
 
+  // a rack already placed here (in the installation, or a rack object of the layout) is not traced twice
+  const taken = (c: Pt, more: Pt[] = []) => [
+    ...(useInstallStore.getState().view?.objects ?? []).map((o) => [o.position[0], o.position[1]] as Pt),
+    ...(layout?.objects ?? []).filter((o) => templates.find((t) => t.id === o.template_id)?.category === 'rack').map((o) => [o.position[0], o.position[1]] as Pt),
+    ...more,
+  ].some((p) => Math.hypot(p[0] - c[0], p[1] - c[1]) < SAME_RACK_MM)
+
   const placeRack = async (at: Pt) => {
     const s = useInstallStore.getState()
+    let r: SnapBox
     try {
-      const op = rackOp(await snapBox(projectId, at))
-      if (op) s.apply(op)
-      else s.setNotice({ kind: 'warning', text: 'Tidak ada template rack di registry' })
+      r = await snapBox(projectId, at)
     } catch {
       s.setNotice({ kind: 'warning', text: 'Tidak ada kotak rack di sini' })
+      return
     }
+    if (taken(r.center)) { s.setNotice({ kind: 'info', text: 'Rack sudah ada di sini' }); return }
+    const op = rackOp(r)
+    if (op) s.apply(op)
+    else s.setNotice({ kind: 'warning', text: 'Tidak ada template rack di registry' })
   }
 
   const placeRacksIn = async (a: Pt, b: Pt) => {
-    const [x0, x1] = [Math.min(a[0], b[0]), Math.max(a[0], b[0])], [y0, y1] = [Math.min(a[1], b[1]), Math.max(a[1], b[1])]
-    const found: SnapBox[] = []
-    for (let x = x0 + GRID_MM / 2; x < x1; x += GRID_MM) {
-      for (let y = y0 + GRID_MM / 2; y < y1; y += GRID_MM) {
-        const r = await snapBox(projectId, [x, y]).catch(() => null)
-        if (r && !found.some((f) => Math.hypot(f.center[0] - r.center[0], f.center[1] - r.center[1]) < 100)) found.push(r)
-      }
-    }
-    const ops = found.map(rackOp).filter((o): o is InstallOp => o !== null)
     const s = useInstallStore.getState()
+    const found = await snapBoxes(projectId, a, b).catch(() => [] as SnapBox[])
+    const fresh: SnapBox[] = []
+    for (const r of found) if (!taken(r.center, fresh.map((f) => f.center))) fresh.push(r)
+    const ops = fresh.map(rackOp).filter((o): o is InstallOp => o !== null)
     if (ops.length) s.applyMany(ops)
-    else s.setNotice({ kind: 'warning', text: 'Tidak ada kotak rack di area ini' })
+    else s.setNotice({ kind: 'warning', text: found.length ? 'Semua rack di area ini sudah ada' : 'Tidak ada kotak rack di area ini' })
   }
 
   const finishTray = async () => {

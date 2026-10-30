@@ -172,7 +172,7 @@ def _step(s: Installation, op: _Op, by: str, version: int) -> tuple[str | None, 
                 setattr(s.meta, k, v)
             return None, None
         case AddObject():
-            oid = _take(s, "O")
+            oid = _take(s, "RK")  # not O<n>: layout objects (still read as racks) use that prefix
             fields = _given(op, {"op", "evidence"})
             src = "manual" if by == "manual" else "editor"
             s.objects.append(PlacedObject(id=oid, provenance=Provenance(source=src, evidence=op.evidence, changed_in=version),

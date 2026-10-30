@@ -2,8 +2,9 @@ import { Redo, Save, Undo } from '@carbon/icons-react'
 import { Button, InlineNotification } from '@carbon/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { ApiError } from '../api/client'
+import { api, ApiError } from '../api/client'
 import type { Backdrop } from '../api/types'
+import type { Installation } from '../types/installation'
 import { saveInstallation, useInstallation, useInstallValidate, type InstallIssue } from './api'
 import { InstallPanels } from './InstallPanels'
 import { InstallWorkspace } from './InstallWorkspace'
@@ -22,11 +23,15 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
   const [saving, setSaving] = useState(false)
   const [saveIssues, setSaveIssues] = useState<InstallIssue[]>([])
 
-  // a newer HEAD (another tab, a rebase) replaces the base only while nothing is pending here
+  // another project's installation is replaced at once; a newer HEAD (another tab, a rebase) only while nothing is pending
   useEffect(() => {
     const s = useInstallStore.getState()
-    if (head && (!s.base || (!s.ops.length && s.base.meta.version !== head.meta.version))) s.load(head)
-  }, [head])
+    if (head && (s.projectId !== projectId || !s.base || (!s.ops.length && s.base.meta.version !== head.meta.version))) s.load(head, projectId)
+  }, [head, projectId])
+  useEffect(() => {
+    useInstallStore.getState().setMounted(true)
+    return () => useInstallStore.getState().setMounted(false)
+  }, [])
 
   const save = async () => {
     const s = useInstallStore.getState()
@@ -39,7 +44,13 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
       s.setNotice({ kind: 'info', text: `Instalasi tersimpan sebagai v${r.version}` })
       for (const k of ['installation', 'project']) qc.invalidateQueries({ queryKey: [k, projectId] })
     } catch (e) {
-      if (e instanceof ApiError && e.status === 422) {
+      if (e instanceof ApiError && e.status === 409) {
+        // saved elsewhere first (another tab, a rebase): replay this work on the newer version; ops point at IDs and add_* take fresh ones
+        const pending = s.ops
+        const newer = await qc.fetchQuery({ queryKey: ['installation', projectId], queryFn: () => api.get<Installation>(`/api/projects/${projectId}/installations/HEAD`) })
+        s.load(newer, projectId)
+        if (s.applyMany(pending)) s.setNotice({ kind: 'warning', text: `Instalasi berubah di tempat lain (v${newer.meta.version}); perubahan Anda diterapkan ulang. Cek, lalu Save lagi` })
+      } else if (e instanceof ApiError && e.status === 422) {
         setSaveIssues((e.details.issues as InstallIssue[]) ?? [])
         s.setNotice({ kind: 'error', text: 'Validasi gagal: perbaiki masalah di panel Masalah, lalu Save lagi' })
       } else {

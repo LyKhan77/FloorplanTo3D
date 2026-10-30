@@ -10,7 +10,7 @@ export function useShortcuts(templates: Template[], save: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (ignoredTarget(e.target as Element | null) || document.querySelector('.cds--modal.is-visible')) return
-      if (useInstallStore.getState().active) return  // mode Instalasi has its own keys (InstallEditor, InstallWorkspace)
+      if (useInstallStore.getState().mounted) return  // mode Instalasi on screen has its own keys (InstallEditor, InstallWorkspace)
       const action = keyAction(e, useEditorStore.getState().mode)
       if (!action) return
       if (['save', 'undo', 'redo', 'duplicate'].includes(action)) e.preventDefault()

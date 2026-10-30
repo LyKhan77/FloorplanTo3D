@@ -28,7 +28,7 @@ describe('applyInstallOps', () => {
     ])
     expect(failed.map((f) => f.index)).toEqual([5])
     expect(inst.cable_trays![0]).toMatchObject({ mounting: 'underfloor', elevation: -500, path: [[0, 0], [4000, 0]] })
-    expect(inst.objects!.map((o) => o.id)).toEqual(['O1'])
+    expect(inst.objects!.map((o) => o.id)).toEqual(['RK1'])
     expect(inst.meta.raised_floor_height).toBe(600)
   })
 })
