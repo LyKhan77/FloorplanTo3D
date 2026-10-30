@@ -25,6 +25,7 @@ class ContinueBody(BaseModel):
 
 class RegenerateBody(BaseModel):
     version: int | str = "HEAD"
+    force: bool = False  # rebuild even when the version's outputs exist (newer checks or builder)
 
 
 def _orch(request: Request):
@@ -113,7 +114,7 @@ def artifact(pid: str, rid: str, path: str, request: Request):
 def regenerate(pid: str, body: RegenerateBody, request: Request):
     d = request.app.state.storage.project_dir(pid)
     version = SpecStore(d / "specs").head() if body.version == "HEAD" else int(body.version)
-    if version is not None and outputs_complete(d / "outputs" / f"v{version}"):
+    if version is not None and not body.force and outputs_complete(d / "outputs" / f"v{version}"):
         return JSONResponse({"run_id": None, "reused": True}, status_code=200)
     run = _orch(request).start_run(pid, "regenerate", version=body.version)
     return {"run_id": run["run_id"], "status": run["status"]}

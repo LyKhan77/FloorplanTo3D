@@ -1,5 +1,5 @@
 import {
-  Button, Dropdown, FileUploader, InlineNotification, Loading, Modal, OverflowMenu, OverflowMenuItem, Tab, TabList,
+  ActionableNotification, Button, Dropdown, FileUploader, InlineNotification, Loading, Modal, OverflowMenu, OverflowMenuItem, Tab, TabList,
   TabPanel, TabPanels, Tabs,
 } from '@carbon/react'
 import { Renew, StopFilled } from '@carbon/icons-react'
@@ -75,7 +75,11 @@ export function ProjectDetailPage() {
         </div>
       </div>
       {error && <InlineNotification kind="error" title="Gagal" subtitle={error} lowContrast onClose={() => setError(null)} />}
-      {regenerate.data?.reused && <InlineNotification kind="info" title="Output sudah ada" subtitle="Versi ini sudah dibangun; output dipakai ulang." lowContrast />}
+      {regenerate.data?.reused && (
+        <ActionableNotification kind="info" lowContrast inline hideCloseButton title="Output sudah ada"
+          subtitle="Versi ini sudah dibangun; output dipakai ulang. Bangun ulang untuk memakai builder dan pemeriksaan terbaru."
+          actionButtonLabel="Bangun ulang" onActionButtonClick={() => regenerate.mutate({ version: 'HEAD', force: true }, { onError: fail })} />
+      )}
 
       <Tabs selectedIndex={tab} onChange={({ selectedIndex }) => setParams({ tab: TABS[selectedIndex] })}>
         <TabList aria-label="Bagian project">{TAB_LABELS.map((t) => <Tab key={t}>{t}</Tab>)}</TabList>

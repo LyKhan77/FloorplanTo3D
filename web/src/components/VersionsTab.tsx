@@ -1,4 +1,4 @@
-import { Button, Dropdown, Tag, Tooltip } from '@carbon/react'
+import { ActionableNotification, Button, Dropdown, Tag, Tooltip } from '@carbon/react'
 import { useState } from 'react'
 import { useRegenerate, useSpecDiff, useSpecs } from '../api/hooks'
 import { summarizeDiff } from '../lib/diff'
@@ -19,8 +19,14 @@ export function VersionsTab({ projectId }: { projectId: string }) {
   const { data: diff } = useSpecDiff(projectId, a, b)
   if (!versions.length) return <p className="helper tab-pad">Belum ada versi spec.</p>
   const nums = versions.map((v) => v.version)
+  const reused = regenerate.data?.reused ? regenerate.variables : null
   return (
     <div className="tab-pad">
+      {typeof reused === 'number' && (
+        <ActionableNotification kind="info" lowContrast inline hideCloseButton title="Output sudah ada"
+          subtitle={`output v${reused} dipakai ulang. Bangun ulang untuk memakai builder dan pemeriksaan terbaru.`}
+          actionButtonLabel="Bangun ulang" onActionButtonClick={() => regenerate.mutate({ version: reused, force: true })} />
+      )}
       <table className="cds--data-table cds--data-table--compact versions-table">
         <thead><tr><th>Versi</th><th>Sumber</th><th>Waktu</th><th>Pesan</th><th>Run</th><th>Output</th><th aria-label="Aksi" /></tr></thead>
         <tbody>

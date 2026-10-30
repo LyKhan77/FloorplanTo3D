@@ -92,6 +92,9 @@ def test_regenerate_reuses_complete_outputs(app_factory, project_with_gt, data_d
     with app_factory(stage_impls=fake_impls([])) as client:
         r = client.post(f"/api/projects/{project_with_gt}/regenerate", json={"version": 1})
         assert r.status_code == 200 and r.json() == {"run_id": None, "reused": True}
+        # force rebuilds anyway (new checks, a fixed builder): a run starts on the same version
+        r = client.post(f"/api/projects/{project_with_gt}/regenerate", json={"version": 1, "force": True})
+        assert r.status_code == 202 and r.json()["run_id"]
 
 
 def test_regenerate_without_spec_409(app_factory, project_id):

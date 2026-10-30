@@ -56,7 +56,9 @@ export function useStartRun(id: string) {
 export function useRegenerate(id: string) {
   const invalidate = useInvalidate(id)
   return useMutation({
-    mutationFn: (version: number | 'HEAD') => api.post<{ run_id: string | null; reused?: boolean }>(`${P(id)}/regenerate`, { version }),
+    // force: rebuild even when the version's outputs exist (they are otherwise reused)
+    mutationFn: (arg: number | 'HEAD' | { version: number | 'HEAD'; force: true }) =>
+      api.post<{ run_id: string | null; reused?: boolean }>(`${P(id)}/regenerate`, typeof arg === 'object' ? arg : { version: arg }),
     onSuccess: invalidate,
   })
 }
