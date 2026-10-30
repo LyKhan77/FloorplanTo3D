@@ -4,7 +4,7 @@ All lengths are mm in spec axes (+X east, +Y north, +Z up); the builder divides 
 Mesh verts are object-local: relative to the object's `location` and `rot_z` (world meshes use [0, 0, 0]).
 """
 
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 BUILD_INPUT_VERSION = 1
 
@@ -19,6 +19,7 @@ class MeshItem(TypedDict):
     parent: str | None
     location: list[float]
     rot_z: float
+    uv_box_mm: NotRequired[int]  # box-mapped UVs, one texture tile per this many mm
 
 
 class EmptyItem(TypedDict):
@@ -44,6 +45,7 @@ class InstanceItem(TypedDict):
     rot_z: float
     scale: list[float]
     props: dict
+    collection: NotRequired[str]  # default Objects; installation racks: Racks
 
 
 class LabelItem(TypedDict):
@@ -80,6 +82,8 @@ class Material(TypedDict):
     color: str
     roughness: float
     alpha: float
+    metallic: NotRequired[float]
+    texture: NotRequired[str]  # absolute PNG path: colour + alpha (alpha-clipped at 0.5), tiled by the mesh's uv_box_mm
 
 
 MATERIALS: dict[str, Material] = {

@@ -8,6 +8,7 @@ from mathutils import Matrix
 
 MM = 0.001
 SHELL_CHILDREN = ("Walls", "Columns", "Doors", "Windows", "Stairs", "Floors")
+INSTALLATION_CHILDREN = ("TrayData", "TrayPower", "Hangers", "Drops", "Racks")  # M12b
 MERGE_DIST_M = 0.0001  # 0.1 mm
 
 
@@ -20,7 +21,8 @@ class Collections:
     def get(self, name: str) -> bpy.types.Collection:
         if name not in self._by_name:
             col = bpy.data.collections.new(name)
-            parent = self.get("Shell") if name in SHELL_CHILDREN else bpy.context.scene.collection
+            parent = (self.get("Shell") if name in SHELL_CHILDREN else self.get("Installation") if name in INSTALLATION_CHILDREN
+                      else bpy.context.scene.collection)
             parent.children.link(col)
             self._by_name[name] = col
         return self._by_name[name]
@@ -51,8 +53,23 @@ def make_materials(spec: dict) -> dict[str, bpy.types.Material]:
         bsdf.inputs["Base Color"].default_value = (*rgb, 1.0)
         bsdf.inputs["Roughness"].default_value = m["roughness"]
         bsdf.inputs["Alpha"].default_value = m["alpha"]
+        if "metallic" in m:
+            bsdf.inputs["Metallic"].default_value = m["metallic"]
         mat.diffuse_color = (*rgb, m["alpha"])  # used by Workbench MATERIAL color
-        if m["alpha"] < 1:
+        if m.get("texture"):
+            # perforated sheet: colour from the tile, alpha clipped at 0.5 (glTF exports alphaMode MASK for this pattern)
+            nodes, links = mat.node_tree.nodes, mat.node_tree.links
+            tex = nodes.new("ShaderNodeTexImage")
+            tex.image = bpy.data.images.load(m["texture"])
+            tex.interpolation = "Closest"
+            clip = nodes.new("ShaderNodeMath")
+            clip.operation = "GREATER_THAN"
+            clip.inputs[1].default_value = 0.5
+            links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+            links.new(tex.outputs["Alpha"], clip.inputs[0])
+            links.new(clip.outputs["Value"], bsdf.inputs["Alpha"])
+            mat.surface_render_method = "DITHERED"
+        elif m["alpha"] < 1:
             mat.surface_render_method = "BLENDED"
         out[name] = mat
     return out
@@ -64,12 +81,26 @@ def _set_props(obj: bpy.types.Object, props: dict) -> None:
             obj[k] = v
 
 
+def _box_uvs(bm: bmesh.types.BMesh, tile_m: float) -> None:
+    """UVs from each face's dominant axis (z: x-y, x: y-z, y: x-z), one tile per `tile_m` (M12b perforation)."""
+    uv = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        n = f.normal
+        axes = (0, 1) if abs(n.z) >= max(abs(n.x), abs(n.y)) else (1, 2) if abs(n.x) >= abs(n.y) else (0, 2)
+        for loop in f.loops:
+            co = loop.vert.co
+            loop[uv].uv = (co[axes[0]] / tile_m, co[axes[1]] / tile_m)
+
+
 def make_mesh(item: dict, cols: Collections, mats: dict) -> bpy.types.Object:
     me = bpy.data.meshes.new(item["name"])
     me.from_pydata([[c * MM for c in v] for v in item["verts"]], [], item["faces"])
     bm = bmesh.new()
     bm.from_mesh(me)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MERGE_DIST_M)
+    if item.get("uv_box_mm"):
+        bm.normal_update()
+        _box_uvs(bm, item["uv_box_mm"] * MM)
     bm.to_mesh(me)  # normals come oriented from core; no recalculation (open floor meshes would flip)
     bm.free()
     if item.get("material") in mats:
@@ -155,8 +186,8 @@ def _import_template(path: str, key: str, cols: Collections) -> list[bpy.types.O
 def make_instances(instances: list[dict], cols: Collections) -> None:
     """Each instance = Empty obj_<id> (pivot, rotation, per-axis scale) + linked duplicates of the template objects."""
     cache: dict[str, list[bpy.types.Object]] = {}
-    target = cols.get("Objects")
     for inst in instances:
+        target = cols.get(inst.get("collection", "Objects"))  # M12b: installation racks go to Installation/Racks
         key = inst["template_key"]
         if key not in cache:
             try:
@@ -167,7 +198,7 @@ def make_instances(instances: list[dict], cols: Collections) -> None:
         if cache[key] is None:
             print(f"WARN object skipped {inst['props'].get('spec_id')}: template {key} unavailable", flush=True)
             continue
-        root = make_empty({"name": inst["name"], "collection": "Objects", "location": inst["location"],
+        root = make_empty({"name": inst["name"], "collection": target.name, "location": inst["location"],
                            "rot_z": inst["rot_z"], "props": inst["props"]}, cols)
         root.scale = inst["scale"]
         dup_of: dict[bpy.types.Object, bpy.types.Object] = {}
