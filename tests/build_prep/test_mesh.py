@@ -42,3 +42,13 @@ def test_box_rotated_and_merge_offsets():
 def test_flat_faces_up():
     m = flat(Polygon([(0, 0), (1000, 0), (1000, 1000)]), 0)
     assert m["faces"] and all(normal(m, f)[2] > 0 for f in m["faces"])
+
+
+def test_prism_drops_degenerate_faces_from_repeated_outline_points():
+    """A slab outline with a repeated point made faces like [80, 80, 79, 79]; Blender hung on them (exit 124)."""
+    from shapely.geometry import Polygon
+
+    from core.build_prep.mesh import prism
+    m = prism(Polygon([(0, 0), (4000, 0), (4000, 0), (4000, 0), (4000, 3000), (0, 3000)]), -150, 0)
+    assert m["faces"] and all(len(set(f)) == len(f) >= 3 for f in m["faces"])
+    assert len(m["faces"]) == len({tuple(sorted(f)) for f in m["faces"]})

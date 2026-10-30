@@ -28,7 +28,14 @@ class _Builder:
         return self._index[key]
 
     def mesh(self) -> MeshData:
-        return {"verts": self.verts, "faces": self.faces}
+        """Faces without repeated corners: a repeated outline point gives [a, a, b, b] side faces, and Blender hangs
+        on those (build timed out, exit 124)."""
+        faces = []
+        for f in self.faces:
+            g = [i for k, i in enumerate(f) if i != f[k - 1]]
+            if len(set(g)) == len(g) >= 3:
+                faces.append(g)
+        return {"verts": self.verts, "faces": faces}
 
 
 def _parts(poly: Polygon | MultiPolygon) -> list[Polygon]:
