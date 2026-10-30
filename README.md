@@ -105,6 +105,7 @@ Backup cukup dengan menyalin `DATA_DIR` saat server berhenti. Server menolak sta
 | Strata "401 Unauthorized" | `STRATA_API_KEY` kosong atau salah |
 | Strata mati | tahap 6 dilewati, dan pipeline tetap selesai (status Strata terlihat di header) |
 | Status tidak pernah "Perlu review" | project dibuat dengan toggle review dimatikan (`review_pause: false`), atau skor tahap 5 terlalu rendah sehingga run berhenti di "Perlu perhatian" |
+| Tahap 8 "Perlu perhatian": kecocokan gambar di bawah 0.90 | sebagian besar dinding tidak berada di atas garis denah: skala atau posisi model salah. Cek skala di tahap 2. Dinding yang tidak di atas garis gambar disebut per ID di peringatan tahap 8. IoU ke mask ekstraksi hanya info: angkanya wajar turun setelah review |
 | Garis bantu: "Tidak ada garis ganda di dekat garis ini" | tarik garis dalam ±250 mm dari garis di gambar, atau pakai Dinding baru |
 | PDF laporan gagal di macOS | `brew install pango` dan set `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` |
 

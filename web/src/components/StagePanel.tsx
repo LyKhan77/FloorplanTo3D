@@ -21,6 +21,8 @@ interface Props {
 }
 
 interface Verify {
+  drawing_fit?: { fit: number | null; walls_off: string[]; checked: number; tolerance_mm: number }
+  fit_threshold?: number
   iou: number | null
   iou_threshold: number
   status: string
@@ -81,9 +83,13 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor }: Props) {
       {n === 8 && verify.data && (
         <div className="verify">
           <div className="verify__iou">
-            <span className="verify__value mono">{verify.data.iou ?? '—'}</span>
-            <span className="helper">IoU top-down · ambang {verify.data.iou_threshold}</span>
+            <span className="verify__value mono">{verify.data.drawing_fit?.fit ?? '—'}</span>
+            <span className="helper">Kecocokan gambar · ambang {verify.data.fit_threshold ?? 0.9} · porsi panjang dinding yang berada di atas garis denah</span>
           </div>
+          {!!verify.data.drawing_fit?.walls_off.length && (
+            <p>Dinding tidak di atas garis gambar: <span className="mono">{verify.data.drawing_fit.walls_off.join(', ')}</span></p>
+          )}
+          <p className="helper">IoU ke mask ekstraksi (info): <span className="mono">{verify.data.iou ?? '—'}</span> · turun wajar bila review menghapus atau menambah dinding</p>
           <p>Cek glb 1:1: {verify.data.glb_check.pass ? 'lulus' : 'gagal'} (galat maks <span className="mono">{verify.data.glb_check.max_err_mm} mm</span>, {verify.data.glb_check.checked} dinding) · Cek grid: {verify.data.grid_check.status ?? (verify.data.grid_check.pass ? 'lulus' : 'gagal')}</p>
           {verify.data.warnings.map((w) => <InlineNotification key={w} kind="warning" lowContrast hideCloseButton title="Peringatan" subtitle={w} />)}
           {published?.files.some((f) => f.name === 'iou_mask.png') && (

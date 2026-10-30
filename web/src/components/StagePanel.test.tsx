@@ -7,7 +7,8 @@ import type { Run } from '../api/types'
 import { StagePanel } from './StagePanel'
 
 vi.mock('../api/client', async (orig) => ({ ...(await orig<typeof import('../api/client')>()),
-  api: { get: vi.fn(() => Promise.resolve([])), post: vi.fn(() => Promise.resolve({})) } }))
+  // chosen.json is an object; an array there crashed ValidateStage (an unhandled error that failed the suite)
+  api: { get: vi.fn((url: string) => Promise.resolve(url.endsWith('chosen.json') ? null : [])), post: vi.fn(() => Promise.resolve({})) } }))
 
 const stage = (n: number, status: string) => ({ n, name: `s${n}`, status, started_at: null, ended_at: null, duration_ms: null,
   progress: null, metrics: n === 5 ? { version: 1 } : {}, warnings: [] })
@@ -27,5 +28,33 @@ describe('StagePanel review pause (M11)', () => {
     confirm.mockReturnValueOnce(true)
     fireEvent.click(screen.getByRole('button', { name: 'Batalkan review' }))
     await waitFor(() => expect(vi.mocked(api.post)).toHaveBeenCalledWith('/api/projects/p1/runs/r1/cancel'))
+  })
+})
+
+describe('StagePanel verify (drawing fit)', () => {
+  const run = { run_id: 'r1', project_id: 'p1', status: 'succeeded', kind: 'full', from_stage: 0, version: 3,
+    stages: Array.from({ length: 11 }, (_, n) => stage(n, 'succeeded')) } as unknown as Run
+  const show = (verify: object) => {
+    vi.mocked(api.get).mockImplementation((url: string) => Promise.resolve(url.endsWith('verify.json') ? verify : []) as never)
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter>
+      <StagePanel projectId="p1" run={run} n={8} events={[]} onOpenEditor={vi.fn()} />
+    </MemoryRouter></QueryClientProvider>)
+  }
+  const para = (re: RegExp) => (_: string, el: Element | null) => el?.tagName === 'P' && re.test(el.textContent ?? '')
+  const base = { iou: 0.67, iou_threshold: 0.85, status: 'succeeded', warnings: [],
+    glb_check: { pass: true, max_err_mm: 0.002, checked: 160 }, grid_check: { status: 'skipped' } }
+
+  it('leads with the drawing fit and lists walls off the drawing; IoU is information', async () => {
+    show({ ...base, fit_threshold: 0.9, drawing_fit: { fit: 0.98, walls_off: ['W192'], checked: 160, tolerance_mm: 50 } })
+    expect(await screen.findByText('0.98')).toBeInTheDocument()
+    expect(screen.getByText(/Kecocokan gambar · ambang 0.9/)).toBeInTheDocument()
+    expect(screen.getByText(para(/tidak di atas garis gambar: W192/))).toBeInTheDocument()
+    expect(screen.getByText(para(/IoU ke mask ekstraksi \(info\): 0\.67/))).toBeInTheDocument()
+  })
+
+  it('still shows an old verify.json without drawing fit', async () => {
+    show(base)
+    expect(await screen.findByText(para(/IoU ke mask ekstraksi \(info\): 0\.67/))).toBeInTheDocument()
+    expect(screen.getByText(/Kecocokan gambar/)).toBeInTheDocument()
   })
 })

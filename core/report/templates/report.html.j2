@@ -21,7 +21,8 @@
     <span>Ruang / pintu / kolom</span><span>{{ s.n_rooms }} / {{ s.n_doors }} / {{ s.n_columns }}</span>
     <span>Tinggi dinding default</span><span>{{ s.wall_height }} mm</span>
     <span>Skala</span><span>{{ s.mm_per_px }} mm/px ({{ s.scale_source }})</span>
-    <span>IoU top-down</span><span>{{ s.iou if s.iou is not none else "—" }}</span>
+    <span>Kecocokan gambar</span><span>{{ s.fit if s.fit is not none else "—" }}</span>
+    <span>IoU ke mask ekstraksi (info)</span><span>{{ s.iou if s.iou is not none else "—" }}</span>
   </div>
 </section>
 

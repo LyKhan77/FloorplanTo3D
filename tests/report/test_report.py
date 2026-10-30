@@ -42,3 +42,10 @@ def test_report_renders_with_empty_sections(tmp_path):
 def test_overlay_moved_without_behaviour_change():
     from benchmarks.tools import gt_author
     assert gt_author.render_overlay is render_overlay
+
+
+def test_report_shows_drawing_fit():
+    verify = {"iou": 0.67, "drawing_fit": {"fit": 0.98, "walls_off": []}, "status": "succeeded", "warnings": []}
+    assert report_data(spec_with_rooms(), verify, {})["summary"]["fit"] == 0.98
+    assert report_data(spec_with_rooms(), {"iou": 0.7}, {})["summary"]["fit"] is None
+

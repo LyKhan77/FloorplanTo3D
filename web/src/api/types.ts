@@ -52,6 +52,7 @@ export interface ProjectSummary {
   active_stage: number | null
   validator_score: number | null
   iou: number | null
+  fit?: number | null
   head_version: number | null
   updated_at: string
 }

@@ -677,6 +677,12 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Hasil:** kebocoran turun sedikit (Gatsu `door_gap` 6 → 5), tapi `room_match` tidak naik di set mana pun. Kodenya disimpan di `3b60f35`.
 - **Kesimpulan:** kebocoran di Gatsu adalah gabungan beberapa celah per ruang, sehingga koreksi manusia (M8) tetap jalur utama. Perbaikan berikutnya ada di deteksi dinding tahap 3, dan sebaiknya diuji dengan denah nyata lain.
 
+**Status verifikasi (2026-10-30): kecocokan gambar menggantikan IoU sebagai penentu tahap 8.**
+- IoU membandingkan model dengan mask ekstraktor, jadi review yang benar justru menurunkan skornya.
+- Kecocokan gambar (`core/verify/fit.py`) mengukur porsi panjang dinding yang berada di atas garis denah asli (±50 mm). Ambang 0.90. Dinding di luar garis dilaporkan per ID.
+- Kalibrasi: Gatsu GT 0.93; GT bergeser 300 mm 0.71; GT skala +1% 0.84.
+- Batas: garis anotasi juga tinta, jadi dinding palsu di atas garis anotasi tetap dianggap cocok. Itu tugas review.
+
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
