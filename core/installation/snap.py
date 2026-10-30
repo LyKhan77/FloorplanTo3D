@@ -22,7 +22,6 @@ SAMPLE_MM = 100
 SEARCH_MM = 400
 BAND_MIN_MM, BAND_MAX_MM = 80, 700
 ASKEW = math.tan(math.radians(5))  # a traced tray segment may be this far off the band (walls: 2 degrees)
-THIN_LINE_PX = 3  # a run this narrow is a drawn line, not a filled band
 BOX_MIN_MM, BOX_MAX_MM = 300, 3000
 
 
@@ -60,9 +59,9 @@ def _snap_segment(binary, to_px, step: float, a, b) -> tuple[tuple, tuple, list[
             xi, yi = round(x), round(y)
             ink[i] = 0 <= xi < w and 0 <= yi < h and binary[yi, xi] > 0
         runs = _runs(ink, offsets)
-        thin += [e - s + step for s, e in runs if e - s + step <= THIN_LINE_PX * 2 * step]
+        thin += [e - s + step for s, e in runs if e - s + step < BAND_MIN_MM]  # drawn lines, in mm: pages are upscaled
         cands = [((s + e) / 2, e - s + step) for s, e in runs if BAND_MIN_MM <= e - s + step <= BAND_MAX_MM]
-        edges = [r for r in runs if r[1] - r[0] + step <= THIN_LINE_PX * 2 * step]  # a wide run is a band, not an edge
+        edges = [r for r in runs if r[1] - r[0] + step < BAND_MIN_MM]  # a wide run is a band, not an edge
         cands += [((edges[i][0] + edges[j][1]) / 2, edges[j][1] - edges[i][0] + step)
                   for i in range(len(edges)) for j in range(i + 1, len(edges))
                   if BAND_MIN_MM <= edges[j][1] - edges[i][0] + step <= BAND_MAX_MM]

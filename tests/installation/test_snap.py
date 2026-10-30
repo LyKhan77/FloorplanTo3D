@@ -56,3 +56,20 @@ def test_snap_box_ignores_huge_regions():
     img = blank_with_box(100, 100, 400, 400)  # 4000 mm room
     assert snap_box(img, PX_TO_MM, (3000, 8000 - 3000)) is None
     assert snap_box(img, PX_TO_MM, (7000, 8000 - 7000)) is None  # outside every closed region
+
+
+def test_snap_tray_on_an_upscaled_page_with_broken_band(gatsu):
+    """The pipeline's page is upscaled 2x: edge lines are 4 px (about 50 mm) wide, and labels break the filled band in
+    the middle, leaving only its two edges there. Both must still count (plan-37a2 smoke run)."""
+    bw, t = gatsu
+    big = cv2.resize(bw, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
+    a, b, c, d, e, f = t
+    half = [a / 2, b / 2, c, d / 2, e / 2, f]
+    to_px = lambda x, y: (round((x - c) / half[0]), round((y - f) / half[4]))
+    for x in range(26500, 28600, 100):  # hollow the band: keep 4 px edges, clear the inside
+        u, _ = to_px(x, 0)
+        _, top = to_px(0, 500)
+        _, bottom = to_px(0, 290)
+        big[top + 3:bottom - 3, u - 4:u + 5] = 0
+    r = snap_tray(big, half, [(24500, 600), (30000, 250)])
+    assert r is not None and r["width"] == 200 and all(abs(p[1] - 395) <= 60 for p in r["path"])
