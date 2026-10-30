@@ -6,6 +6,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from core.extraction.preprocess import load_raster
 from core.spec.models import Spec
 from core.verify.fit import drawing_fit
 from core.verify.glb_check import glb_check
@@ -45,9 +46,13 @@ def run_verify(out_dir: Path, spec: Spec, doc: dict, image_path: Path | None,
     iou_value = None
     mask_source = "candidate" if plan_mask_path is not None and Path(plan_mask_path).exists() else "m2"
     render_path = out_dir / "verify_top.png"
-    fit = {"fit": None, "walls_off": [], "checked": 0}
+    fit = {"fit": None, "walls_off": [], "checked": 0, "tolerance_mm": 50}
     if image_path is not None:
-        fit = drawing_fit(spec, cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE))
+        try:  # decoded exactly as extraction decoded it (alpha on white, no EXIF turn): px_to_mm's frame
+            gray = cv2.cvtColor(load_raster(Path(image_path)), cv2.COLOR_BGR2GRAY)
+        except ValueError:
+            gray = None
+        fit = drawing_fit(spec, gray)
         if fit["walls_off"]:
             warnings.append(f"{len(fit['walls_off'])} dinding tidak di atas garis gambar: {', '.join(fit['walls_off'])}")
     if image_path is None:

@@ -73,7 +73,7 @@ export function ProjectsPage() {
                         <TableCell><StatusTag status={p.status} /></TableCell>
                         <TableCell>{p.active_stage === null ? '—' : stageLabel(p.active_stage)}</TableCell>
                         <TableCell className="mono">{p.validator_score ?? '—'}</TableCell>
-                        <TableCell className="mono" title={p.fit == null && p.iou != null ? 'IoU (output lama)' : undefined}>{p.fit ?? p.iou ?? '—'}</TableCell>
+                        <TableCell className="mono" title={p.fit == null && p.iou != null ? `Output lama: IoU ${p.iou} (ukuran lain), regenerate untuk kecocokan gambar` : undefined}>{p.fit ?? '—'}</TableCell>
                         <TableCell className="mono">{p.head_version ? `v${p.head_version}` : '—'}</TableCell>
                         <TableCell>{formatTime(p.updated_at)}</TableCell>
                         <TableCell className="cds--table-column-menu">

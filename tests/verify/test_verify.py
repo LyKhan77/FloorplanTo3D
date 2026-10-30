@@ -147,3 +147,23 @@ def test_expected_wall_box_rises_when_a_door_spans_the_whole_wall():
     other = {"target": "wall_W2", "verts": _box(-25, -10, 0, 1525, 160, 2100)}
     assert list(expected_box(wall, [part, other])) == [0, 0, 0, 1500, 150, 3000]
     assert list(expected_box(wall, [full])) == [0, 0, 2100, 1500, 150, 3000]
+
+
+def test_transparent_png_is_read_like_extraction_reads_it(tmp_path, monkeypatch):
+    """A transparent background read as black made every pixel ink: fit 1.0 for any model (review I1)."""
+    from pathlib import Path
+
+    import core.verify.run as run_mod
+    from core.spec.models import Spec
+
+    monkeypatch.setattr(run_mod, "glb_check", lambda path, doc: {"pass": True, "max_err_mm": 0, "checked": 0})
+    gray = cv2.imread("floorplan/plan.jpeg", cv2.IMREAD_GRAYSCALE)
+    rgba = np.zeros((*gray.shape, 4), np.uint8)
+    rgba[..., 3] = 255 - gray  # ink opaque black, paper transparent
+    png = tmp_path / "plan.png"
+    cv2.imwrite(str(png), rgba)
+    shifted = Spec.model_validate(json.loads(Path("benchmarks/gatsu/gt_spec.json").read_text()))
+    for w in shifted.walls:
+        w.a, w.b = (w.a[0] + 300, w.a[1]), (w.b[0] + 300, w.b[1])
+    v = run_verify(tmp_path, shifted, {}, png)
+    assert v["drawing_fit"]["fit"] < 0.90 and v["status"] == "needs_attention"
