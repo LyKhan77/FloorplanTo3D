@@ -678,8 +678,10 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Kesimpulan:** kebocoran di Gatsu adalah gabungan beberapa celah per ruang, sehingga koreksi manusia (M8) tetap jalur utama. Perbaikan berikutnya ada di deteksi dinding tahap 3, dan sebaiknya diuji dengan denah nyata lain.
 
 ### Tugas — Deploy
-- [ ] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
-- [ ] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
+- [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
+- [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
+  - **Status (2026-10-30):** image dibuild sekali di Mac (1.41 GB; Blender 5.2.2 LTS, Python 3.12.13, Plex). Start pertama menemukan `httpx` hanya di grup dev (sudah diperbaiki, dengan tes). Uji E2E di container dilewati karena disk Mac penuh; dilakukan di gspe-ai2 saat deploy.
+  - Container berjalan sebagai root, jadi file di `DATA_DIR` milik root. Bila perlu, tambahkan `user:` di compose saat deploy.
 - [ ] Deploy ke gspe-ai2 (`/home/gspe-ai2/project_AI/floorplan3d/`). Smoke test: Gatsu end-to-end di server.
 - [ ] Uji kontensi: run pipeline bersamaan dengan beban Strata. Pastikan tidak ada OOM atau VRAM penuh.
 - [x] `README.md`: setup dev, menjalankan pipeline/CLI, deploy, backup `DATA_DIR`, troubleshooting.
