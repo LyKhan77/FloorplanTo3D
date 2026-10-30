@@ -108,4 +108,20 @@ Backup cukup dengan menyalin `DATA_DIR` saat server berhenti. Server menolak sta
 
 ## Deploy
 
-Belum tersedia. Image Docker dan deploy ke gspe-ai2 dikerjakan di milestone M7c, yang menunggu SSH key di server. Lihat `ROADMAP.md`.
+Satu image Docker berisi API, pipeline, Blender 5.2 (CPU, headless), dan dashboard yang sudah dibuild. Satu port saja: <http://host:8000>.
+
+```bash
+# dari root repo; .env dibaca saat run, tidak masuk image
+docker compose -f docker/compose.yaml up -d --build
+docker compose -f docker/compose.yaml logs -f
+
+# sekali saja di DATA_DIR baru: buat template objek
+docker compose -f docker/compose.yaml run --rm floorplan3d python -m core.templates.make_placeholders --out /data/templates
+```
+
+- **Data:** `DATA_DIR` host di-mount ke `/data` (default `./data`; ganti dengan `FLOORPLAN_DATA_DIR=/path`). Port host diganti dengan `FLOORPLAN_PORT`.
+- **Path di container** menimpa nilai dev di `.env`: `DATA_DIR=/data`, `BLENDER_BIN=/opt/blender/blender`, `BLENDER_RENDER_DEVICE=CPU`.
+- **Strata:** `STRATA_*` diambil dari `.env`. Bila Strata jalan di host yang sama, pakai `STRATA_BASE_URL=http://host.docker.internal:<port>/v1`.
+- **Versi Blender:** dikunci lewat build arg `BLENDER_VERSION` (default `5.2.2`). Blender hanya tersedia untuk linux-x64, jadi di Mac Apple Silicon image berjalan teremulasi dan lebih lambat.
+
+Deploy ke gspe-ai2 (milestone M7c) menunggu SSH key di server. Lihat `ROADMAP.md`.

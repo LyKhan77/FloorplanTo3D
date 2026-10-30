@@ -1,0 +1,21 @@
+# docker compose -f docker/compose.yaml up -d --build      (from the repo root; paths below are relative to docker/)
+services:
+  floorplan3d:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: floorplan3d:latest
+    platform: linux/amd64  # Blender ships linux-x64 only; Apple Silicon runs it emulated
+    env_file: ../.env       # STRATA_* and LLM_* come from here; the key never enters the image
+    environment:            # container paths win over the dev values in .env
+      DATA_DIR: /data
+      BLENDER_BIN: /opt/blender/blender
+      BLENDER_RENDER_DEVICE: CPU
+      DYLD_FALLBACK_LIBRARY_PATH: ""
+    volumes:
+      - ${FLOORPLAN_DATA_DIR:-../data}:/data
+    ports:
+      - "${FLOORPLAN_PORT:-8000}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Strata on the same host: STRATA_BASE_URL=http://host.docker.internal:<port>/v1
+    restart: unless-stopped

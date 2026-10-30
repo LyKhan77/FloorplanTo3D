@@ -1,0 +1,27 @@
+# Secrets never enter the image: .env is passed at run time (compose env_file)
+.env
+.env.*
+server-info.txt
+
+.git
+data
+temp
+logs
+.venv
+**/node_modules
+web/dist
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.coverage
+.superpowers
+.playwright-mcp
+.impeccable
+.claude
+# web tests import gt_spec.json, and tsc -b type-checks them
+benchmarks
+!benchmarks/gatsu/gt_spec.json
+tests
+PRD
+docs
+floorplan
