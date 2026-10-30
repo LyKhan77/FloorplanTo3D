@@ -1,9 +1,9 @@
 import { svgPoint } from '../editor/review/planTransform'
 import type { CableTray, PlacedObject } from '../types/installation'
 import type { Drop } from './api'
+import { TRAY_COLOUR } from './reducer'
 import { useInstallStore } from './store'
 
-export const TRAY_COLOUR = { data: '#33b1ff', power: '#ff832b' } as const
 type Pt = [number, number]
 
 const pts = (path: Pt[]) => path.map((p) => svgPoint(p).join(',')).join(' ')

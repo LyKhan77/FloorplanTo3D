@@ -20,6 +20,7 @@ export interface InstallOpFailure { index: number; op: string; message: string }
 export const TRAY_WIDTHS = [100, 150, 200, 300, 400, 500, 600]
 export const SIDE_HEIGHTS = [50, 100, 150]
 export const DEFAULT_WIDTH = { data: 200, power: 400 } as const
+export const TRAY_COLOUR = { data: '#33b1ff', power: '#ff832b' } as const
 const MIN_STEP_MM = 100
 
 /** Points closer than 100 mm to the previous one are double clicks, not corners. */

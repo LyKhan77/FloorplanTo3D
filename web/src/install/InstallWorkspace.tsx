@@ -6,8 +6,8 @@ import { ReviewCanvas } from '../editor/review/ReviewCanvas'
 import { svgPoint } from '../editor/review/planTransform'
 import { useEditorStore } from '../editor/store'
 import { snapBox, snapTray, type Drop, type SnapBox } from './api'
-import { InstallLayer, TRAY_COLOUR } from './InstallLayer'
-import { cleanPath, DEFAULT_WIDTH, type InstallOp } from './reducer'
+import { InstallLayer } from './InstallLayer'
+import { cleanPath, DEFAULT_WIDTH, TRAY_COLOUR, type InstallOp } from './reducer'
 import { useInstallStore, type InstallTool } from './store'
 
 type Pt = [number, number]
