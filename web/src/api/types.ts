@@ -2,7 +2,7 @@
 
 export type StageStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'skipped' | 'needs_attention' | 'queued'
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'needs_attention' | 'needs_review' | 'failed'
-export type RunKind = 'full' | 'from_stage' | 'regenerate'
+export type RunKind = 'full' | 'from_stage' | 'regenerate' | 'installation'
 
 export interface Stage {
   n: number

@@ -30,7 +30,7 @@ INSTALL_MATERIALS = {
 }
 EXPORTS = [
     {"file": "installation.glb", "collections": ["Installation"]},
-    {"file": "layout_installation.glb", "collections": ["Shell", "Objects", "Installation", "RaisedFloor"]},
+    {"file": "layout_installation.glb", "collections": ["Shell", "Objects", "Installation", "RaisedFloor", "Ceiling"]},  # the viewer hides the ceiling by default
     {"file": "installation.blend", "collections": []},
 ]
 OUTPUT_FILES = ("installation.glb", "layout_installation.glb", "installation.blend", "installation.json",

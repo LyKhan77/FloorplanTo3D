@@ -90,7 +90,10 @@ export function StagePanel({ projectId, run, n, events, onOpenEditor, origin, on
         </>
       )}
 
-      {n === 8 && verify.data && (
+      {n === 8 && run.kind === 'installation' && verify.data && (
+        <p>Cek GLB instalasi: {(verify.data as unknown as { glb_ok: boolean; trays: number }).glb_ok ? 'lengkap' : 'ada tray hilang'} ({(verify.data as unknown as { trays: number }).trays} tray)</p>
+      )}
+      {n === 8 && run.kind !== 'installation' && verify.data && (
         <div className="verify">
           <div className="verify__iou">
             <span className="verify__value mono">{verify.data.drawing_fit?.fit ?? '—'}</span>

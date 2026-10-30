@@ -82,6 +82,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() !== 'f' || e.ctrlKey || e.metaKey || e.altKey || ignoredTarget(e.target as Element | null)) return
+      if (useInstallStore.getState().mounted) return  // mode Instalasi has its own full screen (InstallEditor)
       if (useEditorStore.getState().mode !== 'walk') setFull((f) => !f)
     }
     window.addEventListener('keydown', key)

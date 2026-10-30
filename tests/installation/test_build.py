@@ -31,6 +31,7 @@ def test_doc_has_layout_and_installation(tmp_path):
     n = names(doc)
     assert {"wall_W1", "tray_data_T1", "drop_RK1_T1", "ceiling"} <= n and any(x.startswith("hanger_T1_") for x in n)
     assert {"file": "installation.glb", "collections": ["Installation"]} in doc["exports"]
+    assert "Ceiling" in next(e for e in doc["exports"] if e["file"] == "layout_installation.glb")["collections"]
     assert any(c["target"] == "wall_W5" for c in doc["cutters"])
     assert doc["materials"]["tray_galv"]["texture"].endswith("perforation.png") and (tmp_path / "perforation.png").exists()
     assert doc["render"]["engine"] == "BLENDER_EEVEE"

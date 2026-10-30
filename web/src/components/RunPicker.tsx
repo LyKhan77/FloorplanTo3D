@@ -3,7 +3,7 @@ import type { Run } from '../api/types'
 import { formatTime } from '../lib/format'
 import { statusText } from '../lib/runState'
 
-const kind = (r: Run) => (r.kind === 'full' ? 'Pipeline penuh' : r.kind === 'regenerate' ? 'Regenerate' : `Dari tahap ${r.from_stage}`)
+const kind = (r: Run) => (r.kind === 'full' ? 'Pipeline penuh' : r.kind === 'regenerate' ? 'Regenerate' : r.kind === 'installation' ? 'Instalasi' : `Dari tahap ${r.from_stage}`)
 
 /** Pipeline tab: every run of the project, newest first; an approve or regenerate run skips the extraction stages,
  *  whose results stay in the earlier run. */

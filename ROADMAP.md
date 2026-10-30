@@ -687,7 +687,8 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Dokumen instalasi:** opsional dan berversi (`installations/`), merujuk ke satu versi layout. Op wajib alasan, validasi I001–I007, rebase.
 - **Snap:** pita tray (pita terisi atau berarsir, maupun dua garis tepi) dan kotak rack dari gambar.
 - **Editor:** mode Instalasi dengan alat Tray `T` dan Rack `K`, drop otomatis, tabel panjang tray per kelas.
-- **Berikutnya:** M12b, build 3D instalasi (tray perforated, hanger, plafon dan raised floor, sleeve), laporan, dan layer 3D.
+- **M12b (2026-10-30):** build 3D instalasi lewat run "Instalasi". Isinya tray perforated (tekstur alpha-clip, UV box), hanger atau pedestal, drop, plafon, raised floor, sleeve, laporan panjang tray, viewer 3D dengan layer, dan layar penuh.
+- **Uji di Terminal user:** tes Blender `tests/builder/test_installation_material.py`, lalu build sungguhan di browser.
 
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.

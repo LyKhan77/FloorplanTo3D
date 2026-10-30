@@ -75,7 +75,13 @@ Setelah layout punya output, klik **Mulai instalasi** di halaman project. Isi ti
 4. **Cek panel kanan:** Properti, Masalah (I001–I007), dan Panjang tray per kelas.
 5. **Save** (`Ctrl+S`). Hapus tray atau rack wajib diberi alasan.
 
-Kalau layout diubah setelah instalasi dibuat, halaman project menampilkan "Layout berubah": klik **Rebase**. Build 3D instalasi (tray perforated, hanger, laporan) menyusul di M12b.
+Kalau layout diubah setelah instalasi dibuat, halaman project menampilkan "Layout berubah": klik **Rebase**.
+
+**Build 3D instalasi:** setelah Save, klik **Build 3D**. Run "Instalasi" (tahap 7–10, terlihat di tab Pipeline) membangun tray perforated, hanger atau pedestal, drop ke rack, plafon, raised floor, dan sleeve di dinding.
+- **Output** ada di `installation_outputs/v<M>/`: `installation.glb`, `layout_installation.glb`, render, dan laporan panjang tray. Output layout tidak berubah.
+- **Tampilan 3D:** tombol **3D** di toolbar instalasi, dengan layer Tray data, Tray power, Hanger, Drop, Rack, Plafon, dan Raised floor.
+- **Layar penuh:** `F`.
+- **Render** memakai EEVEE (`BLENDER_INSTALL_ENGINE`) supaya perforasi terlihat. Di server tanpa GPU, set `BLENDER_INSTALL_ENGINE=BLENDER_WORKBENCH`.
 
 Panduan sesi koreksi berwaktu (untuk kriteria MVP "koreksi ≤ 15 menit") ada di `docs/calibration-correction.md`.
 

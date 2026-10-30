@@ -19,3 +19,12 @@ describe('RunPicker', () => {
     expect(onChange).toHaveBeenCalledWith('r1')
   })
 })
+
+describe('RunPicker installation runs', () => {
+  it('labels an installation build', () => {
+    render(<RunPicker runs={[run('r9', 'installation' as Run['kind'], 7, 'succeeded', '2026-10-30T11:00:00+07:00')]} value="r9" onChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole('combobox'))
+    expect(screen.getByRole('option', { name: /Instalasi · Selesai/ })).toBeInTheDocument()
+  })
+})
+
