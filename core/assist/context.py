@@ -27,7 +27,7 @@ class AreaContext:
     image: np.ndarray | None
 
 
-def _rep(room) -> tuple[int, int]:
+def rep_point(room) -> tuple[int, int]:
     if room.label_pos:
         return room.label_pos
     p = Polygon(room.polygon, room.holes).representative_point()
@@ -57,7 +57,7 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
             lines.append(f"  - {o.id} {o.category} offset={o.offset:.0f} width={o.width:.0f}"
                          + (f" {o.door_type}" if o.door_type else ""))
     lines.append("Rooms (id, name, type, area m2, point inside):")
-    lines += [f"- {r.id} '{r.name}' {r.type} {r.area_m2:.1f} at={list(_rep(r))}" for r in rooms]
+    lines += [f"- {r.id} '{r.name}' {r.type} {r.area_m2:.1f} at={list(rep_point(r))}" for r in rooms]
     if stairs or columns:
         lines.append("Context only, not editable: "
                      + ", ".join([f"stair {s.id}" for s in stairs] + [f"column {c.id} at={list(c.center)}" for c in columns]))
