@@ -18,3 +18,15 @@ describe('keepPerforationVisible', () => {
     expect(solidPerforation(plain, 8)).toBe(false)
   })
 })
+
+describe('solidPerforation shading', () => {
+  it('darkens the slots from the texture alpha, so older GLBs (slots coloured like metal) show holes too', () => {
+    const mat = new MeshStandardMaterial({ map: new Texture(), alphaTest: 0.5 })
+    solidPerforation(mat, 4)
+    const shader = { fragmentShader: 'void main() {\n#include <map_fragment>\n}' } as never as { fragmentShader: string }
+    mat.onBeforeCompile(shader as never, undefined as never)
+    expect(shader.fragmentShader).toContain('sampledDiffuseColor.a')
+    expect(shader.fragmentShader).toMatch(/diffuseColor\.a = 1\.0/)
+  })
+})
+
