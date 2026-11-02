@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { LinearMipmapLinearFilter, MeshStandardMaterial, NearestFilter, Texture } from 'three'
-import { keepPerforationVisible } from './perforation'
+import { solidPerforation } from './perforation'
 
 describe('keepPerforationVisible', () => {
-  it('mipmaps an alpha-clipped texture so the sheet stays solid from afar (the slots average out)', () => {
+  it('draws an alpha-clipped sheet solid (the slots stay as dark texture), so a tray never vanishes (user report)', () => {
     const map = new Texture()
-    map.minFilter = NearestFilter  // as exported for Blender's "Closest"
-    map.magFilter = NearestFilter
-    const mat = new MeshStandardMaterial({ map, alphaTest: 0.5 })
-    expect(keepPerforationVisible(mat, 8)).toBe(true)
-    expect([map.minFilter, map.generateMipmaps, map.anisotropy, mat.alphaToCoverage]).toEqual([LinearMipmapLinearFilter, true, 8, true])
+    map.minFilter = NearestFilter
+    const mat = new MeshStandardMaterial({ map, alphaTest: 0.5, metalness: 0.8 })
+    expect(solidPerforation(mat, 8)).toBe(true)
+    expect([mat.alphaTest, mat.transparent, mat.alphaToCoverage]).toEqual([0, false, false])
+    expect([map.minFilter, map.generateMipmaps, map.anisotropy]).toEqual([LinearMipmapLinearFilter, true, 8])
+    expect(mat.metalness).toBeLessThanOrEqual(0.4)  // no environment map in the viewer: a metal would read black
   })
 
   it('leaves solid materials alone', () => {
     const plain = new MeshStandardMaterial({ color: '#7a7f85' })
-    expect(keepPerforationVisible(plain, 8)).toBe(false)
+    expect(solidPerforation(plain, 8)).toBe(false)
   })
 })

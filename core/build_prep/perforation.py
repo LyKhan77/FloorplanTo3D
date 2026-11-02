@@ -20,7 +20,7 @@ def write_perforation_png(path: Path, color: str) -> Path:
     img[..., 3] = 255
     sw, sh = SLOT_MM[0] * PX_PER_MM, SLOT_MM[1] * PX_PER_MM
     x0, y0 = (n - sw) // 2, (n - sh) // 2
-    img[y0:y0 + sh, x0:x0 + sw, 3] = 0
+    img[y0:y0 + sh, x0:x0 + sw] = (24, 24, 24, 0)  # dark under the alpha: a viewer that draws the sheet solid still shows holes
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(path), img)
     return Path(path)

@@ -11,3 +11,11 @@ def test_perforation_tile_has_one_transparent_slot(tmp_path):
     assert (alpha == 0).sum() == (7 * PX_PER_MM) * (20 * PX_PER_MM)
     assert set(alpha.ravel().tolist()) == {0, 255}
     assert tuple(img[0, 0, :3]) == (0xC2, 0xBC, 0xB8)  # BGR of #B8BCC2
+
+
+def test_slots_are_dark_under_their_alpha(tmp_path):
+    """Where alpha is ignored (the web viewer draws the sheet solid), the slots still read as holes: dark pixels."""
+    img = cv2.imread(str(write_perforation_png(tmp_path / "perf.png", "#B8BCC2")), cv2.IMREAD_UNCHANGED)
+    slot = img[img[..., 3] == 0][:, :3]
+    assert slot.max() <= 0x40 and img[0, 0, :3].min() >= 0xB0
+

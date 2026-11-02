@@ -4,16 +4,16 @@ import { Checkbox } from '@carbon/react'
 import { Suspense, useEffect, useState } from 'react'
 import type { Mesh } from 'three'
 import { CUT_M, cutaway, LAYERS, LAYERS_OFF, layerOf, type Layer } from './layers'
-import { keepPerforationVisible } from './perforation'
+import { solidPerforation } from './perforation'
 
 function Model({ url, on, cut }: { url: string; on: Record<Layer, boolean>; cut: boolean }) {
   const { scene } = useGLTF(url)
   const gl = useThree((s) => s.gl)
-  useEffect(() => {  // GLBs built before the builder switched to mipmapped sampling are fixed here too
+  useEffect(() => {  // perforated sheets drawn solid with dark slots: an alpha test lost them at distance
     const aniso = gl.capabilities.getMaxAnisotropy()
     scene.traverse((o) => {
       const mats = (o as Mesh).material
-      for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) keepPerforationVisible(m, aniso)
+      for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) solidPerforation(m, aniso)
     })
   }, [scene, gl])
   useEffect(() => {
