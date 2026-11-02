@@ -1,4 +1,5 @@
-"""Placeholder templates for MVP testing (PRD/10 §6), built with the regular Blender builder.
+"""The template library's data-center equipment as procedural low-poly models (core/templates/lowpoly.py), built with
+the regular Blender builder. 1.0.0 were plain boxes; placed objects keep their version, new ones get the newest.
 
 Usage: uv run --env-file .env python -m core.templates.make_placeholders [--out data/templates]
 """
@@ -11,12 +12,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from core.build_prep.mesh import box
 from core.build_prep.schema import BUILD_INPUT_VERSION
 from core.config import load_settings
+from core.templates.lowpoly import MATERIALS, front_view, meshes, parts
 
 BUILDER = Path(__file__).resolve().parents[2] / "builder" / "build.py"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 # (id, (w, d, h) mm, category, resizable axes) — PRD/10 §6
 PLACEHOLDERS = [
     ("rack-42u-600x1200", (600, 1200, 2000), "rack", "dh"),
@@ -40,25 +41,23 @@ def template_meta(tid: str, dims: tuple[int, int, int], category: str, axes: str
                  for a, v in (("w", w), ("d", d), ("h", h))}
     clearance = {"front": 1200, "back": 1000} if category == "rack" else {}
     return {"id": tid, "version": VERSION, "name": tid.replace("-", " ").title(), "category": category,
-            "tags": ["placeholder"], "dims": {"w": w, "d": d, "h": h}, "pivot": "bottom_center", "front": "+y",
+            "tags": ["lowpoly"], "dims": {"w": w, "d": d, "h": h}, "pivot": "bottom_center", "front": "+y",
             "resizable": resizable, "scale_mode": "stretch" if axes else "fixed",
-            "snap": {"grid_mm": 600, "align": "edge"}, "clearance": clearance, "source": {"workflow": "placeholder"}}
+            "snap": {"grid_mm": 600, "align": "edge"}, "clearance": clearance,
+            "source": {"workflow": "procedural", "script": "core/templates/lowpoly.py", "license": "project-owned"}}
 
 
-def build_doc(dims: tuple[int, int, int], color: str) -> dict:
-    w, d, h = dims
-    body = box(0, 0, h / 2, w, d, h)
-    panel = box(0, d / 2 - 5, h / 2, w * 0.8, 10, h * 0.8)  # dark face on the front (+Y), inside the bbox
+def build_doc(tid: str, dims: tuple[int, int, int]) -> dict:
+    _, d, h = dims
+    by_material = meshes(parts(tid, dims))
+    first, *rest = by_material  # the first material's mesh is the root the others hang from
     return {
         "version": BUILD_INPUT_VERSION, "spec_version": 0,
-        "materials": {"tpl_body": {"color": color, "roughness": 0.6, "alpha": 1.0},
-                      "tpl_front": {"color": "#161616", "roughness": 0.4, "alpha": 1.0}},
-        "meshes": [
-            {"name": "template_root", "collection": "Template", **body, "material": "tpl_body", "props": {},
-             "parent": None, "location": [0, 0, 0], "rot_z": 0.0},
-            {"name": "front_panel", "collection": "Template", **panel, "material": "tpl_front", "props": {},
-             "parent": "template_root", "location": [0, 0, 0], "rot_z": 0.0},
-        ],
+        # tpl_ names: the asset is imported into layout scenes, whose own materials must not merge with these
+        "materials": {f"tpl_{m}": MATERIALS[m] for m in by_material},
+        "meshes": [{"name": "template_root" if m == first else f"part_{m}", "collection": "Template", **by_material[m],
+                    "material": f"tpl_{m}", "props": {}, "parent": None if m == first else "template_root",
+                    "location": [0, 0, 0], "rot_z": 0.0} for m in [first, *rest]],
         "empties": [{"name": "front_marker", "collection": "Template", "location": [0, d / 2, h / 2], "rot_z": 0.0,
                      "props": {}, "parent": "template_root"}],
         "cutters": [], "instances": [], "labels": [], "grid_lines": [], "cameras": [],
@@ -66,13 +65,12 @@ def build_doc(dims: tuple[int, int, int], color: str) -> dict:
     }
 
 
-def thumbnail(tid: str, color: str) -> np.ndarray:
-    img = np.zeros((512, 512, 4), np.uint8)  # transparent
+def thumbnail(tid: str, dims: tuple[int, int, int], color: str) -> np.ndarray:
+    """Front elevation of the model on a transparent background, with its id."""
+    img = front_view(parts(tid, dims))
     h = color.lstrip("#")
-    bgr = (int(h[4:6], 16), int(h[2:4], 16), int(h[0:2], 16))
-    cv2.rectangle(img, (96, 96), (416, 416), (*bgr, 255), -1)
-    cv2.arrowedLine(img, (256, 360), (256, 140), (255, 255, 255, 255), 14, tipLength=0.3)  # front = up (+Y)
-    cv2.putText(img, tid[:22], (40, 470), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (*bgr, 255), 2)
+    cv2.putText(img, tid[:26], (24, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                (int(h[4:6], 16), int(h[2:4], 16), int(h[0:2], 16), 255), 2)
     return img
 
 
@@ -83,14 +81,14 @@ def make_placeholders(out_root: Path, blender_bin: str) -> list[Path]:
         folder.mkdir(parents=True, exist_ok=True)
         color = CATEGORY_COLOR.get(category, "#8D8D8D")
         inp = folder / "build_input.json"
-        inp.write_text(json.dumps(build_doc(dims, color)))
+        inp.write_text(json.dumps(build_doc(tid, dims)))
         r = subprocess.run([blender_bin, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(BUILDER),
                             "--", str(inp), str(folder)], capture_output=True, text=True, timeout=300, check=False)
         if r.returncode != 0:
             raise RuntimeError(f"builder failed for {tid}: {r.stderr[-1000:]}")
         inp.unlink()
         (folder / "template.json").write_text(json.dumps(template_meta(tid, dims, category, axes), indent=2) + "\n")
-        cv2.imwrite(str(folder / "thumbnail.png"), thumbnail(tid, color))
+        cv2.imwrite(str(folder / "thumbnail.png"), thumbnail(tid, dims, color))
         paths.append(folder)
     return paths
 

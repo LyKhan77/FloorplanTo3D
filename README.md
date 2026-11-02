@@ -86,6 +86,19 @@ Kalau layout diubah setelah instalasi dibuat, halaman project menampilkan "Layou
 
 Panduan sesi koreksi berwaktu (untuk kriteria MVP "koreksi ≤ 15 menit") ada di `docs/calibration-correction.md`.
 
+## Template objek
+
+Library berisi 7 perangkat data center (rack 42U/48U, CRAC, UPS, battery rack, PDU, tabung pemadam) sebagai model
+low-poly prosedural (`core/templates/lowpoly.py`, lisensi milik project). Bangun ulang ke `DATA_DIR` setelah modelnya
+diubah:
+
+```bash
+uv run --env-file .env python -m core.templates.make_placeholders --out data/templates
+```
+
+Versi template naik setiap kali modelnya berubah (sekarang 1.1.0). Objek yang sudah ditempatkan tetap memakai versinya;
+objek baru memakai versi terbaru.
+
 ## CLI (tanpa server)
 
 ```bash
@@ -137,7 +150,7 @@ Satu image Docker berisi API, pipeline, Blender 5.2 (CPU, headless), dan dashboa
 docker compose -f docker/compose.yaml up -d --build
 docker compose -f docker/compose.yaml logs -f
 
-# sekali saja di DATA_DIR baru: buat template objek
+# sekali saja di DATA_DIR baru (dan setelah model low-poly berubah): buat template objek
 docker compose -f docker/compose.yaml run --rm floorplan3d python -m core.templates.make_placeholders --out /data/templates
 ```
 

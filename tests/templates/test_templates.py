@@ -26,7 +26,7 @@ def test_placeholders_generate_and_validate(tmp_path):
     paths = make_placeholders(tmp_path, load_settings().blender_bin)
     assert len(paths) == 7
     assert all(validate_template(p) == [] for p in paths), {p.parent.name: validate_template(p) for p in paths}
-    meta, glb = load_template(tmp_path, "rack-42u-600x1200", "1.0.0")
+    meta, glb = load_template(tmp_path, "rack-42u-600x1200", "1.1.0")
     assert meta.dims.h == 2000 and meta.resizable.w is False and glb.name == "asset.glb"
 
 
