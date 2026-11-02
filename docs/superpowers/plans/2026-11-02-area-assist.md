@@ -23,10 +23,10 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
 
 ## Global Constraints
 
-- **Scope:** layout only (walls, openings, rooms) in the review canvas. No installation actions and no door add in this
-  version (§2, §9).
-- **Plan actions:** `delete_wall`, `merge_walls`, `add_wall`, `delete_opening`, `set_room_type`, `rename_room`. ID
-  references are allowed only to elements listed in the area context.
+- **Scope:** layout only (walls, openings, rooms) in the review canvas. No installation actions in this version (§2, §9).
+- **Plan actions:** `delete_wall`, `merge_walls`, `add_wall`, `extend_wall`, `split_wall`, `add_opening`, `set_door`,
+  `delete_opening`, `set_room_type`, `rename_room`. ID references are allowed only to elements listed in the area
+  context.
 - **Limits:**
   - at most 3 questions per session;
   - at most 1 revision round per proposal;
@@ -36,7 +36,15 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
   else → rejected.
 - **New walls** go through `core/extraction/snap.snap_wall` on the newest run's `bin.png` (frame of `grid.json`
   `px_to_mm`). Unsnapped → kept as drawn at HEAD's default thickness and flagged `snapped: false`.
-- **Op order:** deletes → merges → adds → room point ops.
+- **Op order:** deletes → merges → splits → extends (`move_wall`) → adds → openings (`add_opening`, `set_door`) → room
+  point ops. Opening offsets are measured on the wall geometry after the extends.
+- **extend_wall:** move the endpoint of `id` nearest to the intersection of its axis with the axis of `to` onto that
+  intersection. Rejected when parallel (≤ 3°) or the endpoint moves > 1500 mm.
+- **split_wall:** project `at` onto the wall → `split_wall.at_offset`; rejected < 100 mm from an end or inside an opening.
+- **add_opening:** project `at` onto `wall`. With a binary: the ink-free run along the wall axis within ±1500 mm of the
+  point, 600–3000 mm long, gives offset and width (`snapped: true`). Otherwise the LLM width (default door 900, window
+  1200) centred on the point, `snapped: false`. Clamped ≥ 50 mm from the wall ends; does not fit → rejected.
+- **set_door:** only doors in the area; a width change keeps the door centre.
 - **Delete reasons:** `"asisten: " + instruction[:60]`.
 - **Accept** adds the ops to the editor's pending ops as one undo step. It never saves.
 - **Text:** LLM-visible system prompt in English; `explanation` and `question` in Indonesian; UI copy in Indonesian.
@@ -130,11 +138,13 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
 - Consumes: `AreaContext` (Task 2); `snap_wall` (`core/extraction/snap.py`); the Task 1 ops.
 - Produces:
   - `AreaPlan` (pydantic): `question: str | None`, `actions: list[Action]`, `explanation: str`. `Action` is
-    discriminated on `type` with the six action shapes of §6.2.
+    discriminated on `type` with the ten action shapes of §6.2.
   - `Translation` dataclass:
     - `ops: list[dict]`;
     - `deleted: list[str]`;
     - `added: list[dict]` (`{a, b, thickness, snapped}`);
+    - `moved: list[dict]` (`{id, a, b}`, the wall after `extend_wall`);
+    - `openings: list[dict]` (`{a, b, category, snapped}`, the new or changed opening as a segment in mm);
     - `notes: list[str]` (Indonesian, shown in chat);
     - `rejected: list[str]` (problems for the revision round).
   - `translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, binary: np.ndarray | None, px_to_mm: list | None) -> Translation`.
@@ -154,6 +164,14 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
     `snapped: False` at HEAD's default thickness.
   - `test_order_and_room_ops`: the ops come out ordered deletes, merges, adds, `set_room_type_at`; the room op's `at`
     lies inside the named room.
+  - `test_extend_wall_closes_the_corner`: a wall ending 400 mm short of a perpendicular wall → `move_wall` whose moved
+    endpoint lies on the other wall's axis; parallel walls → rejected.
+  - `test_split_wall_projects_the_point`: `at` 1000 mm along W → `split_wall at_offset≈1000`; `at` 50 mm from an end →
+    rejected.
+  - `test_add_opening_snaps_to_the_gap`: a synthetic binary with a wall line broken by a 1000 mm gap and `at` 300 mm off
+    the gap centre → `add_opening` with offset/width of the gap (±30 mm), `snapped: True`; on `binary=None` → width 900
+    centred on `at`, `snapped: False`; an unknown wall → rejected.
+  - `test_set_door_keeps_the_centre`: widening D1 from 900 to 1200 → `set_door` with `offset` 150 smaller.
 - [ ] **Step 2:** Run `uv run pytest -q tests/assist/test_plan.py`. Expected: FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run. Expected: PASS.
@@ -177,7 +195,7 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
     It yields event dicts `{"event": "step" | "question" | "proposal" | "error" | "done", ...}`:
     - **`step`:** at least "membaca N dinding dan M ruang di area…" and "menunggu Strata…".
     - **`question`:** when the plan has a question and `questions < 3`. A fourth question becomes `error`.
-    - **`proposal`:** `{ops, deleted, added, explanation, notes, issues, valid}`.
+    - **`proposal`:** `{ops, deleted, added, moved, openings, explanation, notes, issues, valid}`.
       - Validation applies `ops` + the translated ops on `base` and compares error issues with `base` + `ops` alone.
       - New errors, an `OpError`, or `rejected` trigger ONE revision. The LLM gets its plan and the problems.
       - `valid` = no new errors after the revision.
@@ -241,7 +259,8 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
     `[{role: 'user' | 'step' | 'question' | 'proposal' | 'error', ...}]`, `pending: boolean`, the current proposal and
     `baseKey`.
   - `web/src/editor/assist/AssistPanel.tsx`: the chat, the input, and the Terima/Tolak buttons on the latest proposal.
-  - `web/src/editor/assist/ProposalLayer.tsx`: deleted walls red dashed, added walls green (yellow when `snapped: false`).
+  - `web/src/editor/assist/ProposalLayer.tsx`: deleted walls red dashed, added and moved walls green (yellow when
+    `snapped: false`), new or changed openings as a thick green/yellow segment on their wall.
 - Modify:
   - `web/src/editor/store.ts`: Tool gains `'assist'`;
   - `web/src/editor/review/ReviewWorkspace.tsx`: the tool `A` "Perbaiki area" drags a box (purple dashed) and opens the
@@ -287,7 +306,9 @@ chat panel. The user accepts it (the ops become pending edits) or rejects it.
     exactly it;
   - **ambiguous:** the same without a selection and with several walls in the box → a `question`;
   - **stair area:** the GT stair S1 box with a small extra square of walls inside it, with "rapikan, jadikan ruang
-    tangga" → no exterior wall deleted, and the extra square gone.
+    tangga" → no exterior wall deleted, and the extra square gone;
+  - **missing door:** one GT door removed from the spec, its wall selected, with "tambah pintu di sini" → an
+    `add_opening` within 300 mm of the GT door centre.
 - [ ] **Step 2:** Run `uv run --env-file .env pytest -q tests/assist/test_area_strata.py -m strata` (DGX reachable).
   Expected: pass. A failure is a finding to report, not a reason to loosen the assertion.
 - [ ] **Step 3:** Update the README and ROADMAP.

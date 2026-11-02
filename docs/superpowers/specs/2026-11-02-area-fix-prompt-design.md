@@ -40,7 +40,9 @@ Kesimpulan dari uji itu:
   - crop gambar denah dengan dinding saat ini digambar berwarna dan diberi label ID.
 - **Pertanyaan balik** kalau instruksi ambigu. User menjawab di chat, lalu percakapan berlanjut (sesi yang sama).
 - **Aksi yang didukung:** hapus dinding, gabung dinding (kolinear maupun sejajar berdempetan), tambah dinding (rough line
-  yang di-snap ke gambar), hapus bukaan, tipe ruang, dan nama ruang.
+  yang di-snap ke gambar), sambung sudut (perpanjang atau potong ujung dinding sampai dinding lain), pecah dinding,
+  tambah pintu/jendela (di-snap ke celah gambar), ubah pintu (lebar, arah bukaan, jenis), hapus bukaan, tipe ruang, dan
+  nama ruang.
 - **Validasi dan satu putaran koreksi:** usulan divalidasi (dry-run) sebelum ditampilkan. Kalau ada error, LLM mendapat
   hasilnya dan merevisi sekali.
 - **Pratinjau di kanvas:** elemen yang dihapus dicoret merah, dinding baru atau hasil gabungan hijau. Tombol **Terima** /
@@ -54,7 +56,7 @@ Kesimpulan dari uji itu:
 - Lapisan instalasi (tray, rack): keputusan user, **layout dulu**. Instalasi segera menyusul di branch yang sama, memakai
   ulang fondasinya: konteks tray/rack, aksi instalasi, dan chat di mode Instalasi.
 - Generate interior: fitur kedua, dibangun di atas fondasi ini (§9).
-- Menambah atau memindah pintu, dan mengedit tangga atau kolom.
+- Mengedit tangga atau kolom, tebal/jenis dinding, dan batas ruang virtual (*room separation line*).
 - Agen tool-calling bertahap (pendekatan B).
 
 **Anti-tujuan**
@@ -121,6 +123,11 @@ Kesimpulan dari uji itu:
     {"type": "delete_wall", "id": "W12"},
     {"type": "merge_walls", "ids": ["W70", "W73"]},
     {"type": "add_wall", "a": [x, y], "b": [x, y]},
+    {"type": "extend_wall", "id": "W12", "to": "W13"},
+    {"type": "split_wall", "id": "W12", "at": [x, y]},
+    {"type": "add_opening", "wall": "W12", "category": "door" | "window", "at": [x, y], "width": mm | null},
+    {"type": "set_door", "id": "D3", "width": mm?, "swing": "left" | "right"?, "hinge": "start" | "end" | "both"?,
+     "door_type": "single_swing" | "double_swing" | "sliding" | "opening" | "rolling"?},
     {"type": "delete_opening", "id": "D3"},
     {"type": "set_room_type", "room": "R5", "value": "stair"},
     {"type": "rename_room", "room": "R5", "name": "Tangga"} ],
@@ -146,6 +153,19 @@ Kesimpulan dari uji itu:
   - menempel → dipakai;
   - tidak menempel → garis kasar dipakai dengan tebal default HEAD, ditandai **"tidak menempel ke gambar"** di chat dan
     pratinjau (kuning).
+- **`extend_wall`** (sambung sudut) → op `move_wall` pada ujung `id` yang paling dekat ke perpotongan garis sumbunya
+  dengan sumbu dinding `to`. Ditolak kalau keduanya sejajar (≤ 3°) atau ujungnya bergeser > 1500 mm. Koordinat
+  sepenuhnya dihitung, bukan dari LLM.
+- **`split_wall`** → titik `at` diproyeksikan ke dinding, lalu op `split_wall` dengan `at_offset`. Ditolak kalau
+  proyeksinya < 100 mm dari ujung, atau memotong bukaan.
+- **`add_opening`:**
+  - titik `at` diproyeksikan ke dinding `wall` (harus ada di daftar area);
+  - dengan gambar: cari celah tanpa tinta di sumbu dinding pada `bin.png`, dalam ±1500 mm dari titik itu, lebar
+    600–3000 mm. Ketemu → offset dan lebar dari celah itu (`snapped: true`);
+  - tidak ketemu atau tanpa gambar → lebar dari LLM (atau default pintu 900 / jendela 1200 mm), berpusat di titik itu,
+    ditandai kuning;
+  - bukaan dijepit ≥ 50 mm dari ujung dinding (aturan validasi). Kalau tidak muat → ditolak.
+- **`set_door`** → op `set_door` untuk pintu di daftar area. Ubah lebar menjaga titik tengah pintu tetap.
 - **`delete_opening`** → op `delete_opening` dengan alasan.
 - **`set_room_type` / `rename_room`** (keputusan user: opsi b, satu langkah): perubahan dinding membangun ulang ruang
   dengan ID baru, jadi aksi ruang diterjemahkan ke **op baru berbasis titik**:
@@ -156,7 +176,8 @@ Kesimpulan dari uji itu:
   sesudah rebuild). Reducer web (`web/src/editor/ops/reducer.ts`) melakukan hal yang sama, dan fixture paritas
   (`tests/test_editor_parity.py`) ikut diperbarui. Titik di luar semua ruang → `OpError` "tidak ada ruang di titik ini",
   yang masuk putaran koreksi. Op ini juga tersedia untuk editor manual, tapi tidak dipakai di UI v1.
-- **Urutan op:** penghapusan → gabungan → tambahan → ruang.
+- **Urutan op:** penghapusan → gabungan → pecah → sambung sudut → tambah dinding → bukaan → ruang. Offset bukaan
+  dihitung pada geometri dinding setelah sambung sudut.
 
 ### 6.4 Validasi dan putaran koreksi
 
@@ -181,7 +202,7 @@ Kesimpulan dari uji itu:
   | `session` | `{session_id}` |
   | `step` | `{text}`, contoh "membaca 9 dinding dan 2 ruang di area…", "menunggu Strata…" |
   | `question` | `{text}` |
-  | `proposal` | `{ops, deleted: [ids], added: [{a, b, thickness, snapped}], explanation, issues, valid}` |
+  | `proposal` | `{ops, deleted: [ids], added: [{a, b, thickness, snapped}], moved: [{id, a, b}], openings: [{a, b, category, snapped}], explanation, issues, valid}` |
   | `error` | `{text}` |
   | `done` | — |
 
@@ -224,6 +245,7 @@ Kesimpulan dari uji itu:
   - **Duplikat:** salinan sejajar sebuah dinding GT, digeser 120 mm.
   - **"Hapus ini":** dinding nyasar yang ditambahkan ke GT.
   - **"Ruang tangga":** area tangga S1 GT dengan kotak dinding tambahan di dalamnya.
+  - **Pintu hilang:** satu pintu GT dihapus dari spec, instruksi "tambah pintu di sini".
 
   Kotak area dan pilihan ditulis di tes. Harapannya:
   - duplikat → satu dinding gabungan;
@@ -241,6 +263,7 @@ Kesimpulan dari uji itu:
 - Generate interior: fitur berikutnya, dengan LLM bertanya dulu objek apa yang diinginkan.
 - Tipe dan nama ruang ikut dalam usulan yang sama (opsi b), lewat op berbasis titik yang dijalankan setelah rebuild ruang.
 - Fitur ini dikerjakan di branch baru (`area-assist`).
+- v1 diperluas dengan 4 aksi (2026-11-02): tambah pintu/jendela, ubah pintu, sambung sudut, pecah dinding.
 
 ## 9. Keputusan saya (bisa dikoreksi)
 
@@ -249,7 +272,6 @@ Kesimpulan dari uji itu:
 - **Terima** masuk ke pending ops (bukan langsung Save), dan menjadi satu langkah undo.
 - **Streaming:** respons SSE langsung per request, tidak lewat EventBus project.
 - **Batas:** maksimal 3 pertanyaan per sesi dan 1 putaran koreksi.
-- **Tidak ada aksi pintu di v1.**
 - **Dinding yang tidak menempel ke gambar** tetap boleh diterima, tapi diberi tanda kuning di pratinjau. Setelah Save,
   tandanya tidak hilang: cek kecocokan gambar di tahap 8 (`core/verify/fit.py`) sudah menyebut dinding yang tidak berada
   di atas garis gambar. Provenance op tetap `editor`; jejak LLM ada di log sesi `assist/`, tanpa mengubah kontrak
