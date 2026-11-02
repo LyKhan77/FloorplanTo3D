@@ -66,4 +66,4 @@ function Message({ msg, live, onAccept, onReject }: { msg: Msg; live: boolean; o
   )
 }
 
-const STATE = { accepted: 'diterima', rejected: 'ditolak', stale: 'usang' }
+const STATE = { accepted: 'diterima', rejected: 'ditolak', stale: 'usang', revised: 'direvisi' }

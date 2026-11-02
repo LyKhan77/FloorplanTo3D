@@ -96,3 +96,28 @@ def test_missing_door_is_added_at_the_gap(strata, drawing, tmp_path):
     door = next(o for o in p["openings"] if o["category"] == "door")
     centre = ((door["a"][0] + door["b"][0]) / 2, (door["a"][1] + door["b"][1]) / 2)
     assert p["valid"] and math.dist(centre, (9035, 6000)) <= 300
+
+
+def test_a_reply_revises_the_open_proposal(strata, drawing, tmp_path):
+    """The user answers the proposal instead of Terima: the next proposal is the complete revised plan."""
+    gt, page, binary, t = drawing
+    spec = with_walls(gt, Wall(id="W900", a=(5910, 11690), b=(5910, 6000), thickness=150, kind="interior"))
+    s = Session(id="r", project_id="p", box=(5300, 6500, 6500, 11000), selection=[])
+    first = list(run_turn(strata, s, "dua dinding dobel, satukan", spec, [], page, binary, t, tmp_path))
+    assert {"W43", "W900"} <= set(proposal(first)["deleted"])
+    second = list(run_turn(strata, s, "jangan digabung, W43 itu dinding asli. Hapus W900 saja", spec, [], page, binary,
+                           t, tmp_path))
+    p = proposal(second)
+    assert p["valid"] and p["deleted"] == ["W900"] and p["added"] == []
+
+
+def test_a_partial_reply_keeps_the_rest_of_the_plan(strata, drawing, tmp_path):
+    gt, page, binary, t = drawing
+    spec = with_walls(gt, Wall(id="W900", a=(5910, 11690), b=(5910, 6000), thickness=150, kind="interior"), STRAY)
+    s = Session(id="k", project_id="p", box=(5300, 6500, 13000, 11000), selection=[])
+    first = list(run_turn(strata, s, "hapus dinding nyasar W901 dan satukan dinding dobel W43 W900", spec, [], page,
+                          binary, t, tmp_path))
+    assert {"W901", "W43", "W900"} <= set(proposal(first)["deleted"])
+    p = proposal(list(run_turn(strata, s, "W901 jangan dihapus, sisanya sudah benar", spec, [], page, binary, t,
+                               tmp_path)))
+    assert "W901" not in p["deleted"] and {"W43", "W900"} <= set(p["deleted"]) and len(p["added"]) == 1

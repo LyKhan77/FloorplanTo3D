@@ -126,3 +126,22 @@ def test_an_unexpected_failure_is_an_error_event(tmp_path, monkeypatch):
     monkeypatch.setattr(session, "translate", boom)
     ev = turn(FakeClient(act({"type": "delete_wall", "id": "W5"})), new(), "hapus", tmp_path)
     assert kinds(ev)[-2:] == ["error", "done"] and "bug" in ev[-2]["text"]
+
+
+def test_a_reply_to_an_open_proposal_is_a_revision(tmp_path):
+    c = FakeClient(act({"type": "delete_wall", "id": "W5"}), act({"type": "delete_wall", "id": "W5"}))
+    s = new()
+    turn(c, s, "hapus dinding tengah", tmp_path)
+    turn(c, s, "pintunya jangan ikut hilang", tmp_path)
+    last = text(c.calls[1][-1:])
+    assert "NOT applied" in last and "complete" in last and "W5" in last and "pintunya jangan ikut hilang" in last
+    assert s.decisions == [{"proposal": 0, "revised": True}]
+
+
+def test_after_a_decision_a_message_is_a_new_request(tmp_path):
+    c = FakeClient(act({"type": "delete_wall", "id": "W5"}), ask("Apa lagi?"))
+    s = new()
+    turn(c, s, "hapus dinding tengah", tmp_path)
+    s.decisions.append({"proposal": 0, "accepted": False})
+    turn(c, s, "sekarang ruang kiri jadi kantor", tmp_path)
+    assert "NOT applied" not in text(c.calls[1][-1:])

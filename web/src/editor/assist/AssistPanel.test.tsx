@@ -32,6 +32,7 @@ describe('AssistPanel', () => {
   beforeEach(() => {
     st().load('p1', gt)
     st().setTool('assist')
+    useAssistStore.getState().close()  // the store outlives a render: start every test with a fresh chat
     useAssistStore.getState().open([0, 0, 5000, 5000])
     decisions.length = 0
   })
@@ -73,6 +74,16 @@ describe('AssistPanel', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Terima' })) })
     expect(st().ops).toHaveLength(1)
     expect(screen.getByText(/usulan usang, kirim ulang/i)).toBeTruthy()
+  })
+
+  it('a message while a proposal is open revises it, it does not reject it', async () => {
+    script = [{ event: 'session', session_id: 's1' }, proposal(), { event: 'done' }]
+    render(<AssistPanel projectId="p1" />)
+    await send('hapus')
+    await send('jangan yang itu, yang sebelah')
+    expect(screen.getByText(/direvisi/)).toBeTruthy()
+    expect(screen.queryAllByText(/ditolak/).map((e) => e.textContent)).toEqual([])
+    expect(decisions).toEqual([])
   })
 
   it('an invalid proposal keeps Terima disabled', async () => {

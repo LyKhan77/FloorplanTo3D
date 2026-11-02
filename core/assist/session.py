@@ -64,6 +64,20 @@ def save_log(session: Session, log_dir: Path) -> None:
     (log_dir / f"{session.id}.json").write_text(json.dumps(asdict(session), indent=1, default=str))
 
 
+def _summary(tr, problems: list[str]) -> str:
+    parts = []
+    if tr.deleted:
+        parts.append("delete " + ", ".join(tr.deleted))
+    parts += [f"new wall {w['a']}->{w['b']} t={w['thickness']}" + ("" if w["snapped"] else " (not on the drawing)")
+              for w in tr.added]
+    parts += [f"move {m['id']} to {m['a']}->{m['b']}" for m in tr.moved]
+    parts += [f"{o['category']} {o['a']}->{o['b']}" + ("" if o["snapped"] else " (not on a drawn gap)") for o in tr.openings]
+    parts += [f"room {op['op'].removesuffix('_at')} at {op['at']}: {op.get('type') or op.get('name')}"
+              for op in tr.ops if op["op"] in ("set_room_type_at", "rename_room_at")]
+    parts += [f"problem: {p}" for p in problems]
+    return "; ".join(parts) or "no change"
+
+
 def _ask(client, messages: list[dict]):
     r = client.ask_json(list(messages), AreaPlan, effort="medium", temperature=0.0,
                         deadline=time.monotonic() + CALL_TIMEOUT_S)
@@ -83,7 +97,15 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
                                     f"{len(ctx.room_ids)} ruang di area…"}
     if ctx.image is None:
         yield {"event": "step", "text": "Tanpa gambar denah: Strata hanya membaca daftar elemen, dinding baru tidak di-snap"}
-    user = [{"type": "text", "text": f"{ctx.text}\n\nInstruction: {message}"}]
+    note = ""
+    last = len(s.proposals) - 1
+    if last >= 0 and not any(d.get("proposal") == last for d in s.decisions):
+        # the user answers the open proposal instead of Terima/Tolak: a revision, and nothing of it was applied
+        s.decisions.append({"proposal": last, "revised": True})
+        note = ("Your previous proposal was NOT applied; the user replies to it instead of accepting it.\n"
+                f"What it would have done: {s.proposals[last]['summary']}\n"
+                "Answer with a complete revised plan: every action still wanted, not only the changes.\n\n")
+    user = [{"type": "text", "text": f"{ctx.text}\n\n{note}Instruction: {message}"}]
     if ctx.image is not None:
         user.append(png_part(ctx.image))
     messages = [{"role": "system", "content": load_prompt("AF")}, *s.messages, {"role": "user", "content": user}]
@@ -125,5 +147,5 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
     proposal = {"ops": tr.ops, "deleted": tr.deleted, "added": tr.added, "moved": tr.moved, "openings": tr.openings,
                 "explanation": plan.explanation, "notes": tr.notes + problems, "issues": issues,
                 "valid": not problems and bool(tr.ops)}
-    s.proposals.append({**proposal, "instruction": message})
+    s.proposals.append({**proposal, "instruction": message, "summary": _summary(tr, problems)})
     yield {"event": "proposal", **proposal}

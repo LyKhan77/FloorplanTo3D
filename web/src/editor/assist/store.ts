@@ -6,7 +6,7 @@ import { postDecision, streamAssist, type Proposal } from './stream'
 export type Box = [number, number, number, number]
 export type Msg =
   | { role: 'user' | 'step' | 'question' | 'error' | 'info'; text: string }
-  | { role: 'proposal'; proposal: Proposal; state: 'open' | 'accepted' | 'rejected' | 'stale' }
+  | { role: 'proposal'; proposal: Proposal; state: 'open' | 'accepted' | 'rejected' | 'stale' | 'revised' }
 
 interface AssistState {
   box: Box | null
@@ -28,7 +28,7 @@ const editorKey = () => { const s = useEditorStore.getState(); return JSON.strin
 /** One area-assist session (design §6.6): the marked box, the chat, and the open proposal. */
 export const useAssistStore = create<AssistState>()((set, get) => {
   const push = (m: Msg) => set((s) => ({ messages: [...s.messages, m] }))
-  const settle = (state: 'accepted' | 'rejected' | 'stale') => set((s) => ({
+  const settle = (state: 'accepted' | 'rejected' | 'stale' | 'revised') => set((s) => ({
     proposal: null,
     messages: s.messages.map((m) => (m.role === 'proposal' && m.proposal === s.proposal ? { ...m, state } : m)),
   }))
@@ -45,7 +45,8 @@ export const useAssistStore = create<AssistState>()((set, get) => {
       const { box, sessionId, pending } = get()
       const ed = useEditorStore.getState()
       if (!box || pending || !text.trim() || ed.baseVersion === null) return
-      if (get().proposal) settle('rejected')
+      // a message while a proposal is open answers it: the server logs it as a revision, nothing was applied
+      if (get().proposal) settle('revised')
       const baseKey = editorKey()
       push({ role: 'user', text })
       set({ pending: true })
