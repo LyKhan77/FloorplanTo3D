@@ -116,3 +116,13 @@ def test_room_op_at_outside_every_room_fails():
     with pytest.raises(OpError) as e:
         apply(spec_with_rooms(), [{"op": "set_room_type_at", "at": (-5000, -5000), "type": "stair"}], "editor", 2)
     assert e.value.index == 0 and "tidak ada ruang di titik ini" in e.value.message
+
+
+def test_a_later_room_op_by_id_wins_over_an_earlier_one_by_point():
+    """Save sends every pending op at once: a manual edit after an accepted proposal must stay the last word."""
+    s = apply(spec_with_rooms(), [{"op": "set_room_type_at", "at": (2500, 3000), "type": "office"},
+                                  {"op": "set_room_type", "id": "R1", "type": "toilet"},
+                                  {"op": "rename_room_at", "at": (2500, 3000), "name": "A"},
+                                  {"op": "rename_room", "id": "R1", "name": "B"}], "editor", 2)
+    r1 = next(r for r in s.rooms if r.id == "R1")
+    assert (r1.type, r1.name) == ("toilet", "B")

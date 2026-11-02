@@ -58,3 +58,21 @@ describe('ReviewWorkspace "Perbaiki area"', () => {
     expect(useAssistStore.getState().box).toEqual([1000, 2000, 4000, 6000])
   })
 })
+
+describe('ReviewWorkspace "Perbaiki area" selection', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('a click on a wall with tool A selects it and keeps the area', async () => {
+    const { useAssistStore } = await import('../assist/store')
+    useAssistStore.getState().open([0, 0, 5000, 5000])
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    st().setTool('assist')
+    const line = container.querySelector('line[data-wall="W1"], [data-id="W1"]') ?? [...container.querySelectorAll('line')][0]
+    const svg = container.querySelector('svg')!
+    fireEvent.pointerDown(svg, { clientX: 10000, clientY: -14450, button: 0 })
+    fireEvent.pointerUp(svg, { clientX: 10000, clientY: -14450, button: 0 })
+    fireEvent.click(line)
+    expect(st().selection.length).toBe(1)
+    expect(useAssistStore.getState().box).toEqual([0, 0, 5000, 5000])
+  })
+})

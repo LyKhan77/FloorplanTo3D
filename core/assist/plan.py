@@ -16,6 +16,7 @@ from shapely.geometry import box as sbox
 from core.assist.context import AreaContext, rep_point
 from core.extraction.rooms.overlay import px_from_mm
 from core.extraction.snap import snap_wall
+from core.spec.derive import id_key
 from core.spec.models import RoomType, Spec
 
 PARALLEL_DEG = 3.0
@@ -27,6 +28,7 @@ END_CLEAR_MM = 50  # validation: an opening keeps 50 mm from the wall ends
 GAP_SEARCH_MM = 1500
 GAP_MIN_MM, GAP_MAX_MM = 600, 3000
 DEFAULT_WIDTH = {"door": 900, "window": 1200}
+FLIP = {"start": "end", "end": "start", "left": "right", "right": "left"}
 DoorType = Literal["single_swing", "double_swing", "sliding", "opening", "rolling"]
 
 
@@ -139,8 +141,10 @@ def _snap(binary, px_to_mm, a, b, default_t: int) -> tuple[dict, bool]:
     return {"a": _pt(*a), "b": _pt(*b), "thickness": default_t}, False
 
 
-def _gap(binary, px_to_mm, a, ux, uy, length: float, t: float, half: float) -> tuple[float, float] | None:
-    """The ink-free run along the wall axis nearest to t, as (start, end) offsets, or None."""
+def _gap(binary, px_to_mm, a, ux, uy, length: float, t: float, half: float,
+         taken: list[tuple[float, float]] = ()) -> tuple[float, float] | None:
+    """The ink-free run along the wall axis nearest to t, as (start, end) offsets, or None. `taken` spans (the wall's
+    existing openings) count as ink: their gap is already a door."""
     to_px = px_from_mm(px_to_mm)
     step = abs(px_to_mm[0]) / 2 or 1.0
     nx, ny = -uy, ux
@@ -149,6 +153,9 @@ def _gap(binary, px_to_mm, a, ux, uy, length: float, t: float, half: float) -> t
     across = np.arange(-half, half + step, step)
     ink = np.zeros(len(ts), bool)
     for i, d in enumerate(ts):
+        if any(s0 <= d <= s1 for s0, s1 in taken):
+            ink[i] = True
+            continue
         for o in across:
             x, y = to_px(a[0] + ux * d + nx * o, a[1] + uy * d + ny * o)
             xi, yi = round(x), round(y)
@@ -190,6 +197,17 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         out.rejected.append(f"{what} {eid} tidak ada di area")
         return False
 
+    def alive(wid: str) -> bool:
+        """A wall known to the area that an earlier action of this plan did not delete or merge away."""
+        if not known(wid, walls, "dinding"):
+            return False
+        if wid not in geo:
+            out.rejected.append(f"dinding {wid} sudah dihapus atau digabung oleh aksi lain di rencana ini")
+            return False
+        return True
+
+    shift: dict[str, float] = {}  # opening offsets added on walls whose a end moved
+
     by_type: dict[str, list] = {}
     for act in plan.actions:
         by_type.setdefault(act.type, []).append(act)
@@ -210,7 +228,7 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         _merge([walls[i] for i in act.ids], spec, reason, binary, px_to_mm, buckets, out, geo)
 
     for act in by_type.get("split_wall", []):
-        if not known(act.id, walls, "dinding") or act.id not in geo:
+        if not alive(act.id):
             continue
         a, b = geo[act.id]
         ux, uy, length = _unit(a, b)
@@ -226,10 +244,10 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
             geo[act.id] = (a, p)
 
     for act in by_type.get("extend_wall", []):
-        if not (known(act.id, walls, "dinding") and known(act.to, walls, "dinding")) or act.id not in geo:
+        if not (alive(act.id) and alive(act.to)):
             continue
         a, b = geo[act.id]
-        c, d = geo.get(act.to, (tuple(walls[act.to].a), tuple(walls[act.to].b)))
+        c, d = geo[act.to]
         ux, uy, _ = _unit(a, b)
         vx, vy, _ = _unit(c, d)
         cross = ux * vy - uy * vx
@@ -244,6 +262,18 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
             continue
         p = _pt(*x)
         buckets["extend"].append({"op": "move_wall", "id": act.id, end: p})
+        if end == "a":
+            # offsets run from a: keep every opening where it is on the drawing
+            moved_by = -((p[0] - a[0]) * ux + (p[1] - a[1]) * uy)
+            shift[act.id] = shift.get(act.id, 0.0) + moved_by
+            for o in (o for o in spec.openings if o.wall_id == act.id and o.id not in out.deleted):
+                off = round(o.offset + shift[act.id])
+                if o.category == "door":
+                    buckets["opening"].append({"op": "set_door", "id": o.id, "offset": off})
+                else:
+                    buckets["del"].append({"op": "delete_opening", "id": o.id, "reason": reason})
+                    fields = o.model_dump(include={"category", "width", "height", "sill"}, exclude_none=True)
+                    buckets["opening"].append({"op": "add_opening", "wall_id": act.id, **fields, "offset": off})
         geo[act.id] = (tuple(p), b) if end == "a" else (a, tuple(p))
         na, nb = geo[act.id]
         out.moved.append({"id": act.id, "a": _pt(*na), "b": _pt(*nb)})
@@ -259,7 +289,7 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
             out.notes.append("dinding baru tidak menempel ke garis gambar, periksa posisinya (kuning)")
 
     for act in by_type.get("add_opening", []):
-        if not known(act.wall, walls, "dinding") or act.wall not in geo:
+        if not alive(act.wall):
             continue
         a, b = geo[act.wall]
         ux, uy, length = _unit(a, b)
@@ -267,7 +297,9 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         width = act.width or DEFAULT_WIDTH[act.category]
         gap = None
         if binary is not None and px_to_mm:
-            gap = _gap(binary, px_to_mm, a, ux, uy, length, t, walls[act.wall].thickness / 2 + 30)
+            taken = [(o.offset + shift.get(act.wall, 0.0), o.offset + o.width + shift.get(act.wall, 0.0))
+                     for o in spec.openings if o.wall_id == act.wall and o.id not in out.deleted]
+            gap = _gap(binary, px_to_mm, a, ux, uy, length, t, walls[act.wall].thickness / 2 + 30, taken)
         snapped = gap is not None
         start, width = (gap[0], gap[1] - gap[0]) if gap else (t - width / 2, width)
         width = round(width / 10) * 10
@@ -342,8 +374,12 @@ def _merge(ws, spec: Spec, reason: str, binary, px_to_mm, buckets, out: Translat
     max_t = max(w.thickness for w in ws)
     if max(side) - min(side) <= COLLINEAR_MM:
         buckets["merge"].append({"op": "merge_walls", "ids": ids, "reason": reason})
-        for w in ws[1:]:
+        keep = min(ws, key=lambda w: id_key(w.id))  # as core.spec.ops._merge_walls
+        kx, ky, _ = _unit(keep.a, keep.b)
+        ts = [(p[0] - keep.a[0]) * kx + (p[1] - keep.a[1]) * ky for w in ws for p in (w.a, w.b)]
+        for w in ws:
             geo.pop(w.id, None)
+        geo[keep.id] = tuple((keep.a[0] + kx * t, keep.a[1] + ky * t) for t in (min(ts), max(ts)))
         return
     if max(side) - min(side) > max_t + MERGE_GAP_MM:
         out.rejected.append(f"{', '.join(ids)} terlalu jauh untuk digabung ({max(side) - min(side):.0f} mm)")
@@ -361,7 +397,7 @@ def _merge(ws, spec: Spec, reason: str, binary, px_to_mm, buckets, out: Translat
     na, nb = w["a"], w["b"]
     vx, vy, length = _unit(na, nb)
     carried = []
-    for o in (o for o in spec.openings if o.wall_id in ids):
+    for o in (o for o in spec.openings if o.wall_id in ids and o.id not in out.deleted):
         src = next(x for x in ws if x.id == o.wall_id)
         sx, sy, _ = _unit(src.a, src.b)
         c = (src.a[0] + sx * (o.offset + o.width / 2), src.a[1] + sy * (o.offset + o.width / 2))
@@ -369,6 +405,9 @@ def _merge(ws, spec: Spec, reason: str, binary, px_to_mm, buckets, out: Translat
         if END_CLEAR_MM <= start and start + o.width <= length - END_CLEAR_MM:
             fields = o.model_dump(include={"category", "width", "height", "sill", "door_type", "hinge", "swing",
                                            "leaf_split"}, exclude_none=True)
+            if sx * vx + sy * vy < 0:  # hinge/swing are relative to a->b; the new wall runs the other way
+                fields = {**fields, **({"hinge": FLIP[o.hinge]} if o.hinge in FLIP else {}),
+                          **({"swing": FLIP[o.swing]} if o.swing in FLIP else {})}
             carried.append({**fields, "offset": round(start)})
         else:
             out.notes.append(f"{o.id} tidak muat di dinding gabungan dan tidak dibawa")

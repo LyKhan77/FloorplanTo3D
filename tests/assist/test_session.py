@@ -115,3 +115,14 @@ def test_local_ops_are_the_base(tmp_path):
     assert "W5 a=" not in text(c.calls[0])
     p = next(e for e in ev if e["event"] == "proposal")
     assert p["valid"] is False
+
+
+def test_an_unexpected_failure_is_an_error_event(tmp_path, monkeypatch):
+    import core.assist.session as session
+
+    def boom(*a, **k):
+        raise RuntimeError("bug")
+
+    monkeypatch.setattr(session, "translate", boom)
+    ev = turn(FakeClient(act({"type": "delete_wall", "id": "W5"})), new(), "hapus", tmp_path)
+    assert kinds(ev)[-2:] == ["error", "done"] and "bug" in ev[-2]["text"]

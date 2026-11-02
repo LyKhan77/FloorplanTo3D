@@ -127,7 +127,7 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
     case 'rename_room_at': {
       // the server runs these after its room rebuild; the client has no rebuild, so it uses the current rooms
       const id = roomAt(s, op.at[0], op.at[1])
-      if (!id) throw new Error('tidak ada ruang di titik ini')
+      if (!id) return  // e.g. a room the proposal's new walls close: only the server's rebuild forms it
       const room = find(s.rooms, id)
       if (op.op === 'set_room_type_at') room.type = op.type
       else room.name = op.name

@@ -151,3 +151,70 @@ def test_add_opening_snaps_to_the_gap():
 def test_set_door_keeps_the_centre():
     t = run(spec_with_rooms(), [{"type": "set_door", "id": "D1", "width": 1200, "swing": "right"}])
     assert t.ops == [{"op": "set_door", "id": "D1", "width": 1200, "offset": 1850, "swing": "right"}]
+
+
+def with_door(*walls, openings=()):
+    s = with_walls(*walls)
+    return s.model_copy(update={"openings": [*s.openings, *openings]})
+
+
+def test_merge_flips_hinge_of_a_reversed_wall():
+    from core.spec.models import Opening
+
+    s = with_door(Wall(id="W6", a=(2000, 1000), b=(2000, 3000), thickness=150, kind="interior"),
+                  Wall(id="W7", a=(2120, 3000), b=(2120, 1000), thickness=100, kind="interior"),
+                  openings=[Opening(id="D9", category="door", wall_id="W7", offset=500, width=800,
+                                    door_type="single_swing", hinge="start", swing="left")])
+    t = run(s, [{"type": "merge_walls", "ids": ["W6", "W7"]}])
+    door = t.ops[-1]["openings"][0]
+    assert (door["offset"], door["hinge"], door["swing"]) == (700, "end", "right")
+
+
+def test_merge_drops_an_opening_deleted_in_the_same_plan():
+    from core.spec.models import Opening
+
+    s = with_door(Wall(id="W6", a=(2000, 1000), b=(2000, 3000), thickness=150, kind="interior"),
+                  Wall(id="W7", a=(2120, 3000), b=(2120, 1000), thickness=100, kind="interior"),
+                  openings=[Opening(id="D9", category="door", wall_id="W7", offset=500, width=800)])
+    t = run(s, [{"type": "delete_opening", "id": "D9"}, {"type": "merge_walls", "ids": ["W6", "W7"]}])
+    assert "openings" not in t.ops[-1]
+
+
+def test_collinear_merge_keeps_the_lowest_id_over_the_whole_span():
+    s = with_walls(Wall(id="W6", a=(2000, 1000), b=(2000, 2000), thickness=100, kind="interior"),
+                   Wall(id="W7", a=(2000, 2000), b=(2000, 3000), thickness=100, kind="interior"))
+    t = run(s, [{"type": "merge_walls", "ids": ["W7", "W6"]},
+                {"type": "add_opening", "wall": "W6", "category": "door", "at": [2000, 2500]},
+                {"type": "add_opening", "wall": "W7", "category": "door", "at": [2000, 2500]}])
+    assert [o for o in t.ops if o["op"] == "add_opening"] == [
+        {"op": "add_opening", "wall_id": "W6", "category": "door", "offset": 1050, "width": 900,
+         "door_type": "single_swing", "hinge": "start", "swing": "left"}]
+    assert any("W7" in r for r in t.rejected)
+
+
+def test_actions_on_a_wall_gone_earlier_in_the_plan_are_rejected_not_dropped():
+    t = run(spec_with_rooms(), [{"type": "delete_wall", "id": "W5"},
+                                {"type": "split_wall", "id": "W5", "at": [5000, 4500]}])
+    assert [o["op"] for o in t.ops] == ["delete_wall"] and any("W5" in r for r in t.rejected)
+
+
+def test_extend_at_the_a_end_keeps_openings_in_place():
+    from core.spec.models import Opening
+
+    s = with_door(Wall(id="W6", a=(2000, 400), b=(2000, 4600), thickness=100, kind="interior"),
+                  openings=[Opening(id="D9", category="door", wall_id="W6", offset=1000, width=900),
+                            Opening(id="N9", category="window", wall_id="W6", offset=2500, width=1000, sill=900)])
+    t = run(s, [{"type": "extend_wall", "id": "W6", "to": "W1"}])
+    assert {"op": "move_wall", "id": "W6", "a": [2000, 0]} in t.ops
+    assert {"op": "set_door", "id": "D9", "offset": 1400} in t.ops
+    assert {"op": "delete_opening", "id": "N9", "reason": "asisten: " + ASK} in t.ops
+    added = next(o for o in t.ops if o["op"] == "add_opening")
+    assert (added["wall_id"], added["category"], added["offset"], added["width"], added["sill"]) == ("W6", "window", 2900, 1000, 900)
+
+
+def test_add_opening_skips_the_gap_of_an_existing_door():
+    img = gap_page()
+    img[600 - 290:600 - 200, 490:510] = 0  # D1's own gap, y 2000..2900 mm
+    t = run(spec_with_rooms(), [{"type": "add_opening", "wall": "W5", "category": "door", "at": [5000, 3150]}],
+            binary=img, px_to_mm=[10, 0, 0, 0, -10, 6000])
+    assert abs(t.ops[0]["offset"] - 3500) <= 30 and t.openings[0]["snapped"] is True

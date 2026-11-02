@@ -71,7 +71,8 @@ describe('applyOps (non-geometry)', () => {
     ])
     const room = r.spec.rooms!.find((x) => x.id === meeting.id)!
     expect([room.type, room.name]).toEqual(['stair', 'Tangga'])
-    expect(r.failed).toEqual([{ index: 2, op: 'set_room_type_at', message: 'tidak ada ruang di titik ini' }])
+    // no room under the point on the client (it never rebuilds rooms): the server decides on Save
+    expect(r.failed).toEqual([])
   })
 
   it('update_object position recomputes room_id', () => {

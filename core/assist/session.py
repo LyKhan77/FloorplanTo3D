@@ -52,6 +52,8 @@ def run_turn(client, session: Session, message: str, base: Spec, ops: list[dict]
              binary: np.ndarray | None, px_to_mm: list | None, log_dir: Path) -> Iterator[dict]:
     try:
         yield from _turn(client, session, message, base, ops, page, binary, px_to_mm)
+    except Exception as e:  # noqa: BLE001 - a bug must still end the chat turn with a message, not a cut-off stream
+        yield {"event": "error", "text": f"Kesalahan di asisten ({type(e).__name__}: {e}); coba lagi atau perbaiki manual"}
     finally:
         save_log(session, log_dir)
     yield {"event": "done"}

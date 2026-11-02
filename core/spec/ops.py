@@ -458,6 +458,8 @@ def apply(spec: Spec, ops: list[Any], by: Literal["editor", "llm", "manual", "pi
                 room_at.append((i, op))
                 continue
             HANDLERS[op.op](work, op, ctx)
+            if room_at and op.op in ("set_room_type", "rename_room"):
+                room_at.append((i, op))  # replayed after the point op before it, so the later edit stays the last word
         except (ValidationError, ValueError) as e:
             raise OpError(i, str(name), str(e)) from e
         geometry_changed |= op.op in GEOMETRY_OPS
@@ -467,6 +469,11 @@ def apply(spec: Spec, ops: list[Any], by: Literal["editor", "llm", "manual", "pi
         raise OpError(len(ops) - 1, "result", str(e)) from e
     work = rebuild_rooms(work) if geometry_changed else derive(work)
     for i, op in room_at:
+        if op.op not in ROOM_AT_OPS:
+            room = next((r for r in work.rooms if r.id == op.id), None)  # gone after the rebuild: it already ran
+            if room is not None:
+                _touch(room, ctx, **({"type": op.type} if op.op == "set_room_type" else {"name": op.name}))
+            continue
         room = _room_at(work, op.at)
         if room is None:
             raise OpError(i, op.op, "tidak ada ruang di titik ini")
