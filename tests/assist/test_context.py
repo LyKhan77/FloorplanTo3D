@@ -11,6 +11,7 @@ def test_walls_and_rooms_in_box():
     assert ctx.wall_ids == ["W5"] and ctx.room_ids == ["R1", "R2"]
     assert "W2" not in ctx.text and "D1" in ctx.opening_ids and "D1" in ctx.text
     assert ctx.image is None
+    assert "Tidak ada elemen terpilih" in ctx.text
 
 
 def test_selection_is_called_out_and_included():

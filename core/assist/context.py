@@ -49,6 +49,8 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
     lines = [f"Area (mm): x {x0:.0f}..{x1:.0f}, y {y0:.0f}..{y1:.0f} (+X east, +Y north)."]
     if selection:
         lines.append(f"Elemen yang dimaksud user, terpilih: {', '.join(selection)}")
+    else:
+        lines.append("Tidak ada elemen terpilih (no element is selected).")
     lines.append("Walls (id, a, b, thickness mm, length mm, kind):")
     for w in walls:
         length = math.dist(w.a, w.b)

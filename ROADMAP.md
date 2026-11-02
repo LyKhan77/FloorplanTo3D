@@ -690,6 +690,13 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **M12b (2026-10-30):** build 3D instalasi lewat run "Instalasi". Isinya tray perforated (tekstur alpha-clip, UV box), hanger atau pedestal, drop, plafon, raised floor, sleeve, laporan panjang tray, viewer 3D dengan layer, dan layar penuh.
 - **Uji di Terminal user:** tes Blender `tests/builder/test_installation_material.py`, lalu build sungguhan di browser.
 
+**Status area assist (2026-11-02): perbaiki area dengan prompt, layout v1** (desain `docs/superpowers/specs/2026-11-02-area-fix-prompt-design.md`, rencana `docs/superpowers/plans/2026-11-02-area-assist.md`, branch `area-assist`).
+- Alat `A` di kanvas review: kotak + instruksi → Strata menjawab rencana JSON (10 aksi: hapus/gabung/tambah/sambung/pecah dinding, tambah/ubah/hapus bukaan, tipe/nama ruang) atau pertanyaan balik (maks. 3).
+- Geometri deterministik: gabungan sejajar di garis tengah, dinding dan pintu baru di-snap ke gambar, sambung sudut di sumbu dinding lain. Validasi dry-run + satu revisi. Op ruang berbasis titik (`set_room_type_at`, `rename_room_at`) dijalankan setelah rebuild ruang.
+- Streaming SSE ke chat, pratinjau di kanvas, Terima → pending ops (satu undo), Tolak → batal. Log sesi untuk tingkat penerimaan.
+- Tes Strata langsung (`tests/assist/test_area_strata.py -m strata`, GT Gatsu): duplikat, "hapus ini" dengan/tanpa pilihan, area tangga, pintu hilang: 5/5 dua kali berturut-turut.
+- Berikutnya: aksi instalasi (tray, rack) di branch yang sama, lalu generate interior.
+
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
