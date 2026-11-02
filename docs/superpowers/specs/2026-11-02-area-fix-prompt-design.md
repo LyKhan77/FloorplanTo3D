@@ -51,7 +51,8 @@ Kesimpulan dari uji itu:
 - **Log setiap sesi** (instruksi, rencana, usulan, keputusan) untuk mengukur tingkat penerimaan.
 
 **Non-tujuan (versi 1)**
-- Lapisan instalasi (tray, rack). Polanya sama dan bisa menyusul.
+- Lapisan instalasi (tray, rack): keputusan user, **layout dulu**. Instalasi segera menyusul di branch yang sama, memakai
+  ulang fondasinya: konteks tray/rack, aksi instalasi, dan chat di mode Instalasi.
 - Generate interior: fitur kedua, dibangun di atas fondasi ini (§9).
 - Menambah atau memindah pintu, dan mengedit tangga atau kolom.
 - Agen tool-calling bertahap (pendekatan B).
