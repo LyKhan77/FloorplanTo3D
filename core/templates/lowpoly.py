@@ -24,6 +24,7 @@ MATERIALS = {
     "red": {"color": "#DA1E28", "roughness": 0.4, "alpha": 1.0},
     "battery": {"color": "#33373D", "roughness": 0.6, "alpha": 1.0},
     "steel": {"color": "#9AA0A6", "roughness": 0.35, "alpha": 1.0, "metallic": 0.8},
+    "glass": {"color": "#BFD7EA", "roughness": 0.1, "alpha": 0.3},
 }
 
 
@@ -137,12 +138,118 @@ def _fire(w, d, h) -> list[Part]:
             C("white", 70, 0, 30, body + 160, body + 220)]  # pressure gauge
 
 
-MODELS = {"rack": _rack, "crac": _crac, "ups": _ups, "battery": _battery, "pdu": _pdu, "fire": _fire}
+def _inrow(w, d, h) -> list[Part]:
+    """In-row cooler: a rack-sized cabinet with a perforated front, fans behind the rear grille and a display."""
+    ps = _rack(w, d, h)
+    x, y = w / 2, d / 2
+    for k in range(3):  # fans seen through the rear
+        z = 400 + k * 500
+        ps.append(B("steel", -x + 60, x - 60, -y + 18, -y + 30, z, z + w - 120))
+    ps += [B("screen", -x + 60, x - 60, y - 4, y, h - 420, h - 300), B("blue", -x + 40, x - 40, y - 4, y, h - 80, h - 60)]
+    return ps
+
+
+def _sections(w, d, h, body: str, door: str, n: int) -> list[Part]:
+    """A cabinet line-up: plinth, body, n doors with gaps, handles and label plates."""
+    x, y = w / 2, d / 2
+    ps = [B("frame", -x + 20, x - 20, -y + 20, y - 40, 0, 100), B(body, -x, x, -y, y - 22, 100, h),
+          B("vent", -x + 10, x - 10, y - 22, y - 20, 110, h - 20)]
+    sec = (w - 20 - (n - 1) * 12) / n
+    for i in range(n):
+        x0 = -x + 10 + i * (sec + 12)
+        ps += [B(door, x0, x0 + sec, y - 20, y - 4, 120, h - 30),
+               B("steel", x0 + sec - 70, x0 + sec - 50, y - 4, y, h / 2 - 150, h / 2 + 150),
+               B("yellow", x0 + sec / 2 - 100, x0 + sec / 2 + 100, y - 4, y, h - 160, h - 110)]
+    return ps
+
+
+def _mdb(w, d, h) -> list[Part]:
+    x, y = w / 2, d / 2
+    ps = _sections(w, d, h, "light", "white", max(1, round(w / 800)))
+    for k in range(3):  # meters on the first section
+        ps.append(B("screen", -x + 60 + k * 120, -x + 160 + k * 120, y - 4, y, h - 500, h - 420))
+    return ps
+
+
+def _ats(w, d, h) -> list[Part]:
+    y = d / 2
+    ps = _sections(w, d, h, "light", "white", 1)
+    ps += [B("screen", -150, 150, y - 4, y, h - 520, h - 380),
+           B("frame", -220, -60, y - 4, y, h / 2, h / 2 + 160), B("red", -170, -110, y - 2, y, h / 2 + 40, h / 2 + 120),
+           B("frame", 60, 220, y - 4, y, h / 2, h / 2 + 160), B("frame", 110, 170, y - 2, y, h / 2 + 40, h / 2 + 120),
+           # source indicators (blue = the screen's material: the validator allows 8 materials per asset)
+           B("screen", -200, -170, y - 2, y, h - 340, h - 310), B("red", 170, 200, y - 2, y, h - 340, h - 310)]
+    return ps
+
+
+def _network(w, d, h) -> list[Part]:
+    """Two-post network rack: base, uprights, patch panels and vertical cable managers."""
+    x, y = w / 2, d / 2
+    post = 80
+    ps = [B("frame", -x, x, -y, y, 0, 40), B("frame", -x, -x + post, -40, 40, 40, h - 60),
+          B("frame", x - post, x, -40, 40, 40, h - 60), B("frame", -x, x, -40, 40, h - 60, h),
+          B("panel", -x, -x + post, 40, 140, 300, h - 200), B("panel", x - post, x, 40, 140, 300, h - 200)]
+    for k in range(int((h - 600) // 180)):  # patch panels with a port strip
+        z = 300 + k * 180
+        ps += [B("frame", -x + post, x - post, -30, 60, z, z + 44), B("vent", -x + post + 20, x - post - 20, 60, 62, z + 12, z + 32)]
+    ps.append(B("steel", -x + post, x - post, -y + 60, -y + 100, h - 60, h - 20))  # ladder rung to the tray
+    return ps
+
+
+def _fire_panel(w, d, h) -> list[Part]:
+    """FM-200 control panel, wall mounted (the object's z places it on the wall)."""
+    x, y = w / 2, d / 2
+    return [B("frame", -x, x, -y, -y + 15, 0, h), B("light", -x + 10, x - 10, -y + 15, y - 15, 10, h - 10),
+            B("red", -x + 20, x - 20, y - 15, y - 2, 20, h - 20), B("screen", -120, 120, y - 2, y, h - 220, h - 120),
+            B("led", -120, -90, y - 2, y, h - 280, h - 250), B("yellow", -60, -30, y - 2, y, h - 280, h - 250),
+            B("red", 0, 30, y - 2, y, h - 280, h - 250), B("frame", 60, 120, y - 2, y, 120, 180)]  # key switch
+
+
+def _cctv(w, d, h) -> list[Part]:
+    """Bullet camera on a wall plate (back at -y), looking along +y."""
+    x, y = w / 2, d / 2
+    return [B("frame", -x, x, -y, -y + 20, 0, h), B("frame", -15, 15, -y + 20, -y + 90, h * 0.4, h * 0.6),
+            B("white", -50, 50, -y + 90, y, h * 0.27, h * 0.8), B("vent", -30, 30, y - 2, y, h * 0.37, h * 0.7),
+            B("white", -x, x, -y + 110, y, h * 0.8, h)]  # sun shield
+
+
+def _reader(w, d, h) -> list[Part]:
+    x, y = w / 2, d / 2
+    return [B("frame", -x, x, -y, -y + 10, 0, h), B("panel", -x + 5, x - 5, -y + 10, y, 5, h - 5),
+            B("screen", -x + 15, x - 15, y - 2, y, h - 60, h - 20), B("led", -10, 10, y - 2, y, 20, 35)]
+
+
+def _roof(w, d, h) -> list[Part]:
+    """Cold-aisle containment roof module: a steel frame round a glass panel, laid across the aisle."""
+    x, y = w / 2, d / 2
+    return [B("steel", -x, x, -y, -y + 40, 0, h), B("steel", -x, x, y - 40, y, 0, h),
+            B("steel", -x, -x + 30, -y + 40, y - 40, 0, h), B("steel", x - 30, x, -y + 40, y - 40, 0, h),
+            B("glass", -x + 30, x - 30, -y + 40, y - 40, h / 2 - 5, h / 2 + 5)]
+
+
+def _door(w, d, h) -> list[Part]:
+    """Aisle end door: frame and two sliding glass leaves with handles."""
+    x, y = w / 2, d / 2
+    leaf = (w - 120) / 2
+    ps = [B("steel", -x, -x + 50, -y, y, 0, h), B("steel", x - 50, x, -y, y, 0, h), B("steel", -x, x, -y, y, h - 120, h)]
+    for i, x0 in enumerate((-x + 50, -x + 70 + leaf)):
+        ps += [B("steel", x0, x0 + leaf, -20, 20, 0, 40), B("steel", x0, x0 + 40, -20, 20, 40, h - 120),
+               B("steel", x0 + leaf - 40, x0 + leaf, -20, 20, 40, h - 120), B("glass", x0 + 40, x0 + leaf - 40, -8, 8, 40, h - 120),
+               B("frame", x0 + (leaf - 60 if i == 0 else 20), x0 + (leaf - 40 if i == 0 else 40), 20, 40, h / 2 - 200, h / 2 + 200)]
+    return ps
+
+
+MODELS = {
+    "rack-42u-600x1200": _rack, "rack-48u-800x1200": _rack, "crac-unit-generic": _crac, "ups-cabinet-generic": _ups,
+    "battery-rack-generic": _battery, "pdu-floor-generic": _pdu, "fire-cylinder-generic": _fire,
+    "inrow-cooler-300x1200": _inrow, "panel-mdb-generic": _mdb, "ats-cabinet-generic": _ats,
+    "network-rack-2post": _network, "fire-control-panel": _fire_panel, "cctv-camera-bullet": _cctv,
+    "access-reader-generic": _reader, "containment-roof-600": _roof, "containment-door-1200": _door,
+}
 
 
 def parts(tid: str, dims: tuple[int, int, int]) -> list[Part]:
-    kind = next(k for k in MODELS if tid.startswith(k))
-    return MODELS[kind](*dims)
+    return MODELS[tid](*dims)
 
 
 def _mesh(p: Part) -> MeshData:

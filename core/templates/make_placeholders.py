@@ -27,8 +27,18 @@ PLACEHOLDERS = [
     ("battery-rack-generic", (1500, 750, 1800), "battery", "w"),
     ("pdu-floor-generic", (600, 600, 1800), "power", ""),
     ("fire-cylinder-generic", (400, 400, 1800), "fire", ""),
+    ("inrow-cooler-300x1200", (300, 1200, 2000), "cooling", ""),
+    ("panel-mdb-generic", (1600, 600, 2100), "power", "w"),
+    ("ats-cabinet-generic", (800, 600, 2000), "power", ""),
+    ("network-rack-2post", (600, 600, 2100), "network", "h"),
+    ("fire-control-panel", (500, 150, 700), "fire", ""),  # wall mounted: placed with z on the wall
+    ("cctv-camera-bullet", (120, 300, 150), "security", ""),
+    ("access-reader-generic", (90, 40, 140), "security", ""),
+    ("containment-roof-600", (600, 1200, 60), "structure", "d"),  # across the aisle, on top of the racks
+    ("containment-door-1200", (1200, 100, 2100), "structure", "w"),
 ]
-CATEGORY_COLOR = {"rack": "#393939", "cooling": "#4589FF", "power": "#F1C21B", "battery": "#24A148", "fire": "#DA1E28"}
+CATEGORY_COLOR = {"rack": "#393939", "cooling": "#4589FF", "power": "#F1C21B", "battery": "#24A148", "fire": "#DA1E28",
+                  "network": "#8A3FFC", "security": "#007D79", "structure": "#6F6F6F"}
 
 
 def _round50(v: float) -> int:

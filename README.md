@@ -88,8 +88,10 @@ Panduan sesi koreksi berwaktu (untuk kriteria MVP "koreksi ≤ 15 menit") ada di
 
 ## Template objek
 
-Library berisi 7 perangkat data center (rack 42U/48U, CRAC, UPS, battery rack, PDU, tabung pemadam) sebagai model
-low-poly prosedural (`core/templates/lowpoly.py`, lisensi milik project). Bangun ulang ke `DATA_DIR` setelah modelnya
+Library berisi 16 perangkat data center sebagai model low-poly prosedural: rack 42U/48U, rack jaringan 2 tiang, CRAC,
+in-row cooler, UPS, ATS, panel MDB, battery rack, PDU, tabung pemadam, panel kontrol FM-200, kamera CCTV, reader akses,
+serta panel atap dan pintu cold-aisle containment. Panel FM-200, CCTV, dan reader dipasang di dinding (posisi z objek).
+Model dibangun prosedural (`core/templates/lowpoly.py`, lisensi milik project). Bangun ulang ke `DATA_DIR` setelah modelnya
 diubah:
 
 ```bash
