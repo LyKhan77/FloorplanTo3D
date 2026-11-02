@@ -869,3 +869,22 @@ body {
 .review-tools button.is-on { background: #0f62fe; color: #fff; }
 .review-tools kbd { font: 11px 'IBM Plex Mono', monospace; border: 1px solid currentColor; padding: 0 3px; margin-left: 4px; }
 .stage-panel__actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+
+/* Area assist ("Perbaiki area", tool A): chat panel on the right */
+.assist { display: flex; flex-direction: column; gap: 8px; }
+.assist__head { display: flex; align-items: center; justify-content: space-between; }
+.assist__log { display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+.assist__msg { margin: 0; font-size: 13px; }
+.assist__msg--user { align-self: flex-end; background: #0f62fe; color: #fff; padding: 6px 10px; max-width: 90%; }
+.assist__msg--step { color: #a8a8a8; }
+.assist__msg--question { background: #393939; padding: 8px 10px; border-left: 2px solid #f1c21b; }
+.assist__msg--error { color: #ff8389; }
+.assist__msg--info { color: #c6c6c6; }
+.assist__proposal { background: #393939; padding: 8px 10px; border-left: 2px solid #42be65; font-size: 13px; }
+.assist__proposal p { margin: 4px 0; }
+.assist__proposal--accepted, .assist__proposal--rejected, .assist__proposal--stale { opacity: 0.6; border-left-color: #6f6f6f; }
+.assist__note { color: #f1c21b; }
+.assist__actions { display: flex; gap: 8px; margin-top: 6px; }
+.assist__compose { display: flex; gap: 4px; align-items: flex-end; }
+.assist__compose .cds--form-item { flex: 1; }
+.review-tools button[aria-label='Perbaiki area'].is-on { background: #6929c4; }

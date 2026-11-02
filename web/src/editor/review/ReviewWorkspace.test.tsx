@@ -41,3 +41,20 @@ describe('ReviewWorkspace "Pintu"', () => {
     expect(st().notice?.text).toMatch(/dinding/)
   })
 })
+
+describe('ReviewWorkspace "Perbaiki area"', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('A picks the tool, and a drag marks the area', async () => {
+    const { useAssistStore } = await import('../assist/store')
+    useAssistStore.getState().close()
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    fireEvent.keyDown(window, { key: 'a' })
+    expect(screen.getByRole('button', { name: 'Perbaiki area' }).getAttribute('aria-pressed')).toBe('true')
+    const svg = container.querySelector('svg')!
+    fireEvent.pointerDown(svg, { clientX: 1000, clientY: -2000, button: 0 })
+    fireEvent.pointerMove(svg, { clientX: 4000, clientY: -6000, button: 0 })
+    fireEvent.pointerUp(svg, { clientX: 4000, clientY: -6000, button: 0 })
+    expect(useAssistStore.getState().box).toEqual([1000, 2000, 4000, 6000])
+  })
+})

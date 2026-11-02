@@ -7,6 +7,8 @@ import { useEditorStore } from '../store'
 import { svgPoint } from './planTransform'
 import { ReviewCanvas } from './ReviewCanvas'
 import { closeGapOps, doorOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
+import { ProposalLayer } from '../assist/ProposalLayer'
+import { useAssistStore } from '../assist/store'
 
 type Pt = [number, number]
 
@@ -32,6 +34,19 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
     }
   }
   const onPointer = (kind: 'down' | 'move' | 'up', mm: Pt, e: React.PointerEvent) => {
+    if (tool === 'assist' && e.button <= 0) {
+      // "Perbaiki area": drag a box; the chat panel on the right takes the instruction
+      if (kind === 'down') setRough({ a: mm, b: mm })
+      else if (kind === 'move' && rough) setRough({ ...rough, b: mm })
+      else if (kind === 'up' && rough) {
+        const [a, b] = [rough.a, mm]
+        setRough(null)
+        if (Math.abs(b[0] - a[0]) > 300 && Math.abs(b[1] - a[1]) > 300) {
+          useAssistStore.getState().open([Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])].map(Math.round) as [number, number, number, number])
+        }
+      }
+      return true
+    }
     if (tool === 'add-wall' && e.button <= 0) {
       // the 2D canvas draws walls too (a paused run has no 3D shell): click, click, chained; Esc stops
       if (kind === 'up') {
@@ -58,12 +73,14 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   }
 
   const draft = useEditorStore((s) => s.wallDraft)
+  // leaving the tool ends the session: its box and proposal belong to the canvas state it was made on
+  useEffect(() => { if (tool !== 'assist') useAssistStore.getState().close() }, [tool])
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (ignoredTarget(e.target as Element | null)) return
       const s = useEditorStore.getState()
       if (e.key === 'Escape') { s.setWallDraft({}); s.setTool('select'); setRough(null); return }
-      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door' } as Record<string, Tool>)[e.key.toLowerCase()]
+      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door', a: 'assist' } as Record<string, Tool>)[e.key.toLowerCase()]
       if (t && !e.ctrlKey && !e.metaKey && !e.altKey) s.setTool(t)
     }
     window.addEventListener('keydown', key)
@@ -85,7 +102,8 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
         return <circle key={i} data-handle={i} cx={x} cy={y} r={160} className={`review-handle${picked.includes(i) ? ' is-picked' : ''}`}
           onClick={(e) => { e.stopPropagation(); pickHandle(i) }} />
       })}
-      {rough && (() => {
+      {tool === 'assist' && <ProposalLayer draft={rough ? [rough.a, rough.b] : null} />}
+      {rough && tool !== 'assist' && (() => {
         const [a, b] = [svgPoint(rough.a), svgPoint(rough.b)]
         return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={tool === 'add-door' ? '#ff832b' : '#42be65'} strokeWidth={80} strokeDasharray="200 120" />
       })()}
@@ -98,4 +116,4 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   )
 }
 
-const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D']]
+const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D'], ['assist', 'Perbaiki area', 'A']]

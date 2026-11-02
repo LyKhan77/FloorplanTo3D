@@ -19,6 +19,7 @@ import { useShortcuts } from './useShortcuts'
 import { useValidate } from './useValidate'
 import { ApproveButton } from './review/ApproveButton'
 import { ReviewWorkspace } from './review/ReviewWorkspace'
+import { AssistPanel } from './assist/AssistPanel'
 import { TasksPanel } from './review/TasksPanel'
 import { useBackdrop } from './review/useBackdrop'
 import { InstallEditor } from '../install/InstallEditor'
@@ -169,7 +170,8 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
           </div>
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
-      {right && <aside className="editor__props" aria-label="Properti">{tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}
+      {right && <aside className="editor__props" aria-label="Properti">{tool === 'assist' ? <AssistPanel projectId={projectId} />
+        : tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}
         <IssuesPanel issues={validation.issues} newIssues={validation.newIssues}
           extra={validation.error ? [{ code: 'bad_op', severity: 'error', element_ids: [], message: validation.error }] : []} />
         <LayersPanel /></aside>}
