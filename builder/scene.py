@@ -61,7 +61,7 @@ def make_materials(spec: dict) -> dict[str, bpy.types.Material]:
             nodes, links = mat.node_tree.nodes, mat.node_tree.links
             tex = nodes.new("ShaderNodeTexImage")
             tex.image = bpy.data.images.load(m["texture"])
-            tex.interpolation = "Closest"
+            tex.interpolation = "Linear"  # mipmapped sampler in the GLB: "Closest" lost the sheet to its slots from afar
             clip = nodes.new("ShaderNodeMath")
             clip.operation = "GREATER_THAN"
             clip.inputs[1].default_value = 0.5

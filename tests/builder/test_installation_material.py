@@ -23,3 +23,5 @@ def test_material_texture_exports_mask(tmp_path):
     mat = next(m for m in g.materials if m.name == "tray_galv")
     assert mat.alphaMode == "MASK" and len(g.images) == 1
     assert g.meshes[0].primitives[0].attributes.TEXCOORD_0 is not None
+    # mipmapped: a nearest-only sampler loses the perforated sheet to the slots when seen from afar (user report)
+    assert g.samplers and g.samplers[0].minFilter == 9987  # LINEAR_MIPMAP_LINEAR

@@ -1,11 +1,21 @@
 import { Bounds, OrbitControls, useGLTF } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Checkbox } from '@carbon/react'
 import { Suspense, useEffect, useState } from 'react'
+import type { Mesh } from 'three'
 import { LAYERS, LAYERS_OFF, layerOf, type Layer } from './layers'
+import { keepPerforationVisible } from './perforation'
 
 function Model({ url, on }: { url: string; on: Record<Layer, boolean> }) {
   const { scene } = useGLTF(url)
+  const gl = useThree((s) => s.gl)
+  useEffect(() => {  // GLBs built before the builder switched to mipmapped sampling are fixed here too
+    const aniso = gl.capabilities.getMaxAnisotropy()
+    scene.traverse((o) => {
+      const mats = (o as Mesh).material
+      for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) keepPerforationVisible(m, aniso)
+    })
+  }, [scene, gl])
   useEffect(() => {
     scene.traverse((o) => {
       const layer = layerOf(o.name)
