@@ -53,9 +53,13 @@ def run_turn(client, session: Session, message: str, base: Spec, ops: list[dict]
     try:
         yield from _turn(client, session, message, base, ops, page, binary, px_to_mm)
     finally:
-        log_dir.mkdir(parents=True, exist_ok=True)
-        (log_dir / f"{session.id}.json").write_text(json.dumps(asdict(session), indent=1, default=str))
+        save_log(session, log_dir)
     yield {"event": "done"}
+
+
+def save_log(session: Session, log_dir: Path) -> None:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    (log_dir / f"{session.id}.json").write_text(json.dumps(asdict(session), indent=1, default=str))
 
 
 def _ask(client, messages: list[dict]):
