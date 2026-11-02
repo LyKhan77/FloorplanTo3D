@@ -60,23 +60,56 @@ export type Type =
   | "prayer_room"
   | "outdoor"
   | "other";
+/**
+ * @minItems 2
+ * @maxItems 2
+ */
+export type At = [number, number];
+export type Op7 = "set_room_type_at";
+export type Type1 =
+  | "data_hall"
+  | "ups_room"
+  | "battery_room"
+  | "electrical_room"
+  | "mdf"
+  | "ahu_room"
+  | "capacitor_room"
+  | "meeting"
+  | "office"
+  | "storage"
+  | "pantry"
+  | "toilet"
+  | "corridor"
+  | "lobby"
+  | "stair"
+  | "lift"
+  | "prayer_room"
+  | "outdoor"
+  | "other";
+/**
+ * @minItems 2
+ * @maxItems 2
+ */
+export type At1 = [number, number];
+export type Name1 = string;
+export type Op8 = "rename_room_at";
 export type Id5 = string;
-export type Op7 = "delete_wall";
+export type Op9 = "delete_wall";
 export type Reason = string;
 /**
  * @minItems 2
  */
 export type Ids = [string, string, ...string[]];
-export type Op8 = "merge_walls";
+export type Op10 = "merge_walls";
 export type Reason1 = string;
 export type AtOffset = number;
 export type Id6 = string;
-export type Op9 = "split_wall";
+export type Op11 = "split_wall";
 export type A = [number, number] | null;
 export type B = [number, number] | null;
 export type Id7 = string;
 export type Kind = ("exterior" | "interior" | "partition" | "glass" | "low") | null;
-export type Op10 = "move_wall";
+export type Op12 = "move_wall";
 export type Thickness = number | null;
 /**
  * @minItems 2
@@ -89,7 +122,7 @@ export type A1 = [number, number];
  */
 export type B1 = [number, number];
 export type Kind1 = "exterior" | "interior" | "partition" | "glass" | "low";
-export type Op11 = "add_wall";
+export type Op13 = "add_wall";
 export type Category = "door" | "window";
 export type DoorType = ("single_swing" | "double_swing" | "sliding" | "opening" | "rolling") | null;
 export type Height1 = number | null;
@@ -106,11 +139,11 @@ export type Height2 = number | null;
 export type Hinge1 = ("start" | "end" | "both") | null;
 export type Id8 = string;
 export type Offset1 = number | null;
-export type Op12 = "set_door";
+export type Op14 = "set_door";
 export type Swing1 = ("left" | "right") | null;
 export type Width1 = number | null;
 export type Id9 = string;
-export type Op13 = "delete_opening";
+export type Op15 = "delete_opening";
 export type Reason2 = string;
 export type Category1 = "door" | "window";
 export type DoorType2 = ("single_swing" | "double_swing" | "sliding" | "opening" | "rolling") | null;
@@ -118,7 +151,7 @@ export type Height3 = number | null;
 export type Hinge2 = ("start" | "end" | "both") | null;
 export type LeafSplit1 = number | null;
 export type Offset2 = number;
-export type Op14 = "add_opening";
+export type Op16 = "add_opening";
 export type Sill1 = number | null;
 export type Swing2 = ("left" | "right") | null;
 export type WallId = string;
@@ -138,17 +171,17 @@ export type Start = [number, number];
 export type Width3 = number;
 export type Id10 = string;
 export type Landings = [number, number][][] | null;
-export type Op15 = "set_stair";
+export type Op17 = "set_stair";
 export type TopZ = number | null;
 export type Id11 = string;
-export type Op16 = "delete_stair";
+export type Op18 = "delete_stair";
 export type Reason3 = string;
 /**
  * @minItems 1
  */
 export type Flights1 = [Flight, ...Flight[]];
 export type Landings1 = [number, number][][];
-export type Op17 = "add_stair";
+export type Op19 = "add_stair";
 export type TopZ1 = number | null;
 export type SpecOpsSchema = (
   | AddObject
@@ -158,6 +191,8 @@ export type SpecOpsSchema = (
   | SetDefault
   | RenameRoom
   | SetRoomType
+  | SetRoomTypeAt
+  | RenameRoomAt
   | DeleteWall
   | MergeWalls
   | SplitWall
@@ -213,34 +248,47 @@ export interface SetRoomType {
   op: Op6;
   type: Type;
 }
+/**
+ * Room ops by point run after the room rebuild (area assist): wall changes renumber rooms, a point survives.
+ */
+export interface SetRoomTypeAt {
+  at: At;
+  op: Op7;
+  type: Type1;
+}
+export interface RenameRoomAt {
+  at: At1;
+  name: Name1;
+  op: Op8;
+}
 export interface DeleteWall {
   id: Id5;
-  op: Op7;
+  op: Op9;
   reason: Reason;
 }
 export interface MergeWalls {
   ids: Ids;
-  op: Op8;
+  op: Op10;
   reason: Reason1;
 }
 export interface SplitWall {
   at_offset: AtOffset;
   id: Id6;
-  op: Op9;
+  op: Op11;
 }
 export interface MoveWall {
   a?: A;
   b?: B;
   id: Id7;
   kind?: Kind;
-  op: Op10;
+  op: Op12;
   thickness?: Thickness;
 }
 export interface AddWall {
   a: A1;
   b: B1;
   kind: Kind1;
-  op: Op11;
+  op: Op13;
   openings?: Openings;
   thickness: Thickness1;
 }
@@ -264,13 +312,13 @@ export interface SetDoor {
   hinge?: Hinge1;
   id: Id8;
   offset?: Offset1;
-  op: Op12;
+  op: Op14;
   swing?: Swing1;
   width?: Width1;
 }
 export interface DeleteOpening {
   id: Id9;
-  op: Op13;
+  op: Op15;
   reason: Reason2;
 }
 export interface AddOpening {
@@ -280,7 +328,7 @@ export interface AddOpening {
   hinge?: Hinge2;
   leaf_split?: LeafSplit1;
   offset: Offset2;
-  op: Op14;
+  op: Op16;
   sill?: Sill1;
   swing?: Swing2;
   wall_id: WallId;
@@ -290,7 +338,7 @@ export interface SetStair {
   flights?: Flights;
   id: Id10;
   landings?: Landings;
-  op: Op15;
+  op: Op17;
   top_z?: TopZ;
 }
 export interface Flight {
@@ -301,12 +349,12 @@ export interface Flight {
 }
 export interface DeleteStair {
   id: Id11;
-  op: Op16;
+  op: Op18;
   reason: Reason3;
 }
 export interface AddStair {
   flights: Flights1;
   landings?: Landings1;
-  op: Op17;
+  op: Op19;
   top_z?: TopZ1;
 }

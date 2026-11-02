@@ -14,6 +14,8 @@ from pydantic import (
     ValidationError,
     model_validator,
 )
+from shapely.geometry import Point as SPoint
+from shapely.geometry import Polygon as SPolygon
 
 from core.spec.derive import derive, id_key
 from core.spec.ids import seed_id_seq, take_id
@@ -27,6 +29,7 @@ from core.spec.models import (
     Polygon,
     Provenance,
     ProvenanceLogEntry,
+    Room,
     RoomType,
     Spec,
     Stair,
@@ -102,6 +105,19 @@ class SetRoomType(_Op):
     op: Literal["set_room_type"]
     id: str
     type: RoomType
+
+
+class SetRoomTypeAt(_Op):
+    """Room ops by point run after the room rebuild (area assist): wall changes renumber rooms, a point survives."""
+    op: Literal["set_room_type_at"]
+    at: Point
+    type: RoomType
+
+
+class RenameRoomAt(_Op):
+    op: Literal["rename_room_at"]
+    at: Point
+    name: str
 
 
 class DeleteWall(_Op):
@@ -201,11 +217,12 @@ class AddStair(_Op):
 
 
 SpecOp = Annotated[
-    AddObject | UpdateObject | DeleteObject | SetWallHeight | SetDefault | RenameRoom | SetRoomType | DeleteWall | MergeWalls | SplitWall | MoveWall | AddWall | SetDoor | DeleteOpening | AddOpening | SetStair | DeleteStair | AddStair,
+    AddObject | UpdateObject | DeleteObject | SetWallHeight | SetDefault | RenameRoom | SetRoomType | SetRoomTypeAt | RenameRoomAt | DeleteWall | MergeWalls | SplitWall | MoveWall | AddWall | SetDoor | DeleteOpening | AddOpening | SetStair | DeleteStair | AddStair,
     Field(discriminator="op"),
 ]
 _OP_ADAPTER: TypeAdapter = TypeAdapter(SpecOp)
 GEOMETRY_OPS = {"delete_wall", "merge_walls", "split_wall", "move_wall", "add_wall"}
+ROOM_AT_OPS = {"set_room_type_at", "rename_room_at"}
 
 
 class OpError(Exception):
@@ -432,10 +449,14 @@ def apply(spec: Spec, ops: list[Any], by: Literal["editor", "llm", "manual", "pi
     seed_id_seq(work)
     ctx = Ctx(by=by, version=version)
     geometry_changed = False
+    room_at: list[tuple[int, _Op]] = []
     for i, raw in enumerate(ops):
         name = raw.get("op", "?") if isinstance(raw, dict) else getattr(raw, "op", "?")
         try:
             op = raw if isinstance(raw, _Op) else _OP_ADAPTER.validate_python(raw)
+            if op.op in ROOM_AT_OPS:
+                room_at.append((i, op))
+                continue
             HANDLERS[op.op](work, op, ctx)
         except (ValidationError, ValueError) as e:
             raise OpError(i, str(name), str(e)) from e
@@ -444,4 +465,19 @@ def apply(spec: Spec, ops: list[Any], by: Literal["editor", "llm", "manual", "pi
         work = Spec.model_validate(work.model_dump())  # re-run field validation (rounding, enums)
     except ValidationError as e:
         raise OpError(len(ops) - 1, "result", str(e)) from e
-    return rebuild_rooms(work) if geometry_changed else derive(work)
+    work = rebuild_rooms(work) if geometry_changed else derive(work)
+    for i, op in room_at:
+        room = _room_at(work, op.at)
+        if room is None:
+            raise OpError(i, op.op, "tidak ada ruang di titik ini")
+        _touch(room, ctx, **({"type": op.type} if op.op == "set_room_type_at" else {"name": op.name}))
+        _log(work, ctx, op.op, room.id)
+    return work
+
+
+def _room_at(s: Spec, at) -> Room | None:
+    p = SPoint(at)
+    for r in s.rooms:
+        if SPolygon(r.polygon, r.holes).covers(p):
+            return r
+    return None

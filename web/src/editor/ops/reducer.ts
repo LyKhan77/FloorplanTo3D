@@ -123,6 +123,16 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
     case 'set_room_type':
       find(s.rooms, op.id).type = op.type
       return
+    case 'set_room_type_at':
+    case 'rename_room_at': {
+      // the server runs these after its room rebuild; the client has no rebuild, so it uses the current rooms
+      const id = roomAt(s, op.at[0], op.at[1])
+      if (!id) throw new Error('tidak ada ruang di titik ini')
+      const room = find(s.rooms, id)
+      if (op.op === 'set_room_type_at') room.type = op.type
+      else room.name = op.name
+      return
+    }
     case 'delete_wall':
       find(s.walls, op.id)
       s.walls = s.walls!.filter((w) => w.id !== op.id)

@@ -100,3 +100,19 @@ def test_stair_flip_via_set_stair():
     s = apply(base, [{"op": "set_stair", "id": "S1", "flights": [
         {"start": (1000, 4000), "end": (1000, 1000), "width": 1000, "risers": 12}]}], "editor", 2)
     assert s.stairs[0].flights[0].start == (1000, 4000)
+
+
+def test_room_type_at_applies_after_rebuild():
+    """Room ops by point run after the rebuild, so they reach rooms whose IDs only exist after the wall change."""
+    s = apply(spec_with_rooms(), [{"op": "delete_wall", "id": "W5", "reason": "x"},
+                                  {"op": "set_room_type_at", "at": (2500, 3000), "type": "stair"},
+                                  {"op": "rename_room_at", "at": (2500, 3000), "name": "Tangga"}], "editor", 2)
+    assert len(s.rooms) == 1 and (s.rooms[0].type, s.rooms[0].name) == ("stair", "Tangga")
+    s = apply(spec_with_rooms(), [{"op": "set_room_type_at", "at": (2500, 3000), "type": "stair"}], "editor", 2)
+    assert {r.id: r.type for r in s.rooms} == {"R1": "stair", "R2": "storage"}
+
+
+def test_room_op_at_outside_every_room_fails():
+    with pytest.raises(OpError) as e:
+        apply(spec_with_rooms(), [{"op": "set_room_type_at", "at": (-5000, -5000), "type": "stair"}], "editor", 2)
+    assert e.value.index == 0 and "tidak ada ruang di titik ini" in e.value.message

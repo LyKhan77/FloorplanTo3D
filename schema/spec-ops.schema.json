@@ -630,6 +630,41 @@
       "title": "RenameRoom",
       "type": "object"
     },
+    "RenameRoomAt": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "At",
+          "type": "array"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "op": {
+          "const": "rename_room_at",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "at",
+        "name"
+      ],
+      "title": "RenameRoomAt",
+      "type": "object"
+    },
     "SetDefault": {
       "additionalProperties": false,
       "properties": {
@@ -807,6 +842,63 @@
         "type"
       ],
       "title": "SetRoomType",
+      "type": "object"
+    },
+    "SetRoomTypeAt": {
+      "additionalProperties": false,
+      "description": "Room ops by point run after the room rebuild (area assist): wall changes renumber rooms, a point survives.",
+      "properties": {
+        "at": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "At",
+          "type": "array"
+        },
+        "op": {
+          "const": "set_room_type_at",
+          "title": "Op",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "data_hall",
+            "ups_room",
+            "battery_room",
+            "electrical_room",
+            "mdf",
+            "ahu_room",
+            "capacitor_room",
+            "meeting",
+            "office",
+            "storage",
+            "pantry",
+            "toilet",
+            "corridor",
+            "lobby",
+            "stair",
+            "lift",
+            "prayer_room",
+            "outdoor",
+            "other"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "at",
+        "type"
+      ],
+      "title": "SetRoomTypeAt",
       "type": "object"
     },
     "SetStair": {
@@ -1180,9 +1272,11 @@
         "merge_walls": "#/$defs/MergeWalls",
         "move_wall": "#/$defs/MoveWall",
         "rename_room": "#/$defs/RenameRoom",
+        "rename_room_at": "#/$defs/RenameRoomAt",
         "set_default": "#/$defs/SetDefault",
         "set_door": "#/$defs/SetDoor",
         "set_room_type": "#/$defs/SetRoomType",
+        "set_room_type_at": "#/$defs/SetRoomTypeAt",
         "set_stair": "#/$defs/SetStair",
         "set_wall_height": "#/$defs/SetWallHeight",
         "split_wall": "#/$defs/SplitWall",
@@ -1211,6 +1305,12 @@
       },
       {
         "$ref": "#/$defs/SetRoomType"
+      },
+      {
+        "$ref": "#/$defs/SetRoomTypeAt"
+      },
+      {
+        "$ref": "#/$defs/RenameRoomAt"
       },
       {
         "$ref": "#/$defs/DeleteWall"

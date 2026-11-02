@@ -62,6 +62,18 @@ describe('applyOps (non-geometry)', () => {
     expect(r.spec.objects![0]).toMatchObject({ label: 'A-01', rotation: 90, position: add.position, dims: add.dims })
   })
 
+  it('room ops by point set the room covering the point', () => {
+    const p = meeting.label_pos as [number, number]
+    const r = applyOps(gt, [
+      { op: 'set_room_type_at', at: p, type: 'stair' },
+      { op: 'rename_room_at', at: p, name: 'Tangga' },
+      { op: 'set_room_type_at', at: [-99999, -99999], type: 'stair' },
+    ])
+    const room = r.spec.rooms!.find((x) => x.id === meeting.id)!
+    expect([room.type, room.name]).toEqual(['stair', 'Tangga'])
+    expect(r.failed).toEqual([{ index: 2, op: 'set_room_type_at', message: 'tidak ada ruang di titik ini' }])
+  })
+
   it('update_object position recomputes room_id', () => {
     const office = gt.rooms!.find((x) => x.name === 'GUDANG')!
     const p = office.label_pos as [number, number]
