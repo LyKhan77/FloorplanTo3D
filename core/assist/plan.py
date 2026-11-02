@@ -388,11 +388,21 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
                 out.rejected.append(f"tangga di gambar sudah ada di spec ({dup}); ubah lewat panel tangga")
                 continue
         if stair is None:
-            stair = _design_stair(region, spec.meta.defaults.floor_to_floor, act)
+            ftf = spec.meta.defaults.floor_to_floor
+            # the room may be cut up by the very stair lines it should hold (test-2 R48/R49): then the marked box
+            stair = _design_stair(region, ftf, act) or (act.room and _design_stair(box, ftf, act)) or None
             if stair is None:
-                out.rejected.append("tangga tidak muat di " + ("ruang " + act.room if act.room else "area") +
-                                    "; perbesar kotak, pilih bentuk U, atau kurangi lebarnya")
-                continue
+                stair, note = _fill_box(box, ftf, act)
+                if stair is None:
+                    n = math.ceil(ftf / RISER_MM)
+                    w = min(max(act.width or 1200, STAIR_WIDTH[0]), STAIR_WIDTH[1])
+                    out.rejected.append(
+                        f"tangga tidak muat di {'ruang ' + act.room if act.room else 'area'}: tangga U standar butuh "
+                        f"±{(2 * w + STAIR_GAP_MM) / 1000:.1f} × {(math.ceil(n / 2) * GOING_MM + w) / 1000:.1f} m, "
+                        f"lurus {w / 1000:.1f} × {n * GOING_MM / 1000:.1f} m; jangan kecilkan lebarnya, tandai area "
+                        "tangga yang lebih besar")
+                    continue
+                out.notes.append(note)
             out.notes.append("tangga baru dirancang, tidak dari gambar: periksa posisi dan arah naiknya (kuning)")
         elif act.up:
             stair = _orient(stair, act.up)
@@ -554,3 +564,44 @@ def _design_stair(region, floor_to_floor: float, act: AddStair) -> dict | None:
             return _stair_dict([{"start": at(a), "end": at(b), "width": round(w), "risers": r} for a, b, r in fl],
                                [[at(p) for p in poly] for poly in la], False)
     return None
+
+
+FILL_WIDTH_MIN = 600  # a stair fitted to the marked box: narrowest flight
+FILL_GOING_MIN = 200  # ... and shallowest tread; below that the box cannot be a stair
+
+
+def _fill_box(box, floor_to_floor: float, act: AddStair) -> tuple[dict | None, str | None]:
+    """When no standard stair fits, a stair filling the user's box exactly (the drawn stair is usually what the box
+    marks): a U stair of two flights across the box, else one straight flight. Treads shrink to the box length."""
+    x0, y0, x1, y1 = box.bounds
+    up = act.up or ("north" if y1 - y0 >= x1 - x0 else "east")
+    ux, uy = UP[up]
+    length, cross = (y1 - y0, x1 - x0) if uy else (x1 - x0, y1 - y0)
+    n = max(2, math.ceil(floor_to_floor / RISER_MM))
+    shapes = [act.shape] if act.shape else ["u", "straight"]
+    for shape in shapes:
+        if shape == "u":
+            w = (cross - STAIR_GAP_MM) / 2
+            n1 = math.ceil(n / 2)
+            going = (length - w) / n1
+            if w < FILL_WIDTH_MIN or going < FILL_GOING_MIN:
+                continue
+            run = n1 * going
+            flights = [((w / 2, 0), (w / 2, run), n1), ((cross - w / 2, run), (cross - w / 2, run - (n - n1) * going), n - n1)]
+            landings = [[(0, run), (cross, run), (cross, length), (0, length)]]
+        else:
+            w, going = min(cross, STAIR_WIDTH[1]), length / n
+            if w < FILL_WIDTH_MIN or going < FILL_GOING_MIN:
+                continue
+            flights, landings = [((cross / 2, 0), (cross / 2, length), n)], []
+        turn = lambda p: (p[0] * uy + p[1] * ux, -p[0] * ux + p[1] * uy)
+        corners = [turn(p) for p in ((0, 0), (cross, 0), (cross, length), (0, length))]
+        dx, dy = x0 - min(p[0] for p in corners), y0 - min(p[1] for p in corners)
+        at = lambda p, dx=dx, dy=dy: [round(p[0] + dx), round(p[1] + dy)]
+        stair = _stair_dict([{"start": at(turn(a)), "end": at(turn(b)), "width": round(w), "risers": r}
+                             for a, b, r in flights], [[at(turn(p)) for p in poly] for poly in landings], False)
+        note = (f"tangga mengikuti kotak: lebar flight {w:.0f} mm, injakan {going:.0f} mm"
+                + (" (di bawah standar 250 mm)" if going < 250 else "")
+                + (" (lebar di bawah 800 mm)" if w < STAIR_WIDTH[0] else ""))
+        return stair, note
+    return None, None

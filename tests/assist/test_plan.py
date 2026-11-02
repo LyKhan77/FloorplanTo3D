@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from shapely.geometry import box as sbox
 
 from core.assist.context import area_context
 from core.assist.plan import AreaPlan, translate
@@ -277,3 +278,18 @@ def test_add_stair_straight_when_it_fits():
 def test_add_stair_that_does_not_fit_is_rejected():
     t = run(spec_with_rooms(), [{"type": "add_stair", "up": "north"}], box=(200, 200, 2200, 2200))
     assert not t.ops and any("tidak muat" in r for r in t.rejected)
+
+
+def test_add_stair_follows_a_narrow_marked_box_when_no_standard_stair_fits():
+    """test-2 R49: a drawn U stair of 2 x ~700 mm flights in a 1.47 x 3.64 m box; a standard stair needs more."""
+    t = run(spec_with_rooms(), [{"type": "add_stair", "up": "north"}], box=(1000, 1000, 2470, 4638))
+    op = next(o for o in t.ops if o["op"] == "add_stair")
+    assert [f["width"] for f in op["flights"]] == [685, 685] and op["landings"]
+    assert sum(f["risers"] for f in op["flights"]) == 23
+    assert sbox(1000, 1000, 2470, 4638).buffer(1).covers(_footprint(op))
+    assert any("injakan" in n for n in t.notes)
+
+
+def test_add_stair_rejection_says_what_it_needs():
+    t = run(spec_with_rooms(), [{"type": "add_stair", "up": "north"}], box=(200, 200, 2200, 2200))
+    assert any("butuh" in r and "tidak muat" in r for r in t.rejected)

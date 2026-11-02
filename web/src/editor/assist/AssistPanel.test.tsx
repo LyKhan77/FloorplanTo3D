@@ -91,5 +91,6 @@ describe('AssistPanel', () => {
     render(<AssistPanel projectId="p1" />)
     await send('hapus')
     expect((screen.getByRole('button', { name: 'Terima' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText(/Terima nonaktif/)).toBeTruthy()
   })
 })

@@ -145,6 +145,13 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
         fix = "Problems with your plan:\n" + "\n".join(f"- {p}" for p in problems) + "\nAnswer with a corrected plan."
         messages.append({"role": "user", "content": fix})
         s.messages.append({"role": "user", "content": fix})
+    if not tr.ops:
+        # nothing survived translation: say why in the chat instead of a card with Terima disabled
+        s.proposals.append({"ops": [], "valid": False, "instruction": message, "summary": _summary(tr, problems),
+                            "explanation": plan.explanation, "notes": tr.notes + problems})
+        yield {"event": "error", "text": "Tidak ada perubahan yang bisa diusulkan: " + "; ".join(problems or tr.notes)
+               + ". Perjelas instruksinya atau ubah area."}
+        return
     yield {"event": "step", "text": "Validasi: 0 error baru" if not problems else f"Masih ada {len(problems)} masalah"}
     proposal = {"ops": tr.ops, "deleted": tr.deleted, "added": tr.added, "moved": tr.moved, "openings": tr.openings,
                 "stairs": tr.stairs,

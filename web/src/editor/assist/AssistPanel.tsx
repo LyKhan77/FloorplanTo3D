@@ -60,6 +60,7 @@ function Message({ msg, live, onAccept, onReject }: { msg: Msg; live: boolean; o
         <div className="assist__actions">
           <Button size="sm" disabled={!p.valid} onClick={onAccept}>Terima</Button>
           <Button size="sm" kind="secondary" onClick={onReject}>Tolak</Button>
+          {!p.valid && <span className="assist__note">Terima nonaktif: usulan tidak valid (lihat catatan). Balas untuk merevisi.</span>}
         </div>
       )}
     </div>

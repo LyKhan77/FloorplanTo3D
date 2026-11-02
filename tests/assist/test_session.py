@@ -72,10 +72,11 @@ def test_invalid_plan_gets_one_revision(tmp_path):
 
 
 def test_still_invalid_after_revision(tmp_path):
+    """Nothing left to propose: the chat says why instead of showing an empty card with Terima disabled."""
     c = FakeClient(act({"type": "delete_wall", "id": "W99"}), act({"type": "delete_wall", "id": "W98"}))
     ev = turn(c, new(), "hapus", tmp_path)
-    p = next(e for e in ev if e["event"] == "proposal")
-    assert p["valid"] is False and len(c.calls) == 2
+    assert len(c.calls) == 2 and not any(e["event"] == "proposal" for e in ev)
+    assert kinds(ev)[-2:] == ["error", "done"] and "W98" in ev[-2]["text"]
 
 
 def test_new_validation_error_triggers_revision(tmp_path):
@@ -113,8 +114,7 @@ def test_local_ops_are_the_base(tmp_path):
     c = FakeClient(*[act({"type": "delete_wall", "id": "W5"})] * 2)
     ev = turn(c, new(), "hapus", tmp_path, ops=[{"op": "delete_wall", "id": "W5", "reason": "x"}])
     assert "W5 a=" not in text(c.calls[0])
-    p = next(e for e in ev if e["event"] == "proposal")
-    assert p["valid"] is False
+    assert kinds(ev)[-2] == "error" and "W5" in ev[-2]["text"]
 
 
 def test_an_unexpected_failure_is_an_error_event(tmp_path, monkeypatch):
