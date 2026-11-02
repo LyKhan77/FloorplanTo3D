@@ -22,6 +22,7 @@ class AreaContext:
     wall_ids: list[str]
     opening_ids: list[str]
     room_ids: list[str]
+    stair_ids: list[str]
     selection: list[str]
     text: str
     image: np.ndarray | None
@@ -60,15 +61,18 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
                          + (f" {o.door_type}" if o.door_type else ""))
     lines.append("Rooms (id, name, type, area m2, point inside):")
     lines += [f"- {r.id} '{r.name}' {r.type} {r.area_m2:.1f} at={list(rep_point(r))}" for r in rooms]
-    if stairs or columns:
-        lines.append("Existing (not editable; add_stair must not duplicate them): "
-                     + ", ".join([f"stair {s.id}" for s in stairs] + [f"column {c.id} at={list(c.center)}" for c in columns]))
+    if stairs:
+        lines.append("Stairs (id, flights start->end, width, risers):")
+        lines += [f"- {st.id} " + "; ".join(f"{list(f.start)}->{list(f.end)} w={f.width:.0f} r={f.risers}"
+                                            for f in st.flights) for st in stairs]
+    if columns:
+        lines.append("Columns (context only): " + ", ".join(f"{c.id} at={list(c.center)}" for c in columns))
 
     image = None
     if page is not None and px_to_mm is not None:
         image = _crop(page, px_to_mm, (x0, y0, x1, y1), walls, set(selection))
     return AreaContext(box=(x0, y0, x1, y1), wall_ids=[w.id for w in walls], opening_ids=[o.id for o in openings],
-                       room_ids=[r.id for r in rooms], selection=selection, text="\n".join(lines), image=image)
+                       room_ids=[r.id for r in rooms], stair_ids=[st.id for st in stairs], selection=selection, text="\n".join(lines), image=image)
 
 
 def _crop(page: np.ndarray, px_to_mm: list[float], box, walls, selected: set[str]) -> np.ndarray | None:

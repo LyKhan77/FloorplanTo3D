@@ -91,6 +91,11 @@ class SetDoor(_A):
     door_type: DoorType | None = None
 
 
+class DeleteStair(_A):
+    type: Literal["delete_stair"]
+    id: str
+
+
 class DeleteOpening(_A):
     type: Literal["delete_opening"]
     id: str
@@ -121,7 +126,7 @@ class RenameRoom(_A):
 
 Action = Annotated[
     DeleteWall | MergeWalls | AddWall | ExtendWall | SplitWall | AddOpening | SetDoor | DeleteOpening | AddStair
-    | SetRoomType | RenameRoom,
+    | DeleteStair | SetRoomType | RenameRoom,
     Field(discriminator="type"),
 ]
 
@@ -237,6 +242,11 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
             buckets["del"].append({"op": "delete_wall", "id": act.id, "reason": reason})
             out.deleted.append(act.id)
             geo.pop(act.id, None)
+    stairs = {st.id: st for st in spec.stairs if st.id in ctx.stair_ids}
+    for act in by_type.get("delete_stair", []):
+        if known(act.id, stairs, "tangga") and act.id not in out.deleted:
+            buckets["del"].append({"op": "delete_stair", "id": act.id, "reason": reason})
+            out.deleted.append(act.id)
     for act in by_type.get("delete_opening", []):
         if known(act.id, openings, "bukaan"):
             buckets["del"].append({"op": "delete_opening", "id": act.id, "reason": reason})
@@ -383,7 +393,7 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         region = box if act.room is None else SPolygon(rooms[act.room].polygon, rooms[act.room].holes).intersection(box)
         stair = None
         if binary is not None and px_to_mm:
-            stair, dup = _drawn_stair(binary, px_to_mm, region, spec)
+            stair, dup = _drawn_stair(binary, px_to_mm, region, spec, set(out.deleted))
             if stair is None and dup:
                 out.rejected.append(f"tangga di gambar sudah ada di spec ({dup}); ubah lewat panel tangga")
                 continue
@@ -476,7 +486,7 @@ def _stair_dict(flights: list[dict], landings: list, snapped: bool) -> dict:
     return {"flights": flights, "landings": landings, "snapped": snapped}
 
 
-def _drawn_stair(binary, px_to_mm, region, spec: Spec) -> tuple[dict | None, str | None]:
+def _drawn_stair(binary, px_to_mm, region, spec: Spec, gone: set[str] = frozenset()) -> tuple[dict | None, str | None]:
     """The stair the drawing shows in the region (the pipeline's tread detector on a crop), and the ID of a spec stair
     it duplicates, if any."""
     a, b, c, d, e, f = px_to_mm
@@ -492,7 +502,7 @@ def _drawn_stair(binary, px_to_mm, region, spec: Spec) -> tuple[dict | None, str
         return None, None
     stairs, _ = detect_stairs(extract_strokes(crop, 0, s), [], crop, s)
     mm = lambda p: [round(a * (p[0] + c0) + b * (p[1] + r0) + c), round(d * (p[0] + c0) + e * (p[1] + r0) + f)]
-    existing = [(st.id, LineString([fl.start, fl.end])) for st in spec.stairs for fl in st.flights]
+    existing = [(st.id, LineString([fl.start, fl.end])) for st in spec.stairs if st.id not in gone for fl in st.flights]
     dup = None
     for st in stairs:
         flights = [{"start": mm(fl["start"]), "end": mm(fl["end"]), "width": round(fl["width_px"] * s),

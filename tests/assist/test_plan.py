@@ -293,3 +293,21 @@ def test_add_stair_follows_a_narrow_marked_box_when_no_standard_stair_fits():
 def test_add_stair_rejection_says_what_it_needs():
     t = run(spec_with_rooms(), [{"type": "add_stair", "up": "north"}], box=(200, 200, 2200, 2200))
     assert any("butuh" in r and "tidak muat" in r for r in t.rejected)
+
+
+def test_delete_stair_in_the_area(gatsu):
+    gt = gatsu[0]
+    ctx = area_context(gt, STAIR_BOX, [], None, None)
+    assert "S1" in ctx.stair_ids
+    t = translate(plan({"type": "delete_stair", "id": "S1"}), gt, ctx, ASK, None, None)
+    assert t.ops == [{"op": "delete_stair", "id": "S1", "reason": "asisten: " + ASK}] and t.deleted == ["S1"]
+    t = translate(plan({"type": "delete_stair", "id": "S9"}), gt, ctx, ASK, None, None)
+    assert not t.ops and any("S9" in r for r in t.rejected)
+
+
+def test_a_stair_replaced_in_one_plan_is_read_again_from_the_drawing(gatsu):
+    """'Hapus tangga lama, tambahkan sesuai gambar': the deleted S1 no longer blocks the drawn stair."""
+    gt, binary, t = gatsu
+    tr = translate(plan({"type": "delete_stair", "id": "S1"}, {"type": "add_stair", "at": [3000, 8000]}), gt,
+                   area_context(gt, STAIR_BOX, [], None, None), ASK, binary, t)
+    assert [o["op"] for o in tr.ops] == ["delete_stair", "add_stair"] and tr.stairs[0]["snapped"] is True

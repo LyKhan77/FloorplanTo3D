@@ -35,6 +35,9 @@ export function ProposalLayer({ draft }: { draft: [Pt, Pt] | null }) {
         const at = (d: number): Pt => [host.a[0] + ((host.b[0] - host.a[0]) * d) / len, host.a[1] + ((host.b[1] - host.a[1]) * d) / len]
         return <Seg key={id} a={at(o.offset)} b={at(o.offset + o.width)} color={RED} width={220} dash="120 80" />
       })}
+      {p?.deleted.map((id) => view?.stairs?.find((x) => x.id === id)?.flights.map((f, j) => (
+        <Seg key={`${id}-${j}`} a={f.start as Pt} b={f.end as Pt} color={RED} width={f.width} dash="300 180" />
+      )))}
       {p?.moved.map((m) => <Seg key={m.id} a={m.a} b={m.b} color={GREEN} />)}
       {p?.added.map((w, i) => <Seg key={i} a={w.a} b={w.b} color={w.snapped ? GREEN : YELLOW} width={Math.max(w.thickness, 100)} />)}
       {p?.openings.map((o, i) => <Seg key={i} a={o.a} b={o.b} color={o.snapped ? GREEN : YELLOW} width={260} />)}

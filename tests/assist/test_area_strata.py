@@ -147,3 +147,9 @@ def test_a_new_stair_is_designed_inside_the_room(strata, drawing, tmp_path):
     poly = SPolygon(room.polygon).buffer(1)
     assert all(poly.covers(LineString([f["start"], f["end"]]).buffer(f["width"] / 2, cap_style="flat"))
                for f in st["flights"])
+
+
+def test_delete_the_stair_of_a_room(strata, drawing, tmp_path):
+    p = proposal(ask(strata, drawing, drawing[0], (-1400, 5600, 5700, 10100),
+                     "hapus tangga di ruangan ini, dindingnya biarkan", tmp_path=tmp_path, answer="S1"))
+    assert p["valid"] and "S1" in p["deleted"] and not any(o["op"] == "delete_wall" for o in p["ops"])
