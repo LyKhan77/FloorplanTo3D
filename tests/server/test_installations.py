@@ -59,7 +59,7 @@ def test_snap_without_run_is_404(setup_client, project_with_gt):
     c, pid = setup_client, project_with_gt
     assert c.post(f"{base(pid)}/snap-tray", json={"points": [[0, 0], [3000, 0]]}).json()["error"]["code"] == "no_run"
     assert c.post(f"{base(pid)}/snap-box", json={"at": [1000, 1000]}).json()["error"]["code"] == "no_run"
-    assert c.post(f"{base(pid)}/snap-boxes", json={"a": [0, 0], "b": [3000, 3000]}).json()["error"]["code"] == "no_run"
+    assert c.post(f"{base(pid)}/fit-box", json={"a": [0, 0], "b": [3000, 3000]}).json()["error"]["code"] == "no_run"
 
 
 def test_project_without_installation_is_unchanged(setup_client, project_with_gt):

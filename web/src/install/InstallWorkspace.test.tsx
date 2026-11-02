@@ -10,7 +10,7 @@ import * as installApi from './api'
 import { InstallWorkspace } from './InstallWorkspace'
 import { useInstallStore } from './store'
 
-vi.mock('./api', async (orig) => ({ ...(await orig<typeof import('./api')>()), snapTray: vi.fn(), snapBox: vi.fn(), snapBoxes: vi.fn() }))
+vi.mock('./api', async (orig) => ({ ...(await orig<typeof import('./api')>()), snapTray: vi.fn(), snapBox: vi.fn(), fitBox: vi.fn() }))
 vi.mock('../api/hooks', async (orig) => ({ ...(await orig<typeof import('../api/hooks')>()),
   useTemplates: () => ({ data: [{ id: 'rack-42u-600x1200', version: '1.0.0', category: 'rack', dims: { w: 600, d: 1200, h: 2000 } }] }) }))
 
@@ -94,15 +94,16 @@ describe('InstallWorkspace racks (review I3, I8)', () => {
     expect(ist().view!.objects).toHaveLength(1)
   })
 
-  it('Shift-drag traces a row with one request', async () => {
-    vi.mocked(installApi.snapBoxes).mockResolvedValue([box(2300, 4400), box(2920, 4400), box(3540, 4400)])
+  it('Shift-drag places one rack on the dragged box, its sides fitted to the drawing (no auto row)', async () => {
+    vi.mocked(installApi.fitBox).mockResolvedValue(box(3000, 4500))
     const { svg } = setup()
     fireEvent.keyDown(window, { key: 'k' })
-    fireEvent.pointerDown(svg, { clientX: 1500, clientY: -5500, button: 0, shiftKey: true })
-    fireEvent.pointerMove(svg, { clientX: 4500, clientY: -3500, button: 0, shiftKey: true })
-    fireEvent.pointerUp(svg, { clientX: 4500, clientY: -3500, button: 0, shiftKey: true })
-    await waitFor(() => expect(ist().view!.objects).toHaveLength(3))
-    expect(vi.mocked(installApi.snapBoxes)).toHaveBeenCalledTimes(1)
+    fireEvent.pointerDown(svg, { clientX: 2650, clientY: -5150, button: 0, shiftKey: true })
+    fireEvent.pointerMove(svg, { clientX: 3350, clientY: -3850, button: 0, shiftKey: true })
+    fireEvent.pointerUp(svg, { clientX: 3350, clientY: -3850, button: 0, shiftKey: true })
+    await waitFor(() => expect(ist().view!.objects).toHaveLength(1))
+    expect(vi.mocked(installApi.fitBox).mock.calls[0].slice(1)).toEqual([[2650, 5150], [3350, 3850]])
+    expect(ist().view!.objects![0]).toMatchObject({ position: [3000, 4500, 0] })
     expect(vi.mocked(installApi.snapBox)).not.toHaveBeenCalled()
   })
 })

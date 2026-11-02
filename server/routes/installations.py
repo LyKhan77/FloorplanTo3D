@@ -46,7 +46,7 @@ class SnapBoxBody(BaseModel):
     at: tuple[float, float]
 
 
-class SnapBoxesBody(BaseModel):
+class FitBoxBody(BaseModel):
     a: tuple[float, float]
     b: tuple[float, float]
 
@@ -208,13 +208,16 @@ def snap_box_route(pid: str, body: SnapBoxBody, request: Request):
     return _with_template(request, found)
 
 
-@router.post("/snap-boxes")
-def snap_boxes_route(pid: str, body: SnapBoxesBody, request: Request):
-    """Shift-drag over a row of racks: every rack-sized box in the rectangle, the page labelled once."""
-    from core.installation.snap import snap_boxes
+@router.post("/fit-box")
+def fit_box_route(pid: str, body: FitBoxBody, request: Request):
+    """Shift-drag: a rack placed by hand on the dragged box, its sides moved onto the nearest drawn lines."""
+    from core.installation.snap import fit_box
 
     binary, t = _page(request, pid)
-    return [_with_template(request, b) for b in snap_boxes(binary, t, body.a, body.b)]
+    found = fit_box(binary, t, body.a, body.b)
+    if found is None:
+        raise ApiError(422, "no_box", "kotak terlalu kecil atau terlalu besar untuk rack (300–3000 mm)")
+    return _with_template(request, found)
 
 
 @router.post("/build", status_code=202)

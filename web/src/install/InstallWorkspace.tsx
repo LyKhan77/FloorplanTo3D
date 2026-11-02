@@ -5,7 +5,8 @@ import { ignoredTarget } from '../editor/lib/keys'
 import { ReviewCanvas } from '../editor/review/ReviewCanvas'
 import { svgPoint } from '../editor/review/planTransform'
 import { useEditorStore } from '../editor/store'
-import { snapBox, snapBoxes, snapTray, type Drop, type SnapBox } from './api'
+import { ApiError } from '../api/client'
+import { fitBox, snapBox, snapTray, type Drop, type SnapBox } from './api'
 import { InstallLayer } from './InstallLayer'
 import { cleanPath, DEFAULT_WIDTH, TRAY_COLOUR, type InstallOp } from './reducer'
 import { useInstallStore, type InstallTool } from './store'
@@ -52,14 +53,26 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     else s.setNotice({ kind: 'warning', text: 'Tidak ada template rack di registry' })
   }
 
-  const placeRacksIn = async (a: Pt, b: Pt) => {
+  // Shift-drag: one rack exactly where it was dragged, each side moved onto a drawn line nearby (any cabinet drawing:
+  // outlined, filled, hatched, with text); without an extraction run to fit to, the dragged box itself
+  const placeRackOn = async (a: Pt, b: Pt) => {
     const s = useInstallStore.getState()
-    const found = await snapBoxes(projectId, a, b).catch(() => [] as SnapBox[])
-    const fresh: SnapBox[] = []
-    for (const r of found) if (!taken(r.center, fresh.map((f) => f.center))) fresh.push(r)
-    const ops = fresh.map(rackOp).filter((o): o is InstallOp => o !== null)
-    if (ops.length) s.applyMany(ops)
-    else s.setNotice({ kind: 'warning', text: found.length ? 'Semua rack di area ini sudah ada' : 'Tidak ada kotak rack di area ini' })
+    let r: SnapBox
+    try {
+      r = await fitBox(projectId, a, b)
+    } catch (e) {
+      const w = Math.abs(b[0] - a[0]), d = Math.abs(b[1] - a[1])
+      if (!(e instanceof ApiError && e.code === 'no_run') || Math.min(w, d) < 300 || Math.max(w, d) > 3000) {
+        s.setNotice({ kind: 'warning', text: 'Tarik kotak seukuran rack: 300–3000 mm per sisi' })
+        return
+      }
+      r = { center: [Math.round((a[0] + b[0]) / 2), Math.round((a[1] + b[1]) / 2)], size: [Math.min(w, d), Math.max(w, d)] as Pt,
+        rotation: d >= w ? 0 : 90, template_id: null }
+    }
+    if (taken(r.center)) { s.setNotice({ kind: 'info', text: 'Rack sudah ada di sini' }); return }
+    const op = rackOp(r)
+    if (op) s.apply(op)
+    else s.setNotice({ kind: 'warning', text: 'Tidak ada template rack di registry' })
   }
 
   const finishTray = async () => {
@@ -84,7 +97,7 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     if (tool === 'rack' && e.shiftKey) {
       if (kind === 'down') setBox({ a: p, b: p })
       else if (kind === 'move' && box) setBox({ ...box, b: p })
-      else if (kind === 'up' && box) { setBox(null); void placeRacksIn(box.a, p) }
+      else if (kind === 'up' && box) { setBox(null); void placeRackOn(box.a, p) }
       return true
     }
     if (kind !== 'up') return true
@@ -118,7 +131,7 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
             style={{ borderColor: TRAY_COLOUR[c] }} onClick={() => useInstallStore.getState().setTrayClass(c)}>{c === 'data' ? 'Data' : 'Power'}</button>
         ))}
         {tool === 'tray' && <span className="helper">Klik titik-titik jalur · Enter selesai · Esc batal</span>}
-        {tool === 'rack' && <span className="helper">Klik di dalam kotak rack · Shift-tarik untuk sederet rack</span>}
+        {tool === 'rack' && <span className="helper">Klik di dalam kotak rack · Shift-tarik: gambar rack sendiri</span>}
       </div>
       <ReviewCanvas rooms={layout?.rooms ?? []} tasks={[]} backdrop={backdrop} onCanvasPointer={onPointer} readOnly>
         <InstallLayer drops={drops} />

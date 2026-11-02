@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import pytest
 
-from core.installation.snap import snap_box, snap_boxes, snap_tray
+from core.installation.snap import fit_box, snap_box, snap_tray
 
 PX_TO_MM = [10, 0, 0, 0, -10, 8000]  # 10 mm/px, y up
 
@@ -75,12 +75,34 @@ def test_snap_tray_on_an_upscaled_page_with_broken_band(gatsu):
     assert r is not None and r["width"] == 200 and all(abs(p[1] - 395) <= 60 for p in r["path"])
 
 
-def test_snap_boxes_finds_a_row_in_one_pass():
-    """Review I8: Shift-drag over a row labels the page once and returns every rack-sized box inside the rectangle."""
-    img = np.zeros((800, 800), np.uint8)
-    for k in range(3):
-        cv2.rectangle(img, (200 + k * 62, 300), (260 + k * 62, 420), 255, 1)
-    got = snap_boxes(img, PX_TO_MM, (1500, 8000 - 2500), (4500, 8000 - 4500))
-    assert len(got) == 3 and all(abs(b["size"][1] - 1200) <= 20 for b in got)
-    assert snap_boxes(img, PX_TO_MM, (6000, 8000 - 6000), (7000, 8000 - 7000)) == []
+@pytest.fixture(scope="module")
+def page(gatsu):
+    """The pipeline's own page binary (stage 1 preprocess: upscaled 2x, its binarisation), in the page frame."""
+    from core.extraction.preprocess import load_raster, preprocess
+
+    _, t = gatsu
+    a, b, c, d, e, f = t
+    return preprocess(load_raster(Path("floorplan/plan.jpeg"))).binary, [a / 2, b / 2, c, d / 2, e / 2, f]
+
+
+def test_snap_box_finds_a_dark_hatched_cabinet(page):
+    """Battery room "PANEL B": a dark box with text inside, touching a door arc (user report: no box found)."""
+    bw, t = page
+    r = snap_box(bw, t, (21600, 1430))
+    assert r is not None
+    assert 600 <= r["size"][0] <= 850 and 950 <= r["size"][1] <= 1150  # about 740 x 1060 on the real page
+    assert abs(r["center"][0] - 21600) <= 150 and abs(r["center"][1] - 1430) <= 150
+
+
+def test_fit_box_snaps_a_rough_drag_to_the_drawn_edges():
+    img = blank_with_box(200, 300, 60, 120)  # 600 x 1200 mm drawn
+    r = fit_box(img, PX_TO_MM, (2000 - 70, 8000 - 3000 + 60), (2600 + 50, 8000 - 4200 - 80))  # dragged a little wide
+    assert r is not None and all(abs(a - b) <= 25 for a, b in zip(r["size"], (600, 1200)))
+    assert abs(r["center"][0] - 2300) <= 25 and abs(r["center"][1] - 4400) <= 25 and r["rotation"] == 0
+
+
+def test_fit_box_keeps_the_drag_where_nothing_is_drawn():
+    r = fit_box(np.zeros((800, 800), np.uint8), PX_TO_MM, (1000, 6000), (1800, 4800))
+    assert r == {"center": [1400, 5400], "size": [800, 1200], "rotation": 0}
+    assert fit_box(np.zeros((800, 800), np.uint8), PX_TO_MM, (1000, 6000), (1100, 5950)) is None  # under 300 mm
 

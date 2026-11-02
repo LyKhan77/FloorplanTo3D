@@ -5,7 +5,8 @@ run (a band drawn filled or hatched, as in Gatsu) or two thin runs (its edge lin
 outer width. A wide run never pairs with a line beside it: that pair would be the band plus a neighbouring line. The candidate most samples agree on wins (the vote of core/extraction/snap.py), and the agreed centres
 are fitted along the segment. The tray width is the band's outer width less one drawn line, rounded to a standard size.
 
-Box: the smallest closed region of paper (4-connected background) around the click, when it is rack-sized.
+Box: the smallest closed region of paper around the click, else the dark (filled or hatched) blob under it.
+Fitted box: a rectangle dragged by hand, each side moved onto the nearest drawn line.
 """
 
 import itertools
@@ -23,6 +24,8 @@ SEARCH_MM = 400
 BAND_MIN_MM, BAND_MAX_MM = 80, 700
 ASKEW = math.tan(math.radians(5))  # a traced tray segment may be this far off the band (walls: 2 degrees)
 BOX_MIN_MM, BOX_MAX_MM = 300, 3000
+DARK_CLOSE_MM, DARK_OPEN_MM, DARK_FILL = 60, BOX_MIN_MM, 0.6  # hatch closes into a blob; anything thinner than a rack (lines, a 250 mm tray band joining two cabinets) drops off
+FIT_MM, FIT_SHARE = 120, 0.5  # a dragged side moves to a line within this reach that covers half its length
 
 
 def _runs(ink: np.ndarray, offsets: np.ndarray) -> list[tuple[float, float]]:
@@ -134,22 +137,69 @@ def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
     Rotation 0: the long side runs along y, as a template's depth does; 90: along x."""
     u, v = (round(c) for c in px_from_mm(px_to_mm)(*at))
     h, w = binary.shape[:2]
-    if not (0 <= u < w and 0 <= v < h) or binary[v, u] > 0:
+    if not (0 <= u < w and 0 <= v < h):
         return None
-    _, labels, stats, _ = _paper(binary)
-    return _box(stats[labels[v, u]], px_to_mm, w, h)
+    if binary[v, u] == 0:
+        _, labels, stats, _ = _paper(binary)
+        if box := _box(stats[labels[v, u]], px_to_mm, w, h):
+            return box
+    return _dark_box(binary, px_to_mm, u, v)
 
 
-def snap_boxes(binary: np.ndarray, px_to_mm: list[float], a, b) -> list[dict]:
-    """Every rack-sized closed region whose centre lies inside the rectangle a-b (mm): a row traced in one pass."""
-    to_px = px_from_mm(px_to_mm)
-    (u0, v0), (u1, v1) = to_px(*a), to_px(*b)
-    lo_u, hi_u, lo_v, hi_v = min(u0, u1), max(u0, u1), min(v0, v1), max(v0, v1)
+def _dark_box(binary: np.ndarray, px_to_mm: list[float], u: int, v: int) -> dict | None:
+    """A cabinet drawn dark (filled or hatched, text inside, Gatsu battery room): close the hatch into a solid blob,
+    open away the thin lines touching it (door arcs, leaders), and take the blob under the click."""
+    mm_px = math.hypot(px_to_mm[0], px_to_mm[3])
+    k = lambda mm: cv2.getStructuringElement(cv2.MORPH_RECT, (max(3, math.ceil(mm / mm_px) | 1),) * 2)
+    solid = cv2.morphologyEx((binary > 0).astype(np.uint8), cv2.MORPH_CLOSE, k(DARK_CLOSE_MM))
+    solid = cv2.morphologyEx(solid, cv2.MORPH_OPEN, k(DARK_OPEN_MM))
+    n, _, stats, _ = cv2.connectedComponentsWithStats(solid, connectivity=8)
     h, w = binary.shape[:2]
-    n, _, stats, centroids = _paper(binary)
-    out = []
-    for k in range(1, n):
-        cu, cv_ = centroids[k]
-        if lo_u <= cu <= hi_u and lo_v <= cv_ <= hi_v and (box := _box(stats[k], px_to_mm, w, h)):
-            out.append(box)
-    return sorted(out, key=lambda r: (r["center"][1], r["center"][0]))
+    best = None  # the smallest rack-sized blob whose box holds the click: text inside a cabinet leaves holes under it
+    for x, y, bw, bh, area in (tuple(int(q) for q in stats[k]) for k in range(1, n)):
+        if not (x <= u < x + bw and y <= v < y + bh) or area < DARK_FILL * bw * bh:
+            continue
+        box = _box(np.array([x - 1, y - 1, bw + 1, bh + 1, 0]), px_to_mm, w, h)  # the blob's outline, as a paper region's
+        if box and (best is None or area < best[0]):
+            best = (area, box)
+    return best[1] if best else None
+
+
+def fit_box(binary: np.ndarray, px_to_mm: list[float], a, b) -> dict | None:
+    """A rack dragged by hand (Shift-drag): each side moves onto the strongest drawn line within FIT_MM parallel to it,
+    or stays where it was dragged. None when the result is not rack-sized."""
+    to_px = px_from_mm(px_to_mm)
+    (ua, va), (ub, vb) = to_px(*a), to_px(*b)
+    u0, u1, v0, v1 = sorted((ua, ub)) + sorted((va, vb))
+    u0, u1, v0, v1 = (round(q) for q in (u0, u1, v0, v1))
+    mm_px = math.hypot(px_to_mm[0], px_to_mm[3])
+    r = math.ceil(FIT_MM / mm_px)
+    ink = binary > 0
+    h, w = ink.shape[:2]
+
+    def best(fixed: int, lo: int, hi: int, vertical: bool) -> int:
+        inset = max(1, (hi - lo) // 10)
+        scores = []
+        for q in range(fixed - r, fixed + r + 1):
+            if vertical and 0 <= q < w:
+                line = ink[max(0, lo + inset):min(h, hi - inset), q]
+            elif not vertical and 0 <= q < h:
+                line = ink[q, max(0, lo + inset):min(w, hi - inset)]
+            else:
+                continue
+            if line.size:
+                scores.append((line.mean(), -abs(q - fixed), q))
+        top = max(scores, default=None)
+        return top[2] if top and top[0] >= FIT_SHARE else fixed
+
+    nu0, nu1 = best(u0, v0, v1, True), best(u1, v0, v1, True)
+    nv0, nv1 = best(v0, u0, u1, False), best(v1, u0, u1, False)
+    if (nu1 - nu0) * mm_px < BOX_MIN_MM or (nv1 - nv0) * mm_px < BOX_MIN_MM:
+        nu0, nu1, nv0, nv1 = u0, u1, v0, v1
+    pa, pb, pc, pd, pe, pf = px_to_mm
+    cu, cv_ = (nu0 + nu1) / 2, (nv0 + nv1) / 2
+    size_x, size_y = (nu1 - nu0) * math.hypot(pa, pd), (nv1 - nv0) * math.hypot(pb, pe)
+    if min(size_x, size_y) < BOX_MIN_MM or max(size_x, size_y) > BOX_MAX_MM:
+        return None
+    return {"center": [round(pa * cu + pb * cv_ + pc), round(pd * cu + pe * cv_ + pf)],
+            "size": sorted([round(size_x), round(size_y)]), "rotation": 0 if size_y >= size_x else 90}
