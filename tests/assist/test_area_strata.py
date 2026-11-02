@@ -121,3 +121,29 @@ def test_a_partial_reply_keeps_the_rest_of_the_plan(strata, drawing, tmp_path):
     p = proposal(list(run_turn(strata, s, "W901 jangan dihapus, sisanya sudah benar", spec, [], page, binary, t,
                                tmp_path)))
     assert "W901" not in p["deleted"] and {"W43", "W900"} <= set(p["deleted"]) and len(p["added"]) == 1
+
+
+def test_a_drawn_stair_the_extraction_missed_is_read_from_the_drawing(strata, drawing, tmp_path):
+    gt = drawing[0]
+    spec = gt.model_copy(update={"stairs": gt.stairs[1:]})  # S1 missing
+    p = proposal(ask(strata, drawing, spec, (-1400, 5600, 5700, 10100), "tangga di sini belum terbaca, tambahkan",
+                     tmp_path=tmp_path, answer="tangga yang tergambar di area ini"))
+    (st,) = p["stairs"]
+    assert p["valid"] and st["snapped"] and len(st["flights"]) == 2
+
+
+def test_a_new_stair_is_designed_inside_the_room(strata, drawing, tmp_path):
+    from shapely.geometry import LineString
+    from shapely.geometry import Polygon as SPolygon
+
+    gt = drawing[0]
+    room = next(r for r in gt.rooms if r.id == "R22")  # R. MEETING, 10 x 7.4 m, no stair drawn
+    p = proposal(ask(strata, drawing, gt, (5865, 6050, 15935, 13445),
+                     "tambahkan tangga baru di pojok barat ruang meeting ini, naik ke utara", tmp_path=tmp_path,
+                     answer="tangga U, lebar 1200, naik ke utara, di sisi barat ruang"))
+    (st,) = p["stairs"]
+    assert p["valid"] and not st["snapped"]
+    assert st["flights"][0]["end"][1] > st["flights"][0]["start"][1]
+    poly = SPolygon(room.polygon).buffer(1)
+    assert all(poly.covers(LineString([f["start"], f["end"]]).buffer(f["width"] / 2, cap_style="flat"))
+               for f in st["flights"])

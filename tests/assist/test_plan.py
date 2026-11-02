@@ -1,4 +1,5 @@
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -218,3 +219,61 @@ def test_add_opening_skips_the_gap_of_an_existing_door():
     t = run(spec_with_rooms(), [{"type": "add_opening", "wall": "W5", "category": "door", "at": [5000, 3150]}],
             binary=img, px_to_mm=[10, 0, 0, 0, -10, 6000])
     assert abs(t.ops[0]["offset"] - 3500) <= 30 and t.openings[0]["snapped"] is True
+
+
+STAIR_BOX = (-1400, 5600, 5700, 10100)  # Gatsu stair S1
+
+
+def test_add_stair_reads_the_drawn_flights(gatsu):
+    gt, binary, t = gatsu
+    spec = gt.model_copy(update={"stairs": gt.stairs[1:]})  # S1 missed by the extraction
+    tr = translate(plan({"type": "add_stair", "at": [3000, 8000]}), spec, area_context(spec, STAIR_BOX, [], None, None),
+                   ASK, binary, t)
+    op = next(o for o in tr.ops if o["op"] == "add_stair")
+    xs = sorted(f["start"][0] for f in op["flights"])
+    assert len(xs) == 2 and abs(xs[0] - 1060) <= 100 and abs(xs[1] - 4990) <= 100
+    assert all(1300 <= f["width"] <= 1600 for f in op["flights"]) and tr.stairs[0]["snapped"] is True
+
+
+def test_add_stair_refuses_a_stair_the_spec_already_has(gatsu):
+    gt, binary, t = gatsu
+    tr = translate(plan({"type": "add_stair", "at": [3000, 8000]}), gt, area_context(gt, STAIR_BOX, [], None, None),
+                   ASK, binary, t)
+    assert not any(o["op"] == "add_stair" for o in tr.ops) and any("S1" in r for r in tr.rejected)
+
+
+def _footprint(op):
+    from shapely.geometry import LineString
+    from shapely.ops import unary_union
+
+    return unary_union([LineString([f["start"], f["end"]]).buffer(f["width"] / 2, cap_style="flat")
+                        for f in op["flights"]])
+
+
+def test_add_stair_designs_a_u_stair_that_fits_the_room():
+    from shapely.geometry import Polygon as SPolygon
+
+    s = spec_with_rooms()  # floor to floor 4000: 23 risers, a straight run of 6.4 m does not fit R1 (5.8 m)
+    t = run(s, [{"type": "add_stair", "room": "R1", "up": "north"}])
+    op = next(o for o in t.ops if o["op"] == "add_stair")
+    assert len(op["flights"]) == 2 and sum(f["risers"] for f in op["flights"]) == 23 and op["landings"]
+    for f in op["flights"]:
+        assert abs(math.dist(f["start"], f["end"]) - f["risers"] * 280) <= 2 and f["width"] == 1200
+    assert op["flights"][0]["end"][1] > op["flights"][0]["start"][1]  # the first flight climbs north
+    r1 = next(r for r in s.rooms if r.id == "R1")
+    assert SPolygon(r1.polygon).buffer(1).covers(_footprint(op)) and t.stairs[0]["snapped"] is False
+
+
+def test_add_stair_straight_when_it_fits():
+    s = spec_with_rooms()
+    s = s.model_copy(update={"meta": s.meta.model_copy(update={"defaults": s.meta.defaults.model_copy(
+        update={"floor_to_floor": 3000})})})
+    t = run(s, [{"type": "add_stair", "room": "R1", "up": "north", "width": 1000}])  # 18 risers: 5.04 m of 5.8 m
+    op = next(o for o in t.ops if o["op"] == "add_stair")
+    (f,) = op["flights"]
+    assert f["risers"] == 18 and f["width"] == 1000 and f["end"][1] > f["start"][1] and f["start"][0] == f["end"][0]
+
+
+def test_add_stair_that_does_not_fit_is_rejected():
+    t = run(spec_with_rooms(), [{"type": "add_stair", "up": "north"}], box=(200, 200, 2200, 2200))
+    assert not t.ops and any("tidak muat" in r for r in t.rejected)

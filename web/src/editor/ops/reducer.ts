@@ -185,8 +185,12 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
       find(s.stairs, op.id)
       s.stairs = s.stairs!.filter((x) => x.id !== op.id)
       return
-    case 'add_stair':
-      throw new Error('tidak tersedia di editor')
+    case 'add_stair': {
+      const id = takeId(s, 'S')
+      ;(s.stairs ??= []).push({ id, flights: op.flights, landings: op.landings ?? [], base_z: 0, top_z: op.top_z ?? null, room_id: null })
+      created[id] = index
+      return
+    }
   }
 }
 

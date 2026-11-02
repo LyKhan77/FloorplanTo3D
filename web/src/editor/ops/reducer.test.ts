@@ -90,9 +90,9 @@ describe('applyOps (non-geometry)', () => {
       add,
       { op: 'add_stair', flights: [{ start: [0, 0], end: [0, 1000], width: 1000, risers: 10 }] },
     ])
-    expect(r.failed.map((f) => f.index)).toEqual([0, 1, 3])
-    expect(r.failed[2].message).toBe('tidak tersedia di editor')
+    expect(r.failed.map((f) => f.index)).toEqual([0, 1])  // add_stair applies since area assist adds stairs
     expect(r.spec.objects).toHaveLength(1)
+    expect(r.spec.stairs!.at(-1)).toMatchObject({ id: `S${gt.stairs!.length + 1}`, base_z: 0, landings: [] })
     expect(JSON.stringify(gt)).toBe(before)
   })
 })

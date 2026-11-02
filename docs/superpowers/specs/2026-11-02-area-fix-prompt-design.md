@@ -56,7 +56,9 @@ Kesimpulan dari uji itu:
 - Lapisan instalasi (tray, rack): keputusan user, **layout dulu**. Instalasi segera menyusul di branch yang sama, memakai
   ulang fondasinya: konteks tray/rack, aksi instalasi, dan chat di mode Instalasi.
 - Generate interior: fitur kedua, dibangun di atas fondasi ini (§9).
-- Mengedit tangga atau kolom, tebal/jenis dinding, dan batas ruang virtual (*room separation line*).
+- Mengedit tangga yang sudah ada atau kolom, tebal/jenis dinding, dan batas ruang virtual (*room separation line*).
+  Menambah tangga didukung (keputusan user 2026-11-02): `add_stair` membaca tangga dari gambar di area (detektor
+  tahap 4 pada crop), atau merancang tangga lurus/U yang muat di ruang (175 mm tanjakan, 280 mm injakan; kuning).
 - Agen tool-calling bertahap (pendekatan B).
 
 **Anti-tujuan**

@@ -20,7 +20,7 @@ vi.mock('./stream', () => ({
 const wall = gt.walls![5].id
 const proposal = (valid = true): AssistEvent => ({
   event: 'proposal', ops: [{ op: 'delete_wall', id: wall, reason: 'asisten: hapus' }], deleted: [wall], added: [], moved: [],
-  openings: [], explanation: 'Dinding nyasar.', notes: [], issues: [], valid,
+  openings: [], stairs: [], explanation: 'Dinding nyasar.', notes: [], issues: [], valid,
 })
 
 async function send(text: string) {

@@ -38,6 +38,21 @@ export function ProposalLayer({ draft }: { draft: [Pt, Pt] | null }) {
       {p?.moved.map((m) => <Seg key={m.id} a={m.a} b={m.b} color={GREEN} />)}
       {p?.added.map((w, i) => <Seg key={i} a={w.a} b={w.b} color={w.snapped ? GREEN : YELLOW} width={Math.max(w.thickness, 100)} />)}
       {p?.openings.map((o, i) => <Seg key={i} a={o.a} b={o.b} color={o.snapped ? GREEN : YELLOW} width={260} />)}
+      {p?.stairs?.map((st, i) => (
+        <g key={`s${i}`} fill="none" stroke={st.snapped ? GREEN : YELLOW} strokeWidth={60} style={{ pointerEvents: 'none' }}>
+          {st.flights.map((f, j) => {
+            const len = Math.hypot(f.end[0] - f.start[0], f.end[1] - f.start[1]) || 1
+            const [nx, ny] = [(-(f.end[1] - f.start[1]) / len) * (f.width / 2), ((f.end[0] - f.start[0]) / len) * (f.width / 2)]
+            const ring = [[f.start[0] + nx, f.start[1] + ny], [f.end[0] + nx, f.end[1] + ny], [f.end[0] - nx, f.end[1] - ny], [f.start[0] - nx, f.start[1] - ny]]
+            const [s0, e0] = [svgPoint(f.start), svgPoint(f.end)]
+            return <g key={j}>
+              <polygon points={ring.map((q) => svgPoint(q).join(',')).join(' ')} />
+              <line x1={s0[0]} y1={s0[1]} x2={e0[0]} y2={e0[1]} strokeDasharray="200 120" />
+            </g>
+          })}
+          {st.landings.map((l, j) => <polygon key={`l${j}`} points={l.map((q) => svgPoint(q).join(',')).join(' ')} />)}
+        </g>
+      ))}
     </g>
   )
 }

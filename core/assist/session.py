@@ -72,6 +72,8 @@ def _summary(tr, problems: list[str]) -> str:
               for w in tr.added]
     parts += [f"move {m['id']} to {m['a']}->{m['b']}" for m in tr.moved]
     parts += [f"{o['category']} {o['a']}->{o['b']}" + ("" if o["snapped"] else " (not on a drawn gap)") for o in tr.openings]
+    parts += [f"stair {[(f['start'], f['end'], f['width'], f['risers']) for f in st['flights']]}"
+              + ("" if st["snapped"] else " (designed, not from the drawing)") for st in tr.stairs]
     parts += [f"room {op['op'].removesuffix('_at')} at {op['at']}: {op.get('type') or op.get('name')}"
               for op in tr.ops if op["op"] in ("set_room_type_at", "rename_room_at")]
     parts += [f"problem: {p}" for p in problems]
@@ -145,6 +147,7 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
         s.messages.append({"role": "user", "content": fix})
     yield {"event": "step", "text": "Validasi: 0 error baru" if not problems else f"Masih ada {len(problems)} masalah"}
     proposal = {"ops": tr.ops, "deleted": tr.deleted, "added": tr.added, "moved": tr.moved, "openings": tr.openings,
+                "stairs": tr.stairs,
                 "explanation": plan.explanation, "notes": tr.notes + problems, "issues": issues,
                 "valid": not problems and bool(tr.ops)}
     s.proposals.append({**proposal, "instruction": message, "summary": _summary(tr, problems)})

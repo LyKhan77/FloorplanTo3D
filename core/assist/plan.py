@@ -10,10 +10,15 @@ from typing import Annotated, Literal, get_args
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
+from shapely.geometry import LineString
 from shapely.geometry import Point as SPoint
+from shapely.geometry import Polygon as SPolygon
 from shapely.geometry import box as sbox
+from shapely.ops import unary_union
 
 from core.assist.context import AreaContext, rep_point
+from core.extraction.geometry.stairs import detect_stairs
+from core.extraction.geometry.strokes import extract_strokes
 from core.extraction.rooms.overlay import px_from_mm
 from core.extraction.snap import snap_wall
 from core.spec.derive import id_key
@@ -28,6 +33,11 @@ END_CLEAR_MM = 50  # validation: an opening keeps 50 mm from the wall ends
 GAP_SEARCH_MM = 1500
 GAP_MIN_MM, GAP_MAX_MM = 600, 3000
 DEFAULT_WIDTH = {"door": 900, "window": 1200}
+RISER_MM, GOING_MM = 175, 280  # a designed stair: riser target and tread depth (validation V019: 150-200 / >= 250)
+STAIR_WIDTH = (800, 2500)
+STAIR_GAP_MM = 100  # between the two flights of a U stair
+PLACE_STEP_MM = 100
+UP = {"north": (0, 1), "south": (0, -1), "east": (1, 0), "west": (-1, 0)}
 FLIP = {"start": "end", "end": "start", "left": "right", "right": "left"}
 DoorType = Literal["single_swing", "double_swing", "sliding", "opening", "rolling"]
 
@@ -86,6 +96,15 @@ class DeleteOpening(_A):
     id: str
 
 
+class AddStair(_A):
+    type: Literal["add_stair"]
+    room: str | None = None
+    at: tuple[float, float] | None = None
+    shape: Literal["straight", "u"] | None = None
+    up: Literal["north", "south", "east", "west"] | None = None
+    width: float | None = None
+
+
 class SetRoomType(_A):
     type: Literal["set_room_type"]
     room: str
@@ -101,8 +120,8 @@ class RenameRoom(_A):
 
 
 Action = Annotated[
-    DeleteWall | MergeWalls | AddWall | ExtendWall | SplitWall | AddOpening | SetDoor | DeleteOpening | SetRoomType
-    | RenameRoom,
+    DeleteWall | MergeWalls | AddWall | ExtendWall | SplitWall | AddOpening | SetDoor | DeleteOpening | AddStair
+    | SetRoomType | RenameRoom,
     Field(discriminator="type"),
 ]
 
@@ -121,6 +140,7 @@ class Translation:
     added: list[dict] = field(default_factory=list)  # {a, b, thickness, snapped}
     moved: list[dict] = field(default_factory=list)  # {id, a, b}
     openings: list[dict] = field(default_factory=list)  # {a, b, category, snapped}
+    stairs: list[dict] = field(default_factory=list)  # {flights, landings, snapped}
     notes: list[str] = field(default_factory=list)
     rejected: list[str] = field(default_factory=list)
 
@@ -189,7 +209,7 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
     geo = {wid: (tuple(w.a), tuple(w.b)) for wid, w in walls.items()}  # wall axes as the ops so far leave them
     default_t = round(spec.meta.defaults.wall_thickness)
     box = sbox(*ctx.box)
-    buckets: dict[str, list[dict]] = {k: [] for k in ("del", "merge", "split", "extend", "add", "opening", "room")}
+    buckets: dict[str, list[dict]] = {k: [] for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "room")}
 
     def known(eid: str, pool: dict, what: str) -> bool:
         if eid in pool:
@@ -356,7 +376,30 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         else:
             buckets["room"].append({"op": "rename_room_at", "at": at, "name": act.name})
 
-    out.ops = [op for k in ("del", "merge", "split", "extend", "add", "opening", "room") for op in buckets[k]]
+    for act in by_type.get("add_stair", []):
+        if act.room is not None and act.room not in rooms:
+            known(act.room, rooms, "ruang")
+            continue
+        region = box if act.room is None else SPolygon(rooms[act.room].polygon, rooms[act.room].holes).intersection(box)
+        stair = None
+        if binary is not None and px_to_mm:
+            stair, dup = _drawn_stair(binary, px_to_mm, region, spec)
+            if stair is None and dup:
+                out.rejected.append(f"tangga di gambar sudah ada di spec ({dup}); ubah lewat panel tangga")
+                continue
+        if stair is None:
+            stair = _design_stair(region, spec.meta.defaults.floor_to_floor, act)
+            if stair is None:
+                out.rejected.append("tangga tidak muat di " + ("ruang " + act.room if act.room else "area") +
+                                    "; perbesar kotak, pilih bentuk U, atau kurangi lebarnya")
+                continue
+            out.notes.append("tangga baru dirancang, tidak dari gambar: periksa posisi dan arah naiknya (kuning)")
+        elif act.up:
+            stair = _orient(stair, act.up)
+        buckets["stair"].append({"op": "add_stair", "flights": stair["flights"], "landings": stair["landings"]})
+        out.stairs.append(stair)
+
+    out.ops = [op for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "room") for op in buckets[k]]
     return out
 
 
@@ -417,3 +460,97 @@ def _merge(ws, spec: Spec, reason: str, binary, px_to_mm, buckets, out: Translat
         geo.pop(i, None)
     buckets["add"].append({"op": "add_wall", **w, "kind": kind, **({"openings": carried} if carried else {})})
     out.added.append({**w, "snapped": snapped})
+
+
+def _stair_dict(flights: list[dict], landings: list, snapped: bool) -> dict:
+    return {"flights": flights, "landings": landings, "snapped": snapped}
+
+
+def _drawn_stair(binary, px_to_mm, region, spec: Spec) -> tuple[dict | None, str | None]:
+    """The stair the drawing shows in the region (the pipeline's tread detector on a crop), and the ID of a spec stair
+    it duplicates, if any."""
+    a, b, c, d, e, f = px_to_mm
+    s = math.hypot(a, d)
+    to_px = px_from_mm(px_to_mm)
+    x0, y0, x1, y1 = region.buffer(300).bounds
+    xs, ys = zip(*[to_px(x, y) for x in (x0, x1) for y in (y0, y1)])
+    h, w = binary.shape[:2]
+    c0, r0 = max(0, int(min(xs))), max(0, int(min(ys)))
+    c1, r1 = min(w, math.ceil(max(xs))), min(h, math.ceil(max(ys)))
+    crop = binary[r0:r1, c0:c1]
+    if crop.size == 0:
+        return None, None
+    stairs, _ = detect_stairs(extract_strokes(crop, 0, s), [], crop, s)
+    mm = lambda p: [round(a * (p[0] + c0) + b * (p[1] + r0) + c), round(d * (p[0] + c0) + e * (p[1] + r0) + f)]
+    existing = [(st.id, LineString([fl.start, fl.end])) for st in spec.stairs for fl in st.flights]
+    dup = None
+    for st in stairs:
+        flights = [{"start": mm(fl["start"]), "end": mm(fl["end"]), "width": round(fl["width_px"] * s),
+                    "risers": fl["risers"]} for fl in st["flights"]]
+        mids = [SPoint((fl["start"][0] + fl["end"][0]) / 2, (fl["start"][1] + fl["end"][1]) / 2) for fl in flights]
+        if not all(region.buffer(300).covers(m) for m in mids):
+            continue
+        hit = next((sid for sid, line in existing for m in mids if line.distance(m) <= 500), None)
+        if hit:
+            dup = dup or hit
+            continue
+        landings = [[mm(p) for p in poly] for poly in st["landings"]]
+        return _stair_dict(flights, landings, True), None
+    return None, dup
+
+
+def _orient(stair: dict, up: str) -> dict:
+    """Reverse the climb when the first flight runs against the asked up direction."""
+    ux, uy = UP[up]
+    f0 = stair["flights"][0]
+    if (f0["end"][0] - f0["start"][0]) * ux + (f0["end"][1] - f0["start"][1]) * uy >= 0:
+        return stair
+    flights = [{**fl, "start": fl["end"], "end": fl["start"]} for fl in reversed(stair["flights"])]
+    return {**stair, "flights": flights}
+
+
+def _design_stair(region, floor_to_floor: float, act: AddStair) -> dict | None:
+    """A new stair fitted in the region: straight when it fits, else a U stair; nearest to `at` (else the region's
+    centre). Built with +y as up, turned to `up`, then placed on a 100 mm grid."""
+    n = max(2, math.ceil(floor_to_floor / RISER_MM))
+    w = min(max(act.width or 1200, STAIR_WIDTH[0]), STAIR_WIDTH[1])
+    x0, y0, x1, y1 = region.bounds
+    ups = [act.up] if act.up else (["north", "east"] if y1 - y0 >= x1 - x0 else ["east", "north"])
+    shapes = [act.shape] if act.shape else ["straight", "u"]
+    target = act.at if act.at is not None else (region.centroid.x, region.centroid.y)
+    inside = region.buffer(1)
+    for shape in shapes:
+        if shape == "straight":
+            flights = [((w / 2, 0), (w / 2, n * GOING_MM), n)]
+            landings = []
+        else:
+            n1 = math.ceil(n / 2)
+            run = n1 * GOING_MM
+            x2 = w + STAIR_GAP_MM + w / 2
+            flights = [((w / 2, 0), (w / 2, run), n1), ((x2, run), (x2, (n1 - (n - n1)) * GOING_MM), n - n1)]
+            landings = [[(0, run), (2 * w + STAIR_GAP_MM, run), (2 * w + STAIR_GAP_MM, run + w), (0, run + w)]]
+        for up in ups:
+            ux, uy = UP[up]
+            turn = lambda p, ux=ux, uy=uy: (p[0] * uy + p[1] * ux, -p[0] * ux + p[1] * uy)  # local +y onto (ux, uy)
+            fl = [(turn(a), turn(b), r) for a, b, r in flights]
+            la = [[turn(p) for p in poly] for poly in landings]
+            local = unary_union([LineString([a, b]).buffer(w / 2, cap_style="flat") for a, b, _ in fl]
+                                + [SPolygon(poly) for poly in la])
+            lx0, ly0, lx1, ly1 = local.bounds
+            best = None
+            for px in np.arange(x0, x1 - (lx1 - lx0) + 1, PLACE_STEP_MM):
+                for py in np.arange(y0, y1 - (ly1 - ly0) + 1, PLACE_STEP_MM):
+                    dx, dy = px - lx0, py - ly0
+                    cx, cy = (lx0 + lx1) / 2 + dx, (ly0 + ly1) / 2 + dy
+                    dist = math.dist((cx, cy), target)
+                    if (best is None or dist < best[0]) and inside.covers(
+                            SPolygon([(lx0 + dx, ly0 + dy), (lx1 + dx, ly0 + dy), (lx1 + dx, ly1 + dy),
+                                      (lx0 + dx, ly1 + dy)])):
+                        best = (dist, dx, dy)
+            if best is None:
+                continue
+            _, dx, dy = best
+            at = lambda p, dx=dx, dy=dy: [round(p[0] + dx), round(p[1] + dy)]
+            return _stair_dict([{"start": at(a), "end": at(b), "width": round(w), "risers": r} for a, b, r in fl],
+                               [[at(p) for p in poly] for poly in la], False)
+    return None

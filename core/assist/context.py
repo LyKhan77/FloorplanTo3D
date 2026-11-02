@@ -61,7 +61,7 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
     lines.append("Rooms (id, name, type, area m2, point inside):")
     lines += [f"- {r.id} '{r.name}' {r.type} {r.area_m2:.1f} at={list(rep_point(r))}" for r in rooms]
     if stairs or columns:
-        lines.append("Context only, not editable: "
+        lines.append("Existing (not editable; add_stair must not duplicate them): "
                      + ", ".join([f"stair {s.id}" for s in stairs] + [f"column {c.id} at={list(c.center)}" for c in columns]))
 
     image = None

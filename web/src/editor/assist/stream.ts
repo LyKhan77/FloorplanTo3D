@@ -8,6 +8,7 @@ export interface Proposal {
   added: { a: Pt; b: Pt; thickness: number; snapped: boolean }[]
   moved: { id: string; a: Pt; b: Pt }[]
   openings: { a: Pt; b: Pt; category: 'door' | 'window'; snapped: boolean }[]
+  stairs: { flights: { start: Pt; end: Pt; width: number; risers: number }[]; landings: Pt[][]; snapped: boolean }[]
   explanation: string
   notes: string[]
   issues: { code: string; severity: string; message: string }[]

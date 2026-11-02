@@ -118,7 +118,7 @@ def test_local_ops_are_the_base(tmp_path):
 
 
 def test_an_unexpected_failure_is_an_error_event(tmp_path, monkeypatch):
-    import core.assist.session as session
+    from core.assist import session
 
     def boom(*a, **k):
         raise RuntimeError("bug")

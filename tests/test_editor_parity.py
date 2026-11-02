@@ -46,6 +46,8 @@ def _cases(gt: Spec) -> list[dict]:
         {"name": "add_then_update_object", "ops": [
             obj, {"op": "update_object", "id": next_id(gt, "O")[0], "position": [*other.label_pos, 0],
                   "rotation": 90}]},
+        {"name": "add_stair", "ops": [{"op": "add_stair", "flights": [
+            {"start": [0, 0], "end": [0, 3360], "width": 1200, "risers": 12}], "landings": []}]},
         {"name": "room_ops_at_point", "ops": [
             {"op": "set_room_type_at", "at": list(room.label_pos), "type": "stair"},
             {"op": "rename_room_at", "at": list(room.label_pos), "name": "Tangga"}]},
