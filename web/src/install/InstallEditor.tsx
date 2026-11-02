@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react'
 import { api, ApiError } from '../api/client'
 import type { Backdrop, Run } from '../api/types'
 import { ignoredTarget } from '../editor/lib/keys'
-import { useRuns } from '../api/hooks'
+import { useProject, useRuns } from '../api/hooks'
 import { stageLabel } from '../lib/runState'
 import type { Installation } from '../types/installation'
 import { buildInstallation, outputUrl, saveInstallation, useInstallation, useInstallOutputs, useInstallValidate, type InstallIssue } from './api'
+import { RebaseNotice } from './InstallationBanner'
 import { InstallViewer } from './InstallViewer'
 import { InstallPanels } from './InstallPanels'
 import { InstallWorkspace } from './InstallWorkspace'
@@ -30,6 +31,10 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
   const [full, setFull] = useState(false)
   const [buildRun, setBuildRun] = useState<string | null>(null)
   const { data: outputs = [] } = useInstallOutputs(projectId)
+  const { data: project } = useProject(projectId)
+  const stale = project?.installation?.layout_changed ? project : null
+  // Build 3D on a pinned older layout asks once per newer layout: the second click builds anyway
+  const [okForHead, setOkForHead] = useState<number | null>(null)
   const latest = outputs[0]
   // polls the installation run; when it ends: show the outputs (or why it failed) and stop polling
   // a build started before this editor opened (reopened mid-build) is followed too
@@ -59,6 +64,12 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
 
   const build = async () => {
     const s = useInstallStore.getState()
+    if (stale && okForHead !== stale.head) {
+      setOkForHead(stale.head)
+      s.setNotice({ kind: 'warning', text: `Build 3D akan memakai layout v${stale.installation!.layout_version}, `
+        + `terbaru v${stale.head}. Klik Rebase dulu, atau klik Build 3D lagi untuk tetap build.` })
+      return
+    }
     try {
       const r = await buildInstallation(projectId)
       setSaveIssues([])
@@ -153,6 +164,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
           tooltipPosition="bottom" aria-pressed={full} onClick={() => setFull(!full)} />
       </div>
       <aside className="editor__library" aria-label="Output instalasi">
+        {stale && <section className="editor-panel"><RebaseNotice project={stale} /></section>}
         <section className="editor-panel">
           <h4 className="editor-panel__title">Output 3D</h4>
           {latest ? (

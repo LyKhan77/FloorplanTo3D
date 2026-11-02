@@ -126,3 +126,31 @@ describe('InstallEditor outputs (M12b review)', () => {
   })
 })
 
+
+describe('InstallEditor on an older layout', () => {
+  const project = { project_id: 'p1', head: 3, outputs: [3], params: {}, summary: {},
+    installation: { head: 1, layout_version: 1, layout_changed: true } }
+  beforeEach(() => {
+    vi.mocked(api.get).mockImplementation(((url: string) => Promise.resolve(
+      url.endsWith('/HEAD') ? base : url === '/api/projects/p1' ? project : [])) as never)
+    vi.mocked(api.post).mockReset()
+    vi.mocked(api.post).mockResolvedValue({ issues: [], drops: [], lengths: null, run_id: 'r1' } as never)
+  })
+
+  it('says the layout moved on and offers Rebase in the editor itself', async () => {
+    render(ui('p1'))
+    expect(await screen.findByText(/Layout berubah \(v1 → v3\)/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Rebase' })).toBeInTheDocument()
+  })
+
+  it('Build 3D asks first: the build would use the old layout', async () => {
+    render(ui('p1'))
+    await screen.findByText(/Layout berubah \(v1/)
+    await waitFor(() => expect(useInstallStore.getState().base?.meta.version).toBe(1))
+    fireEvent.click(screen.getByRole('button', { name: 'Build 3D' }))
+    expect(vi.mocked(api.post).mock.calls.some(([u]) => String(u).endsWith('/build'))).toBe(false)
+    expect(useInstallStore.getState().notice?.text).toMatch(/layout v1.*terbaru v3/)
+    fireEvent.click(screen.getByRole('button', { name: 'Build 3D' }))
+    await waitFor(() => expect(vi.mocked(api.post).mock.calls.some(([u]) => String(u).endsWith('/build'))).toBe(true))
+  })
+})
