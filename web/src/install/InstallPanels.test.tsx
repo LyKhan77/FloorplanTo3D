@@ -80,3 +80,16 @@ describe('InstallPanels device ops the server accepts', () => {
     expect(useInstallStore.getState().ops.map((x) => (x as { reason?: string }).reason)).toEqual(['dipindah di editor', 'diputar di editor'])
   })
 })
+
+describe('InstallPanels turn buttons', () => {
+  it('⟳ and ⟲ turn the device a quarter with a reason', () => {
+    const o = { id: 'O9', template_id: 'ups-cabinet-generic', template_version: '1.1.0', position: [3000, 1000, 0], rotation: 0,
+      dims: [1200, 800, 2000], room_id: null, label: null, locked: false }
+    useInstallStore.getState().load({ schema_version: '1.0', meta: { version: 1, layout_version: 1, default_mounting: 'overhead', id_seq: {} },
+      cable_trays: [], objects: [o], provenance_log: [] } as never, 'p1')
+    useInstallStore.getState().select(['O9'])
+    render(<InstallPanels validation={{ issues: [], drops: [], lengths: null, pending: false, error: null }} saveIssues={[]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Putar 90° searah jarum jam' }))
+    expect(useInstallStore.getState().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'O9', rotation: 270, reason: 'diputar di editor' })
+  })
+})

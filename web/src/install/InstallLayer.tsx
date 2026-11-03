@@ -14,6 +14,26 @@ function corners(o: PlacedObject): Pt[] {
   return ([[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]] as Pt[]).map(([u, v]) => [x + u * c - v * s, y + u * s + v * c])
 }
 
+const FRONT = '#f1c21b'
+
+/** The device's front (door) side: a thick edge and an arrow pointing out of it; it turns with the device. */
+function FrontMark({ o }: { o: PlacedObject }) {
+  const [, , c, d] = corners(o)  // the +y edge in the device's own frame: its front
+  const [a, b] = [svgPoint(d), svgPoint(c)]
+  const r = ((o.rotation ?? 0) * Math.PI) / 180, [fx, fy] = [-Math.sin(r), Math.cos(r)]
+  const mid: Pt = [(d[0] + c[0]) / 2, (d[1] + c[1]) / 2]
+  const len = Math.min(o.dims[0], 600) * 0.5
+  const tip = svgPoint([mid[0] + fx * len, mid[1] + fy * len])
+  const side = (k: number) => svgPoint([mid[0] - fy * k * len * 0.6, mid[1] + fx * k * len * 0.6])
+  const [l, rr] = [side(1), side(-1)]
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      <line data-front={o.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={FRONT} strokeWidth={80} strokeLinecap="butt" />
+      <polygon points={[l, tip, rr].map((q) => q.join(',')).join(' ')} fill={FRONT} />
+    </g>
+  )
+}
+
 /** Trays, racks and drops over the read-only layout (M12a). Trays at their real width; drops dashed from tray to rack. */
 export function InstallLayer({ drops }: { drops: Drop[] }) {
   const view = useInstallStore((s) => s.view)
@@ -39,6 +59,7 @@ export function InstallLayer({ drops }: { drops: Drop[] }) {
         return (
           <g key={o.id} data-rack={o.id} onClick={pick(o.id)} style={{ cursor: tool === 'select' ? 'pointer' : undefined }}>
             <polygon points={pts(corners(o))} fill="#8a3ffc" fillOpacity={0.25} stroke={sel.has(o.id) ? '#ffffff' : '#a56eff'} strokeWidth={40} />
+            <FrontMark o={o} />
             <text x={x} y={y} fill="#f4f4f4" fontSize={220} textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: 'none' }}>{o.label || o.id}</text>
           </g>
         )

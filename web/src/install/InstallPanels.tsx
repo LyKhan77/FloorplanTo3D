@@ -51,6 +51,15 @@ function RackForm({ o }: { o: PlacedObject }) {
       <p className="helper mono">{o.template_id} · {o.dims.join(' × ')} mm</p>
       <TextInput id="ir-label" labelText="Label" size="sm" defaultValue={o.label ?? ''}
         onBlur={(e) => { if ((e.target.value || null) !== (o.label ?? null)) apply({ op: 'update_object', id: o.id, label: e.target.value || null }) }} />
+      <div className="install-turn" role="group" aria-label="Putar">
+        <Button kind="ghost" size="sm" aria-label="Putar 90° berlawanan jarum jam"
+          onClick={() => apply({ op: 'update_object', id: o.id, rotation: ((o.rotation ?? 0) + 90) % 360, reason: TURN_REASON })}>
+          <span aria-hidden>⟲</span> 90°</Button>
+        <Button kind="ghost" size="sm" aria-label="Putar 90° searah jarum jam"
+          onClick={() => apply({ op: 'update_object', id: o.id, rotation: ((o.rotation ?? 0) + 270) % 360, reason: TURN_REASON })}>
+          <span aria-hidden>⟳</span> 90°</Button>
+        <span className="helper">depan = garis kuning · R</span>
+      </div>
       <div className="install-device-grid">
         {field('ir-x', 'X (mm)', x, (v) => apply({ op: 'update_object', id: o.id, position: [v, y, z], reason: MOVE_REASON }))}
         {field('ir-y', 'Y (mm)', y, (v) => apply({ op: 'update_object', id: o.id, position: [x, v, z], reason: MOVE_REASON }))}

@@ -174,3 +174,22 @@ describe('InstallWorkspace device ops the server accepts', () => {
     expect(useAssistStore.getState().layer).toBe('layout')
   })
 })
+
+describe('InstallLayer front marks', () => {
+  const dev = (id: string, rotation: number) => ({ id, template_id: 'rack-42u-600x1200', template_version: '1.1.0',
+    position: [2000, 3000, 0], rotation, dims: [600, 1200, 2000], room_id: null, label: null, locked: false })
+  const mid = (el: Element) => {
+    const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((k) => Number(el.getAttribute(k)))
+    return [(x1 + x2) / 2, -(y1 + y2) / 2]  // back to plan mm (svg y is flipped)
+  }
+
+  it('marks the front edge of each device, turning with it', () => {
+    ist().load({ ...base, objects: [dev('RK1', 0), dev('RK2', 90)] } as unknown as Installation)
+    const { container } = setup()
+    const [a, b] = ['RK1', 'RK2'].map((id) => container.querySelector(`[data-front="${id}"]`)!)
+    expect(mid(a)[0]).toBeCloseTo(2000, 0)
+    expect(mid(a)[1]).toBeCloseTo(3600, 0)  // rotation 0 faces +y: front edge at y + d/2
+    expect(mid(b)[0]).toBeCloseTo(1400, 0)  // rotation 90 faces -x: front edge at x - d/2
+    expect(mid(b)[1]).toBeCloseTo(3000, 0)
+  })
+})
