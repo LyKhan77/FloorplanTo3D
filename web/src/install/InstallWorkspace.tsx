@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTemplates } from '../api/hooks'
 import type { Backdrop } from '../api/types'
 import { ignoredTarget } from '../editor/lib/keys'
@@ -100,8 +100,11 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     if (tool === 'assist') useAssistStore.getState().setLayer('installation')
     else if (useAssistStore.getState().layer === 'installation') useAssistStore.getState().close()
   }, [tool])
+  // select tool: dragging a selected device moves it
+  const [moving, setMoving] = useState<{ id: string; from: Pt; to: Pt } | null>(null)
   const onPointer = (kind: 'down' | 'move' | 'up', mm: Pt, e: React.PointerEvent) => {
-    if (e.button > 0 || tool === 'select') return false
+    if (e.button > 0) return false
+    if (tool === 'select') return moveDevice(kind, mm)
     if (tool === 'assist') return areaPointer(projectId, kind, mm, e, rough, setRough)
     const p: Pt = [Math.round(mm[0]), Math.round(mm[1])]
     if (tool === 'rack' && e.shiftKey) {
@@ -116,6 +119,45 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     return true
   }
 
+  const moveDevice = (kind: 'down' | 'move' | 'up', mm: Pt): boolean => {
+    const s = useInstallStore.getState()
+    if (kind === 'down') {
+      const hit = (s.view?.objects ?? []).find((o) => s.selection.includes(o.id) && inside(o, mm))
+      if (!hit) return false
+      setMoving({ id: hit.id, from: mm, to: mm })
+      return true
+    }
+    if (!moving) return false
+    if (kind === 'move') { setMoving({ ...moving, to: mm }); return true }
+    const [dx, dy] = [mm[0] - moving.from[0], mm[1] - moving.from[1]]
+    setMoving(null)
+    const o = s.view?.objects?.find((x) => x.id === moving.id)
+    if (o && Math.hypot(dx, dy) >= MOVE_MIN_MM) {
+      s.apply({ op: 'update_object', id: o.id, position: [Math.round(o.position[0] + dx), Math.round(o.position[1] + dy), o.position[2]] })
+    }
+    return true
+  }
+
+  // a Library card dropped on the canvas: the device stands there, facing north (R turns it, Properties sets Z)
+  const zoneRef = useRef<HTMLDivElement>(null)
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const ed = useEditorStore.getState()
+    const key = e.dataTransfer?.getData('application/x-template') || ''
+    const t = ed.dragging ?? templates.find((x) => `${x.id}@${x.version}` === key)
+    ed.setDragging(null)
+    if (!t) return
+    const svg = zoneRef.current?.querySelector('svg'), m = svg?.getScreenCTM?.()
+    let p: Pt = [e.clientX, -e.clientY]  // no layout (jsdom): client px are SVG units
+    if (svg && m) {
+      const q = Object.assign(svg.createSVGPoint(), { x: e.clientX, y: e.clientY }).matrixTransform(m.inverse())
+      p = [q.x, -q.y]
+    }
+    if (!p.every(Number.isFinite)) return
+    useInstallStore.getState().apply({ op: 'add_object', template_id: t.id, template_version: t.version,
+      position: [Math.round(p[0]), Math.round(p[1]), 0], rotation: 0, dims: [t.dims.w, t.dims.d, t.dims.h] })
+  }
+
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (ignoredTarget(e.target as Element | null) || e.ctrlKey || e.metaKey || e.altKey) return
@@ -124,6 +166,10 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
       if (e.key === 'Escape') { s.setTrayDraft([]); s.setTool('select'); setBox(null); setRough(null); return }
       const t = ({ v: 'select', t: 'tray', k: 'rack', a: 'assist' } as Record<string, InstallTool>)[e.key.toLowerCase()]
       if (t) s.setTool(t)
+      if (e.key.toLowerCase() === 'r' && s.tool === 'select' && s.selection.length === 1) {
+        const o = s.view?.objects?.find((x) => x.id === s.selection[0])
+        if (o) s.apply({ op: 'update_object', id: o.id, rotation: ((o.rotation ?? 0) + 90) % 360 })
+      }
     }
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
@@ -143,6 +189,7 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
         {tool === 'tray' && <span className="helper">Klik titik-titik jalur · Enter selesai · Esc batal</span>}
         {tool === 'rack' && <span className="helper">Klik di dalam kotak rack · Shift-tarik: gambar rack sendiri</span>}
       </div>
+      <div ref={zoneRef} data-drop-zone className="install-drop-zone" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
       <ReviewCanvas rooms={layout?.rooms ?? []} tasks={[]} backdrop={backdrop} onCanvasPointer={onPointer} readOnly>
         <InstallLayer drops={drops} />
         {tool === 'assist' && <ProposalLayer draft={rough ? [rough.a, rough.b] : null} />}
@@ -151,9 +198,23 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
           return <rect x={Math.min(a[0], b[0])} y={Math.min(a[1], b[1])} width={Math.abs(b[0] - a[0])} height={Math.abs(b[1] - a[1])}
             fill="rgba(165,110,255,.12)" stroke="#a56eff" strokeWidth={40} />
         })()}
+        {moving && (() => {
+          const [a, b] = [svgPoint(moving.from), svgPoint(moving.to)]
+          return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#ffffff" strokeWidth={40} strokeDasharray="160 100" />
+        })()}
       </ReviewCanvas>
+      </div>
     </>
   )
+}
+
+const MOVE_MIN_MM = 20  // a smaller drag is a click
+
+/** Is the point inside the device's footprint (rotated CCW about its centre)? */
+function inside(o: { position: number[]; rotation?: number | null; dims: number[] }, p: Pt): boolean {
+  const t = (-(o.rotation ?? 0) * Math.PI) / 180, dx = p[0] - o.position[0], dy = p[1] - o.position[1]
+  const lx = dx * Math.cos(t) - dy * Math.sin(t), ly = dx * Math.sin(t) + dy * Math.cos(t)
+  return Math.abs(lx) <= o.dims[0] / 2 && Math.abs(ly) <= o.dims[1] / 2
 }
 
 const TOOLS: [InstallTool, string, string][] = [['select', 'Pilih', 'V'], ['tray', 'Tray', 'T'], ['rack', 'Rack', 'K'],

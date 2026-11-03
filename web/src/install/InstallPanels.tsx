@@ -38,13 +38,28 @@ function TrayForm({ t }: { t: CableTray }) {
 }
 
 function RackForm({ o }: { o: PlacedObject }) {
+  // a device: where it stands (Z: wall-mounted panels and cameras hang), how it turns, how big it is
+  const field = (id: string, label: string, value: number, set: (v: number) => void) => (
+    <TextInput id={id} key={`${id}-${value}`} labelText={label} size="sm" type="number" defaultValue={String(Math.round(value))}
+      onBlur={(e) => { const v = Number(e.target.value); if (e.target.value !== '' && Number.isFinite(v) && v !== Math.round(value)) set(v) }} />
+  )
+  const [x, y, z] = o.position, [w, d, h] = o.dims
   return (
     <>
-      <h5 className="editor-panel__sub">Rack {o.id}</h5>
+      <h5 className="editor-panel__sub">Perangkat {o.id}</h5>
       <p className="helper mono">{o.template_id} · {o.dims.join(' × ')} mm</p>
       <TextInput id="ir-label" labelText="Label" size="sm" defaultValue={o.label ?? ''}
         onBlur={(e) => { if ((e.target.value || null) !== (o.label ?? null)) apply({ op: 'update_object', id: o.id, label: e.target.value || null }) }} />
-      <DeleteWithReason id="ir-del" label="Hapus rack" onDelete={(reason) => apply({ op: 'delete_object', id: o.id, reason })} />
+      <div className="install-device-grid">
+        {field('ir-x', 'X (mm)', x, (v) => apply({ op: 'update_object', id: o.id, position: [v, y, z] }))}
+        {field('ir-y', 'Y (mm)', y, (v) => apply({ op: 'update_object', id: o.id, position: [x, v, z] }))}
+        {field('ir-z', 'Z (mm)', z, (v) => apply({ op: 'update_object', id: o.id, position: [x, y, v] }))}
+        {field('ir-rot', 'Rotasi (°)', o.rotation ?? 0, (v) => apply({ op: 'update_object', id: o.id, rotation: ((v % 360) + 360) % 360 }))}
+        {field('ir-w', 'Lebar (mm)', w, (v) => apply({ op: 'update_object', id: o.id, dims: [v, d, h] }))}
+        {field('ir-d', 'Dalam (mm)', d, (v) => apply({ op: 'update_object', id: o.id, dims: [w, v, h] }))}
+        {field('ir-h', 'Tinggi (mm)', h, (v) => apply({ op: 'update_object', id: o.id, dims: [w, d, v] }))}
+      </div>
+      <DeleteWithReason id="ir-del" label="Hapus perangkat" onDelete={(reason) => apply({ op: 'delete_object', id: o.id, reason })} />
     </>
   )
 }

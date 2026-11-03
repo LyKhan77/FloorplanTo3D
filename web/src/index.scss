@@ -888,3 +888,6 @@ body {
 .assist__compose { display: flex; gap: 4px; align-items: flex-end; }
 .assist__compose .cds--form-item { flex: 1; }
 .review-tools button[aria-label='Perbaiki area'].is-on { background: #6929c4; }
+
+.install-device-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 8px; margin: 8px 0; }
+.install-drop-zone { display: contents; }

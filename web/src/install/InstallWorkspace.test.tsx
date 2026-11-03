@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, createEvent, fireEvent, render, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import gtJson from '../../../benchmarks/gatsu/gt_spec.json'
 import { ApiError } from '../api/client'
@@ -108,3 +108,42 @@ describe('InstallWorkspace racks (review I3, I8)', () => {
   })
 })
 
+
+describe('InstallWorkspace device editing (fit-out, 2D)', () => {
+  const rack = { id: 'RK1', template_id: 'rack-42u-600x1200', template_version: '1.1.0', position: [2000, 3000, 0], rotation: 0,
+    dims: [600, 1200, 2000], room_id: null, label: null, locked: false }
+  beforeEach(() => {
+    useEditorStore.getState().load('p1', gt)
+    ist().load({ ...base, objects: [rack] } as unknown as Installation)
+    ist().setTool('select')
+  })
+
+  it('a Library card dropped on the canvas adds the device there', () => {
+    const { container } = setup()
+    useEditorStore.getState().setDragging({ id: 'ups-cabinet-generic', version: '1.1.0', name: 'UPS', category: 'power',
+      dims: { w: 1200, d: 800, h: 2000 }, thumbnail_url: '', asset_url: '' })
+    const zone = container.querySelector('[data-drop-zone]')!
+    // jsdom's drop event carries no mouse position: set it on the event
+    const ev = createEvent.drop(zone, { dataTransfer: { getData: () => 'ups-cabinet-generic@1.1.0' } })
+    Object.defineProperties(ev, { clientX: { value: 3000 }, clientY: { value: -4000 } })
+    fireEvent(zone, ev)
+    expect(ist().ops.at(-1)).toMatchObject({ op: 'add_object', template_id: 'ups-cabinet-generic', position: [3000, 4000, 0],
+      dims: [1200, 800, 2000] })
+  })
+
+  it('dragging a selected device moves it', () => {
+    const { svg } = setup()
+    ist().select(['RK1'])
+    fireEvent.pointerDown(svg, { clientX: 2000, clientY: -3000, button: 0 })
+    fireEvent.pointerMove(svg, { clientX: 2500, clientY: -3000, button: 0 })
+    fireEvent.pointerUp(svg, { clientX: 2500, clientY: -3000, button: 0 })
+    expect(ist().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'RK1', position: [2500, 3000, 0] })
+  })
+
+  it('R turns the selected device a quarter', () => {
+    setup()
+    ist().select(['RK1'])
+    fireEvent.keyDown(window, { key: 'r' })
+    expect(ist().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'RK1', rotation: 90 })
+  })
+})

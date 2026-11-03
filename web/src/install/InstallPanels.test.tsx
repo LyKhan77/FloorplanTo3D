@@ -48,3 +48,18 @@ describe('InstallPanels meta (review I4)', () => {
   })
 })
 
+
+describe('InstallPanels device properties', () => {
+  it('Z sets the height a device hangs at', () => {
+    const o = { id: 'O7', template_id: 'fire-control-panel', template_version: '1.1.0', position: [3000, 100, 0], rotation: 0,
+      dims: [500, 150, 700], room_id: null, label: null, locked: false }
+    useInstallStore.getState().load({ schema_version: '1.0', meta: { version: 1, layout_version: 1, default_mounting: 'overhead', id_seq: {} },
+      cable_trays: [], objects: [o], provenance_log: [] } as never, 'p1')
+    useInstallStore.getState().select(['O7'])
+    render(<InstallPanels validation={{ issues: [], drops: [], lengths: null, pending: false, error: null }} saveIssues={[]} />)
+    const z = screen.getByLabelText('Z (mm)')
+    fireEvent.change(z, { target: { value: '1400' } })
+    fireEvent.blur(z)
+    expect(useInstallStore.getState().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'O7', position: [3000, 100, 1400] })
+  })
+})
