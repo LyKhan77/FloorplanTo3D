@@ -13,6 +13,8 @@ import numpy as np
 
 UPSCALE_BELOW_PX = 2000
 PDF_DPI = 300
+VECTOR_MIN_PATHS = 500  # a CAD export has thousands of paths; a scan or an image-only PDF has a handful
+PHOTO_MAX_PAGE_FRAC = 0.5  # a pasted photo is small; an image this big is the plan itself
 SKEW_IGNORE_DEG = 0.2
 SKEW_MAX_DEG = 5.0
 MSG_TILTED = "Gambar miring > 5°; scan di luar cakupan"
@@ -30,6 +32,15 @@ class PreprocessResult:
     warnings: list[str] = field(default_factory=list)
 
 
+def _pasted_photos(page) -> list:
+    """Rects of site photos pasted on a vector (CAD) plan. A scan is one big image and has few vector paths: kept."""
+    if len(page.get_drawings()) < VECTOR_MIN_PATHS:
+        return []
+    limit = PHOTO_MAX_PAGE_FRAC * page.rect.width * page.rect.height
+    return [r for img in page.get_images(full=True) for r in page.get_image_rects(img[0])
+            if r.width * r.height < limit]
+
+
 def load_raster(path: Path, page: int = 1) -> np.ndarray:
     """BGR image of a JPEG/PNG (alpha flattened on white) or of one PDF page rendered at 300 dpi."""
     path = Path(path)
@@ -39,9 +50,21 @@ def load_raster(path: Path, page: int = 1) -> np.ndarray:
         with fitz.open(path) as doc:
             if not 1 <= page <= doc.page_count:
                 raise ValueError(f"page {page} not in 1..{doc.page_count}")
-            pix = doc[page - 1].get_pixmap(matrix=fitz.Matrix(PDF_DPI / 72, PDF_DPI / 72), alpha=False)
+            pg = doc[page - 1]
+            photos = _pasted_photos(pg)
+            for r in photos:
+                pg.add_redact_annot(r)
+            if photos:
+                pg.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
+                                    text=fitz.PDF_REDACT_TEXT_NONE)
+            k = PDF_DPI / 72
+            pix = pg.get_pixmap(matrix=fitz.Matrix(k, k), alpha=False)
             img = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, pix.n)
-            return cv2.cvtColor(img, cv2.COLOR_RGB2BGR if pix.n == 3 else cv2.COLOR_GRAY2BGR)
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR if pix.n == 3 else cv2.COLOR_GRAY2BGR)
+            for r in photos:  # the photo's frame would read as a wall
+                cv2.rectangle(img, (round(r.x0 * k), round(r.y0 * k)), (round(r.x1 * k), round(r.y1 * k)),
+                              (255, 255, 255), max(3, round(3 * PDF_DPI / 300)))
+            return img
     img = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     if img is None:
         raise ValueError(f"cannot read image {path}")

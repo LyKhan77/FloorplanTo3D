@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from core.extraction.preprocess import load_raster, preprocess
+from tests.inputs import ANCOL, requires_ancol
 
 PLAN = Path("floorplan/plan.jpeg")
 
@@ -64,3 +65,44 @@ def test_png_with_alpha_flattened_on_white(tmp_path):
     img = load_raster(p)
     assert img.shape == (20, 30, 3)
     assert (img[0, 0] == 255).all() and (img[7, 7] == 0).all()
+
+
+def _png(colour: int, size: int = 50) -> bytes:
+    return cv2.imencode(".png", np.full((size, size, 3), colour, np.uint8))[1].tobytes()
+
+
+def test_vector_pdf_photo_removed_lines_kept(tmp_path):
+    import pymupdf as fitz
+
+    pdf = tmp_path / "plan.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=600, height=400)
+    for i in range(600):  # a vector-heavy page, as a CAD export is
+        page.draw_line((5 + (i % 60) * 9, 300 + i // 60 * 9), (9 + (i % 60) * 9, 300 + i // 60 * 9))
+    page.draw_line((50, 200), (550, 200), width=2)  # a wall the photo covers
+    page.insert_image(fitz.Rect(100, 150, 300, 250), stream=_png(0))
+    page.draw_rect(fitz.Rect(100, 150, 300, 250), width=0.5)  # the photo's frame
+    doc.save(pdf)
+    img = load_raster(pdf, page=1)
+    k = 300 / 72
+    assert img[int(160 * k):int(190 * k), int(110 * k):int(290 * k)].min() > 200  # photo gone
+    assert img[int(200 * k), int(200 * k)].max() < 100  # wall under the photo kept
+    assert img[int(150 * k), int(200 * k)].min() > 200  # frame outline erased
+
+
+def test_scanned_pdf_keeps_its_image(tmp_path):
+    import pymupdf as fitz
+
+    pdf = tmp_path / "scan.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=600, height=400)
+    page.insert_image(page.rect, stream=_png(0), keep_proportion=False)
+    doc.save(pdf)
+    assert load_raster(pdf, page=1).mean() < 50
+
+
+@requires_ancol
+def test_ancol_p13_has_no_photo_pixels():
+    img = load_raster(ANCOL, page=13)
+    sat = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 1]
+    assert (sat > 60).mean() < 0.002  # site photos were the only large colourful areas
