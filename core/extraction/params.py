@@ -3,7 +3,7 @@
 import re
 
 KNOWN = ("wall_height", "door_height", "wall_thickness", "floor_name", "site_type", "mm_per_px", "use_strata",
-         "review_pause", "ceiling_height", "raised_floor_height")
+         "review_pause", "ceiling_height", "raised_floor_height", "door_leaf_width")
 _NUM = r"(\d+(?:[.,]\d+)?)"
 _UNIT = r"\s*(mm|cm|m)\b"
 _TO_MM = {"mm": 1, "cm": 10, "m": 1000}
@@ -16,6 +16,8 @@ def _mm(value: str, unit: str) -> int:
 def parse_prompt(prompt: str) -> dict:
     p = prompt.lower()
     out: dict = {}
+    if m := re.search(rf"lebar\s+pintu\s+{_NUM}{_UNIT}", p):
+        out["door_leaf_width"] = _mm(m[1], m[2])
     if m := re.search(rf"tinggi\s+pintu\s+{_NUM}{_UNIT}", p):
         out["door_height"] = _mm(m[1], m[2])
     if m := re.search(rf"tinggi(?:\s+dinding)?\s+{_NUM}{_UNIT}", p):  # "tinggi pintu …" has no number right after "tinggi"

@@ -68,3 +68,8 @@ def test_prompt_sets_ceiling_and_raised_floor():
     from core.extraction.params import parse_prompt
     got = parse_prompt("tinggi dinding 4 m, tinggi plafon 3.2 m, raised floor 600 mm")
     assert (got["ceiling_height"], got["raised_floor_height"], got["wall_height"]) == (3200, 600, 4000)
+
+
+def test_parse_prompt_door_width():
+    assert parse_prompt("lebar pintu 90 cm") == {"door_leaf_width": 900}
+    assert merge_params({"door_leaf_width": 850}, {}) == {"door_leaf_width": 850}

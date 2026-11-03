@@ -10,6 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from core.extraction.door_scale import estimate_from_doors
 from core.extraction.geometry.candidate import extract_candidate
 from core.extraction.geometry.overlay import render_elements_overlay
 from core.extraction.geometry.sweep import run_sweep, sweep_params
@@ -21,7 +22,14 @@ from core.extraction.rooms.assemble import assemble_spec, leak_issues
 from core.extraction.rooms.labels import best_label, labels_from_ocr
 from core.extraction.rooms.overlay import px_from_mm, render_rooms_overlay
 from core.extraction.rooms.overlay_ids import render_ids_overlay
-from core.extraction.scale import compose_original, scale_from
+from core.extraction.scale import (
+    DEFAULT_DOOR_LEAF_MM,
+    MSG_DOOR_ESTIMATE,
+    MSG_NO_SCALE,
+    compose_original,
+    scale_from,
+    scale_mode,
+)
 from core.extraction.select import choose, crop_labels, ocr_dimensions_from
 from core.extraction.textclass import classify_text, ocr_page
 from core.spec.carryover import carry_over
@@ -129,8 +137,17 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
     # the form's manual scale is mm per *original* pixel; the solver works in working pixels
     a, b, _, d, e, _ = meta["work_from_original"]
     work_per_original = abs(a * e - b * d) ** 0.5
-    manual = params.get("mm_per_px")
-    doc = scale_from(grid, dims, manual / work_per_original if manual else None, unit=work_per_original)
+    mode, value = scale_mode(params)
+    doc = scale_from(grid, dims, value / work_per_original if mode == "manual" else None, unit=work_per_original)
+    doors = None
+    if mode == "door" or (mode == "auto" and doc["status"] != "succeeded"):
+        leaf = value if mode == "door" else DEFAULT_DOOR_LEAF_MM
+        doors = estimate_from_doors(binary, tuple(meta["drawing_bbox"]), leaf)
+        if doors is None:
+            doc = {**doc, "status": "needs_attention", "message": MSG_NO_SCALE}
+        else:  # door scale is already per working pixel
+            doc = scale_from(grid, dims, doors["mm_per_px"], unit=work_per_original, source="door_estimate")
+            doc["warnings"].append(MSG_DOOR_ESTIMATE.format(n=doors["doors_used"], w=leaf))
     if progress:
         progress(90, "skala")
     if doc["status"] == "succeeded":
@@ -143,7 +160,9 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
     return {"status": doc["status"], "message": doc.get("message", ""), "warnings": doc.get("warnings", []),
             "metrics": {"axes_v": len(grid["vertical"]), "axes_h": len(grid["horizontal"]),
                         "mm_per_px": round(doc["mm_per_px"], 4) if doc.get("mm_per_px") else None,
-                        "scale_source": doc.get("scale_source"), "residual_max_pct": round(100 * max(residuals), 3)}}
+                        "scale_source": doc.get("scale_source"), "residual_max_pct": round(100 * max(residuals), 3),
+                        **({"doors_used": doors["doors_used"], "door_radius_px": round(doors["door_radius_px"], 2)}
+                           if doors else {})}}
 
 
 def _candidate_job(inputs: dict, index: int, params: dict) -> dict:

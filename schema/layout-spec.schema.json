@@ -402,7 +402,8 @@
             "grid_dimensions",
             "dimension_text",
             "manual",
-            "total_length"
+            "total_length",
+            "door_estimate"
           ],
           "title": "Scale Source",
           "type": "string"

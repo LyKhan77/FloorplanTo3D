@@ -73,7 +73,7 @@ class Meta(_Model):
     image: ImageInfo | None = None
     px_to_mm: list[float]
     mm_per_px: float
-    scale_source: Literal["grid_dimensions", "dimension_text", "manual", "total_length"]
+    scale_source: Literal["grid_dimensions", "dimension_text", "manual", "total_length", "door_estimate"]
     defaults: Defaults = Defaults()
     building_outline: list[Polygon] = []
     gross_area_m2: float = 0

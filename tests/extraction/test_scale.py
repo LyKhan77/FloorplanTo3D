@@ -4,7 +4,7 @@ import pytest
 
 from benchmarks.extraction_metrics import scale_metrics
 from core.extraction.ocr import OcrItem
-from core.extraction.scale import MSG_NO_SCALE, compose_original, scale_from
+from core.extraction.scale import MSG_NO_SCALE, compose_original, scale_from, scale_mode
 from core.spec.models import Spec
 
 V = {"A": 0, "B": 240, "C": 480, "D": 640, "E": 880, "F": 1120}
@@ -64,7 +64,7 @@ def test_manual_scale_wins_with_warning():
 
 def test_no_dimensions_needs_attention():
     g = scale_from(grid(), [], None)
-    assert g["status"] == "needs_attention" and g["message"] == MSG_NO_SCALE == "Skala tidak dapat ditentukan, isi skala manual"
+    assert g["status"] == "needs_attention" and g["message"] == MSG_NO_SCALE == "Skala tidak dapat ditentukan: tidak ada dimensi maupun pintu"
     g = scale_from(grid(), [], 25.0)
     assert g["status"] == "succeeded" and g["scale_source"] == "manual" and g["mm_per_px"] == 25.0
 
@@ -95,3 +95,15 @@ def test_gatsu_scale_within_half_percent():
     assert g["scale_source"] == "grid_dimensions"
     offsets = {a["label"]: a["offset"] for a in g["axes"]}
     assert offsets == {"A": 0, "B": 6000, "C": 12000, "D": 16000, "E": 22000, "F": 28000, "3": 0, "2": 6000, "1": 12000}
+
+
+def test_scale_mode_precedence():
+    assert scale_mode({"door_leaf_width": 900, "mm_per_px": 25}) == ("door", 900)
+    assert scale_mode({"mm_per_px": 25}) == ("manual", 25)
+    assert scale_mode({}) == ("auto", None)
+
+
+def test_door_estimate_source_has_no_manual_warning():
+    g = scale_from(grid(), chain(), 26.0, source="door_estimate")
+    assert g["scale_source"] == "door_estimate" and g["mm_per_px"] == pytest.approx(26.0)
+    assert not [w for w in g["warnings"] if "skala manual" in w]

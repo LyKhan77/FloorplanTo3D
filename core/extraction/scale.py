@@ -14,7 +14,9 @@ from core.extraction.ocr import OcrItem
 MAX_RESIDUAL = 0.01
 SCREEN = 0.05  # first pass against the shared median: catches wrong spans (a total read as one bay), not noise
 MAX_ANISOTROPY = 0.01
-MSG_NO_SCALE = "Skala tidak dapat ditentukan, isi skala manual"
+MSG_NO_SCALE = "Skala tidak dapat ditentukan: tidak ada dimensi maupun pintu"
+MSG_DOOR_ESTIMATE = "Skala diperkirakan dari {n} pintu (lebar pintu {w:g} mm). Ubah lebar pintu bila ukuran tidak sesuai."
+DEFAULT_DOOR_LEAF_MM = 800
 
 
 def _value(text: str) -> int | None:
@@ -169,19 +171,29 @@ def _public(e: dict) -> dict:
     return {k: v for k, v in e.items() if not k.startswith("_")}
 
 
-def scale_from(grid: dict, dims: list[OcrItem], manual_mm_per_px: float | None, unit: float = 1.0) -> dict:
-    """unit: factor from working-pixel mm/px to the user's mm/px (original pixels), for messages only."""
+def scale_mode(params: dict) -> tuple[str, float | None]:
+    """An explicit door width wins over everything (it is how the user corrects the scale), then a manual mm/px."""
+    if params.get("door_leaf_width"):
+        return "door", float(params["door_leaf_width"])
+    if params.get("mm_per_px"):
+        return "manual", float(params["mm_per_px"])
+    return "auto", None
+
+
+def scale_from(grid: dict, dims: list[OcrItem], manual_mm_per_px: float | None, unit: float = 1.0,
+               source: str = "manual") -> dict:
+    """unit: factor from working-pixel mm/px to the user's mm/px (original pixels), for messages only.
+    source: what a given scale is recorded as ("manual", or "door_estimate" from stage 2's door fallback)."""
     solved = solve_scale(dimension_equations(grid, dims), grid)
     warnings = list(grid.get("warnings", []))
     sx, sy = solved["sx"], solved["sy"]
     computed = (sx * sy) ** 0.5 if sx else None
     if manual_mm_per_px:
-        if computed and abs(computed - manual_mm_per_px) / manual_mm_per_px > MAX_RESIDUAL:
+        if source == "manual" and computed and abs(computed - manual_mm_per_px) / manual_mm_per_px > MAX_RESIDUAL:
             warnings.append(f"skala manual {manual_mm_per_px * unit:.3f} berbeda "
                             f"{abs(computed - manual_mm_per_px) / manual_mm_per_px:.1%} dari skala hasil hitung "
                             f"{computed * unit:.3f} mm/px")
         sx = sy = float(manual_mm_per_px)
-        source = "manual"
     elif sx is None:
         return {"status": "needs_attention", "message": MSG_NO_SCALE, "axes": [], "warnings": warnings,
                 "equations_used": [], "equations_dropped": [_public(e) for e in solved["dropped"]]}
