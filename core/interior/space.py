@@ -19,6 +19,7 @@ class Door:
     along: tuple[float, float]  # unit vector of the wall
     width: float
     zone: Polygon  # the part of the keep-clear rectangle inside the room
+    half: float = 100.0  # half the wall thickness: the wall face is this far from the axis
 
 
 @dataclass
@@ -59,7 +60,7 @@ def room_space(spec: Spec, room_id: str, box: tuple | None, ceiling: float, lib:
         zone = rect.intersection(poly)
         if zone.is_empty:
             continue
-        doors.append(Door((cx, cy), (ux, uy), o.width, _largest(zone)))
+        doors.append(Door((cx, cy), (ux, uy), o.width, _largest(zone), w.thickness / 2))
         blocked.append(_largest(zone))
     blocked += [f for c in spec.columns if (f := column_footprint(c)).intersects(poly)]
     for o in spec.objects:
