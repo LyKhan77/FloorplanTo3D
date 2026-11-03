@@ -68,3 +68,24 @@ def test_project_without_installation_is_unchanged(setup_client, project_with_gt
     assert d["installation"] is None and d["head"] == 1
     assert c.get(f"{base(pid)}/HEAD").status_code == 404
     assert c.get("/api/projects").json()["items"][0]["installation"] is None
+
+
+def test_ensure_route_moves_and_rebases(setup_client, project_with_gt):
+    c, pid = setup_client, project_with_gt
+    spec = c.get(f"/api/projects/{pid}/specs/HEAD").json()
+    v = spec["meta"]["version"]
+    add = {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.1.0",
+           "position": [2000, 2000, 0], "rotation": 0, "dims": [600, 1200, 2000]}
+    assert c.post(f"/api/projects/{pid}/specs", json={"base_version": v, "ops": [add]}).status_code == 201
+    r = c.post(f"{base(pid)}/ensure").json()
+    assert r["moved"] == 1 and r["installation"]["meta"]["layout_version"] == v + 2
+    assert c.get(f"/api/projects/{pid}/specs/HEAD").json()["objects"] == []
+
+
+def test_build_rebases_first(setup_client, project_with_gt, monkeypatch):
+    c, pid = setup_client, project_with_gt
+    c.post(f"{base(pid)}/start", json={})
+    import_gt(c, pid)  # layout v2: the installation is behind
+    monkeypatch.setattr(c.app.state.orchestrator, "start_run", lambda *a, **k: {"run_id": "r1", "status": "queued"})
+    assert c.post(f"{base(pid)}/build", json={"version": "HEAD"}).status_code == 202
+    assert c.get(f"{base(pid)}/HEAD").json()["meta"]["layout_version"] == 2

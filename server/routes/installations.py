@@ -96,6 +96,30 @@ def start(pid: str, body: StartBody, request: Request):
     return inst.model_dump(mode="json")
 
 
+@router.post("/ensure")
+def ensure_route(pid: str, request: Request):
+    """Opening Instalasi & Interior: the installation exists, holds every device (layout objects move once) and stands
+    on the newest layout. The client calls it only with no unsaved installation work."""
+    from core.extraction.stages import run_params
+    from core.installation.fitout import ensure
+    from server.projects import latest_run
+
+    storage = request.app.state.storage
+    d = storage.project_dir(pid)
+    specs = _specs(request, pid)
+    if specs.head() is None:
+        raise ApiError(409, "no_layout", "layout belum punya versi spec")
+    try:
+        params = run_params(d)
+    except (OSError, ValueError):
+        params = {}
+    run = latest_run(storage, pid)
+    out = ensure(specs, _store(request, pid), _templates(request), params,
+                 review_paused=bool(run and run.get("status") == "needs_review"))
+    touch(storage, pid)
+    return {**out, "installation": out["installation"].model_dump(mode="json"), "issues": _issues(out["issues"])}
+
+
 @router.get("")
 def versions(pid: str, request: Request):
     store = _store(request, pid)
@@ -223,7 +247,12 @@ def fit_box_route(pid: str, body: FitBoxBody, request: Request):
 @router.post("/build", status_code=202)
 def build(pid: str, body: BuildBody, request: Request):
     """M12b: build the installation in 3D (run kind "installation", stages 7-10); refused while it has errors."""
+    from core.installation.fitout import auto_rebase
+
     store, specs = _store(request, pid), _specs(request, pid)
+    if body.version == "HEAD":
+        _head(store)
+        auto_rebase(specs, store, _templates(request))  # the build always stands on the newest layout
     try:
         inst = _head(store) if body.version == "HEAD" else store.load(body.version)
     except (FileNotFoundError, OSError):
