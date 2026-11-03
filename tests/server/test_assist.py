@@ -103,3 +103,26 @@ def test_a_box_that_is_a_whole_room_is_no_drawn_box():
     assert _room_of_box(gt, whole) == "R34"
     small = {**whole, "size": [600, 1200]}
     assert _room_of_box(gt, small) is None
+
+
+def test_installation_layer_reads_installation_objects(setup_client, project_with_gt, fake, library_dir):
+    import shutil
+
+    from core.installation.ops import apply as inst_apply
+    from core.installation.store import InstallationStore
+
+    c, pid = setup_client, project_with_gt
+    shutil.copytree(library_dir, c.app.state.storage.templates_dir, dirs_exist_ok=True)
+    c.post(f"/api/projects/{pid}/installations/start", json={})
+    crac = {"op": "add_object", "template_id": "crac-unit-generic", "template_version": "1.1.0",
+            "position": [6500, 9000, 0], "rotation": 0, "dims": [2500, 900, 1950]}  # inside BOX
+    rack = {"type": "place_drawn", "boxes": ["K1"], "template": "rack-42u-600x1200"}
+    fake.answers.append({"question": None, "actions": [rack], "explanation": "x"})
+    k1 = {"id": "K1", "center": [12000, 8000], "size": [600, 1200], "rotation": 0}
+    ev = events(post(c, pid, layer="installation", base_version=1, ops=[crac], drawn=[k1], message="K1 itu rack"))
+    assert "crac-unit-generic" in json.dumps(fake.calls[0])
+    p = next((d for e, d in ev if e == "proposal"), None)
+    assert p is not None, [e for e in ev if e[0] != "session"][3:]
+    inst = InstallationStore(c.app.state.storage.project_dir(pid) / "installations").load("HEAD")
+    after = inst_apply(inst, [crac, *p["ops"]], "editor", 2)  # the proposal's ops are installation ops
+    assert len(after.objects) == 2

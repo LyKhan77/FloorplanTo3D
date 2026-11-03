@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from core.assist.context import area_context
-from core.assist.plan import AreaPlan, Interior, translate
+from core.assist.plan import ARCHITECTURE, EQUIPMENT, AreaPlan, Interior, translate
 from core.llm_review.tasks import load_prompt, png_part
 from core.spec.models import Spec
 from core.spec.ops import OpError, apply
@@ -50,7 +50,8 @@ def _check(base: Spec, ops: list[dict], tr, before: set) -> tuple[list[str], lis
 
 def run_turn(client, session: Session, message: str, base: Spec, ops: list[dict], page: np.ndarray | None,
              binary: np.ndarray | None, px_to_mm: list | None, log_dir: Path, templates_dir: Path | None = None,
-             drawn: list[dict] | None = None, ceiling: float | None = None) -> Iterator[dict]:
+             drawn: list[dict] | None = None, ceiling: float | None = None,
+             layer: str = "layout") -> Iterator[dict]:
     try:
         interior = None
         if templates_dir is not None:
@@ -59,7 +60,7 @@ def run_turn(client, session: Session, message: str, base: Spec, ops: list[dict]
 
             interior = Interior(load_library(templates_dir), load_rules(), list(drawn or []),
                                 ceiling or base.meta.defaults.wall_height)
-        yield from _turn(client, session, message, base, ops, page, binary, px_to_mm, interior)
+        yield from _turn(client, session, message, base, ops, page, binary, px_to_mm, interior, layer)
     except Exception as e:  # noqa: BLE001 - a bug must still end the chat turn with a message, not a cut-off stream
         yield {"event": "error", "text": f"Kesalahan di asisten ({type(e).__name__}: {e}); coba lagi atau perbaiki manual"}
     finally:
@@ -100,8 +101,16 @@ def _ask(client, messages: list[dict]):
     return AreaPlan.model_validate(r.parsed), None
 
 
+MODE_TEXT = {
+    "layout": "Mode: Layout - architecture only (walls, openings, stairs, rooms). Equipment is placed in the "
+              "Instalasi & Interior mode: say so instead of fill_room / place_drawn.",
+    "installation": "Mode: Instalasi & Interior - equipment only (fill_room, place_drawn). The walls, doors, stairs "
+                    "and rooms are changed in the Layout mode: say so instead of proposing them.",
+}
+
+
 def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, binary, px_to_mm,
-          interior: Interior | None = None) -> Iterator[dict]:
+          interior: Interior | None = None, layer: str = "layout") -> Iterator[dict]:
     try:
         work = apply(base, ops, "editor", base.meta.version + 1)
     except OpError as e:
@@ -121,7 +130,7 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
         note = ("Your previous proposal was NOT applied; the user replies to it instead of accepting it.\n"
                 f"What it would have done: {s.proposals[last]['summary']}\n"
                 "Answer with a complete revised plan: every action still wanted, not only the changes.\n\n")
-    user = [{"type": "text", "text": f"{ctx.text}\n\n{note}Instruction: {message}"}]
+    user = [{"type": "text", "text": f"{MODE_TEXT[layer]}\n{ctx.text}\n\n{note}Instruction: {message}"}]
     if ctx.image is not None:
         user.append(png_part(ctx.image))
     messages = [{"role": "system", "content": load_prompt("AF")}, *s.messages, {"role": "user", "content": user}]
@@ -151,7 +160,8 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
             yield {"event": "error", "text": plan.explanation or "Strata tidak mengusulkan perubahan"}
             return
         yield {"event": "step", "text": f"Menerjemahkan {len(plan.actions)} aksi ke op…"}
-        tr = translate(plan, work, ctx, message, binary, px_to_mm, interior)
+        tr = translate(plan, work, ctx, message, binary, px_to_mm, interior,
+                       EQUIPMENT if layer == "installation" else ARCHITECTURE)
         problems, issues = _check(base, ops, tr, before)
         if not problems or attempt == 1:
             break

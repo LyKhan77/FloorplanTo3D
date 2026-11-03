@@ -239,9 +239,20 @@ def _gap(binary, px_to_mm, a, ux, uy, length: float, t: float, half: float,
     return (best[1], best[2]) if best else None
 
 
+EQUIPMENT = frozenset({"fill_room", "place_drawn"})
+ARCHITECTURE = frozenset({"delete_wall", "merge_walls", "add_wall", "extend_wall", "split_wall", "add_opening",
+                          "set_door", "delete_opening", "add_stair", "delete_stair", "set_room_type", "rename_room"})
+WRONG_MODE = {"fill_room": "isi ruang di mode Instalasi & Interior", "place_drawn": "isi ruang di mode Instalasi & Interior"}
+
+
 def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, binary: np.ndarray | None,
-              px_to_mm: list | None, interior: Interior | None = None) -> Translation:
+              px_to_mm: list | None, interior: Interior | None = None, allowed: frozenset[str] | None = None) -> Translation:
     out = Translation()
+    if allowed is not None:  # layout mode edits the architecture, Instalasi & Interior the equipment
+        for a in plan.actions:
+            if a.type not in allowed:
+                out.rejected.append(f"{a.type}: {WRONG_MODE.get(a.type, 'ubah denah di mode Layout')}")
+        plan = plan.model_copy(update={"actions": [a for a in plan.actions if a.type in allowed]})
     reason = "asisten: " + (instruction.strip()[:60] or "perbaiki area")
     walls = {w.id: w for w in spec.walls if w.id in ctx.wall_ids}
     openings = {o.id: o for o in spec.openings if o.id in ctx.opening_ids}

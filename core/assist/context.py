@@ -68,6 +68,11 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
                                             for f in st.flights) for st in stairs]
     if columns:
         lines.append("Columns (context only): " + ", ".join(f"{c.id} at={list(c.center)}" for c in columns))
+    devices = [o for o in spec.objects if area.covers(Point(o.position[0], o.position[1]))]
+    if devices:
+        lines.append("Devices already placed (id, template, at, rotation):")
+        lines += [f"- {o.id} {o.template_id} at={[round(o.position[0]), round(o.position[1])]} rot={round(o.rotation)}"
+                  for o in devices]
     if drawn:
         lines.append("Drawn boxes the user pointed at (id, centre, size short x long mm, long side along):")
         lines += [f"- {b['id']} at={[round(v) for v in b['center']]} {round(b['size'][0])}x{round(b['size'][1])} "

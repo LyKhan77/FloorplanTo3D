@@ -384,3 +384,23 @@ def test_a_unit_that_does_not_fit_goes_to_the_revision_with_its_alternative(libr
                          "items": [{"template": "crac-unit-generic"}]}), s, ctx, ASK, None, None,
                    interior=interior(library_dir))
     assert any("inrow-cooler-300x1200" in r for r in tr.rejected)
+
+
+def test_layout_layer_refuses_fill(library_dir):
+    from core.assist.plan import ARCHITECTURE
+
+    s = spec_with_rooms()
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None)
+    tr = translate(plan({"type": "fill_room", "room": "R1", "items": [{"template": "rack-42u-600x1200"}]}), s, ctx,
+                   ASK, None, None, interior=interior(library_dir), allowed=ARCHITECTURE)
+    assert not tr.ops and any("Instalasi & Interior" in r for r in tr.rejected)
+
+
+def test_installation_layer_refuses_walls(library_dir):
+    from core.assist.plan import EQUIPMENT
+
+    s = spec_with_rooms()
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None)
+    tr = translate(plan({"type": "delete_wall", "id": "W5"}), s, ctx, ASK, None, None, interior=interior(library_dir),
+                   allowed=EQUIPMENT)
+    assert not tr.ops and any("mode Layout" in r for r in tr.rejected)

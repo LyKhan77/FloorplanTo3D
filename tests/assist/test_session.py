@@ -162,7 +162,7 @@ def test_o001_triggers_revision(tmp_path, library_dir):
     good = act({"type": "place_drawn", "boxes": ["K1"], "template": "ups-cabinet-generic"})
     c = FakeClient(bad, good)
     ev = list(run_turn(c, new(), "K1 K2 itu UPS", spec_with_rooms(), [], None, None, None, tmp_path,
-                       templates_dir=library_dir, drawn=ks))
+                       templates_dir=library_dir, drawn=ks, layer="installation"))
     p = next(e for e in ev if e["event"] == "proposal")
     assert len(c.calls) == 2 and p["valid"] and len(p["objects"]) == 1
 

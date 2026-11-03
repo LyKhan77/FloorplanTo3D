@@ -3,6 +3,7 @@
 import itertools
 import json
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import StreamingResponse
@@ -24,6 +25,8 @@ class AreaBody(BaseModel):
     selection: list[str] = []
     message: str
     drawn: list[dict] = []  # boxes the user pointed at in the drawing (K1, K2, ...), for generate interior
+    # layout: base_version/ops are the layout spec's; installation: the installation's (equipment lives there)
+    layer: Literal["layout", "installation"] = "layout"
 
 
 class DecisionBody(BaseModel):
@@ -59,6 +62,21 @@ def _drawing(request: Request, pid: str):
             json.loads(grid.read_text())["px_to_mm"])
 
 
+def _installation_view(storage, pid: str, version: int, ops: list[dict]):
+    """The layout the installation stands on, with the installation's devices (and its unsaved ops) as objects."""
+    from core.installation.ops import apply as inst_apply
+    from core.installation.store import InstallationStore
+    from core.spec.ops import OpError as InstallOpError
+
+    inst = InstallationStore(storage.project_dir(pid) / "installations").load(version)
+    try:
+        inst = inst_apply(inst, ops, "editor", inst.meta.version + 1)
+    except InstallOpError as e:
+        raise ApiError(400, "bad_op", e.message) from None
+    layout = SpecStore(storage.project_dir(pid) / "specs").load(inst.meta.layout_version)
+    return layout.model_copy(update={"objects": inst.objects})
+
+
 def _ceiling(storage, pid: str) -> float | None:
     """The installation's ceiling height when one exists (cameras hang below it), else None (wall height)."""
     from core.installation.store import InstallationStore
@@ -82,10 +100,14 @@ def _session(request: Request, pid: str, sid: str) -> Session:
 def area(pid: str, body: AreaBody, request: Request):
     storage = request.app.state.storage
     store = SpecStore(storage.project_dir(pid) / "specs")
+    ops = body.ops
     try:
-        base = store.load(body.base_version)
+        if body.layer == "installation":
+            base, ops = _installation_view(storage, pid, body.base_version, body.ops), []
+        else:
+            base = store.load(body.base_version)
     except (FileNotFoundError, OSError):
-        raise ApiError(404, "spec_not_found", f"spec version {body.base_version} not found") from None
+        raise ApiError(404, "spec_not_found", f"version {body.base_version} not found") from None
     if body.session_id:
         s = _session(request, pid, body.session_id)
         s.box, s.selection = body.box, body.selection
@@ -99,8 +121,8 @@ def area(pid: str, body: AreaBody, request: Request):
     log_dir = storage.project_dir(pid) / "assist"
 
     def stream():
-        events = run_turn(client, s, body.message, base, body.ops, page, binary, px_to_mm, log_dir,
-                          storage.templates_dir, body.drawn, _ceiling(storage, pid))
+        events = run_turn(client, s, body.message, base, ops, page, binary, px_to_mm, log_dir,
+                          storage.templates_dir, body.drawn, _ceiling(storage, pid), body.layer)
         for ev in itertools.chain(first, events):
             name = ev.pop("event")
             yield f"event: {name}\ndata: {json.dumps(ev)}\n\n"
