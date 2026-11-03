@@ -6,6 +6,8 @@ Pipeline otomatis membaca grid, skala, dinding, pintu, kolom, tangga, dan ruang 
 
 Dokumen produk ada di `PRD/`, rencana dan status milestone di `ROADMAP.md`, dan keputusan benchmark di `benchmarks/DECISIONS.md`.
 
+Untuk agent dan pengembang: `AGENTS.md` (aturan dan konvensi), `WORKFLOW.md` (alur aplikasi dan alur kerja), `CHANGELOG.md` (yang sudah selesai), `todo.md` (tugas yang sedang dikerjakan).
+
 ## Kebutuhan
 
 | Komponen | Versi | Catatan |

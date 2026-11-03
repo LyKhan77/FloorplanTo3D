@@ -13,3 +13,17 @@ benchmarks/spike/crops/
 .coverage
 benchmarks/spike/out/
 benchmarks/.cache/
+
+# Inputs and outputs stay local (AGENTS.md): client drawings and anything generated from them
+floorplan/
+temp/
+benchmarks/reports/
+benchmarks/gatsu/gt_overlay.png
+benchmarks/gatsu/fewshot/**/*.png
+.impeccable/
+
+# Plans are working notes, never committed (AGENTS.md); specs are committed
+docs/superpowers/plans/
+
+# Personal notes
+list-object-interior.txt
