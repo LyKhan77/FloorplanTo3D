@@ -101,3 +101,11 @@ def test_a_unit_that_does_not_fit_suggests_one_that_does(lib):
     s = sp(hall(w=2700, h=3700, doors=[(0, 300, 900)]), lib)
     lay = fill(s, lib, {"crac-unit-generic": None}, {}, "lineup", R)
     assert any("crac-unit-generic tidak muat" in n and "inrow-cooler-300x1200" in n for n in lay.notes)
+
+
+def test_a_full_hall_is_not_topped_up_with_wall_racks(lib):
+    s = sp(hall(), lib)
+    lay = fill(s, lib, {RACK: 999}, {}, "rows", R)
+    racks = [p for p in lay.placements if p.template_id == RACK]
+    assert len(racks) == 27 and not any(p.against_wall for p in racks)
+    assert any("muat 27 dari 999" in n for n in lay.notes)

@@ -264,6 +264,8 @@ def _leftovers(lay: Layout, space: Space, lib, items: dict, rules: Rules) -> Non
             continue
         tpl = lib[tid]
         placed = sum(p.template_id == tid for p in lay.placements)
+        if placed and tpl.category in ("rack", "network"):
+            continue  # rows stood: their capacity holds (a hall is not topped up with racks against the walls)
         want = count if count is not None else (1 if placed == 0 else 0)
         added = 0
         front = clearance(tpl, rules)[0] or (rules.row_end_clear_mm if tpl.category == "cooling" else 0)
