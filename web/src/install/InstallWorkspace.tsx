@@ -10,6 +10,9 @@ import { fitBox, snapBox, snapTray, type Drop, type SnapBox } from './api'
 import { InstallLayer } from './InstallLayer'
 import { cleanPath, DEFAULT_WIDTH, TRAY_COLOUR, type InstallOp } from './reducer'
 import { useInstallStore, type InstallTool } from './store'
+import { areaPointer } from '../editor/assist/areaPointer'
+import { ProposalLayer } from '../editor/assist/ProposalLayer'
+import { useAssistStore } from '../editor/assist/store'
 
 type Pt = [number, number]
 const SAME_RACK_MM = 100  // a traced box whose centre is this close to a placed rack is that rack again
@@ -91,8 +94,15 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     useInstallStore.getState().apply({ op: 'add_tray', path, tray_class: s.trayClass, width })
   }
 
+  const [rough, setRough] = useState<{ a: Pt; b: Pt } | null>(null)
+  // tool A here fills rooms with equipment (the installation layer of the area assistant)
+  useEffect(() => {
+    if (tool === 'assist') useAssistStore.getState().setLayer('installation')
+    else if (useAssistStore.getState().layer === 'installation') useAssistStore.getState().close()
+  }, [tool])
   const onPointer = (kind: 'down' | 'move' | 'up', mm: Pt, e: React.PointerEvent) => {
     if (e.button > 0 || tool === 'select') return false
+    if (tool === 'assist') return areaPointer(projectId, kind, mm, e, rough, setRough)
     const p: Pt = [Math.round(mm[0]), Math.round(mm[1])]
     if (tool === 'rack' && e.shiftKey) {
       if (kind === 'down') setBox({ a: p, b: p })
@@ -111,8 +121,8 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
       if (ignoredTarget(e.target as Element | null) || e.ctrlKey || e.metaKey || e.altKey) return
       const s = useInstallStore.getState()
       if (e.key === 'Enter' && s.tool === 'tray') { void finishTray(); return }
-      if (e.key === 'Escape') { s.setTrayDraft([]); s.setTool('select'); setBox(null); return }
-      const t = ({ v: 'select', t: 'tray', k: 'rack' } as Record<string, InstallTool>)[e.key.toLowerCase()]
+      if (e.key === 'Escape') { s.setTrayDraft([]); s.setTool('select'); setBox(null); setRough(null); return }
+      const t = ({ v: 'select', t: 'tray', k: 'rack', a: 'assist' } as Record<string, InstallTool>)[e.key.toLowerCase()]
       if (t) s.setTool(t)
     }
     window.addEventListener('keydown', key)
@@ -135,6 +145,7 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
       </div>
       <ReviewCanvas rooms={layout?.rooms ?? []} tasks={[]} backdrop={backdrop} onCanvasPointer={onPointer} readOnly>
         <InstallLayer drops={drops} />
+        {tool === 'assist' && <ProposalLayer draft={rough ? [rough.a, rough.b] : null} />}
         {box && (() => {
           const [a, b] = [svgPoint(box.a), svgPoint(box.b)]
           return <rect x={Math.min(a[0], b[0])} y={Math.min(a[1], b[1])} width={Math.abs(b[0] - a[0])} height={Math.abs(b[1] - a[1])}
@@ -145,4 +156,5 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
   )
 }
 
-const TOOLS: [InstallTool, string, string][] = [['select', 'Pilih', 'V'], ['tray', 'Tray', 'T'], ['rack', 'Rack', 'K']]
+const TOOLS: [InstallTool, string, string][] = [['select', 'Pilih', 'V'], ['tray', 'Tray', 'T'], ['rack', 'Rack', 'K'],
+  ['assist', 'Isi ruang', 'A']]

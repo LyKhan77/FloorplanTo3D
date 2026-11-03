@@ -28,6 +28,7 @@ export interface AssistBody {
   selection: string[]
   message: string
   drawn?: DrawnBox[]
+  layer?: 'layout' | 'installation'
 }
 /** A box the user pointed at in the drawing (generate interior): centre, [short, long] mm, long side along y (0) or x (90). */
 export interface DrawnBox { id: string; center: Pt; size: [number, number]; rotation: 0 | 90 }

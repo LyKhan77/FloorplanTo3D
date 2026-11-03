@@ -3,7 +3,7 @@ import type { Installation } from '../types/installation'
 import { applyInstallOps, type InstallOp } from './reducer'
 
 type Pt = [number, number]
-export type InstallTool = 'select' | 'tray' | 'rack'
+export type InstallTool = 'select' | 'tray' | 'rack' | 'assist'
 export interface InstallNotice { kind: 'error' | 'warning' | 'info'; text: string }
 
 interface State {

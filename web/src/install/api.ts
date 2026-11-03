@@ -22,6 +22,9 @@ export const startInstallation = (pid: string, body: { ceiling_height: number | 
   api.post<Installation>(`${P(pid)}/start`, body)
 export const saveInstallation = (pid: string, base: number, ops: InstallOp[], message = '') =>
   api.post<{ version: number; installation: Installation; issues: InstallIssue[]; lengths: Lengths }>(P(pid), { base_version: base, ops, message })
+/** Opening Instalasi & Interior (fit-out design): creates the installation, moves layout objects once, rebases. */
+export const ensureInstallation = (pid: string) => api.post<{ installation: Installation; moved: number; skipped: string[];
+  rebased_to: number | null; issues: InstallIssue[]; notes: string[] }>(`${P(pid)}/ensure`)
 export const rebaseInstallation = (pid: string) => api.post<{ version: number; issues: InstallIssue[] }>(`${P(pid)}/rebase`)
 export const snapTray = (pid: string, points: Pt[]) => api.post<{ path: Pt[]; width: number }>(`${P(pid)}/snap-tray`, { points })
 export const snapBox = (pid: string, at: Pt) => api.post<SnapBox>(`${P(pid)}/snap-box`, { at })

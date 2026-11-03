@@ -1,5 +1,6 @@
 import { Button, InlineLoading, TextInput } from '@carbon/react'
 import { useEffect, useRef, useState } from 'react'
+import { useInstallStore } from '../../install/store'
 import { useEditorStore } from '../store'
 import { useAssistStore, type Msg } from './store'
 
@@ -18,7 +19,12 @@ export function AssistPanel({ projectId }: { projectId: string }) {
     void send(projectId, text.trim())
     setText('')
   }
-  const quit = () => { close(); useEditorStore.getState().setTool('select') }
+  const quit = () => {
+    const layer = useAssistStore.getState().layer
+    close()
+    if (layer === 'installation') useInstallStore.getState().setTool('select')
+    else useEditorStore.getState().setTool('select')
+  }
 
   return (
     <section className="editor-panel assist" aria-label="Perbaiki area">

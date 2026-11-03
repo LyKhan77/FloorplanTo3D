@@ -143,14 +143,35 @@ describe('InstallEditor on an older layout', () => {
     expect(screen.getByRole('button', { name: 'Rebase' })).toBeInTheDocument()
   })
 
-  it('Build 3D asks first: the build would use the old layout', async () => {
+  it('Build 3D builds at once: the server moves the installation onto the newest layout first', async () => {
     render(ui('p1'))
-    await screen.findByText(/Layout berubah \(v1/)
     await waitFor(() => expect(useInstallStore.getState().base?.meta.version).toBe(1))
     fireEvent.click(screen.getByRole('button', { name: 'Build 3D' }))
-    expect(vi.mocked(api.post).mock.calls.some(([u]) => String(u).endsWith('/build'))).toBe(false)
-    expect(useInstallStore.getState().notice?.text).toMatch(/layout v1.*terbaru v3/)
-    fireEvent.click(screen.getByRole('button', { name: 'Build 3D' }))
     await waitFor(() => expect(vi.mocked(api.post).mock.calls.some(([u]) => String(u).endsWith('/build'))).toBe(true))
+  })
+})
+
+describe('InstallEditor opens Instalasi & Interior', () => {
+  beforeEach(() => {
+    vi.mocked(api.get).mockImplementation(((url: string) => Promise.resolve(url.endsWith('/HEAD') ? base : [])) as never)
+    vi.mocked(api.post).mockReset()
+    vi.mocked(api.post).mockImplementation(((url: string) => Promise.resolve(url.endsWith('/ensure')
+      ? { installation: base, moved: 2, skipped: [], rebased_to: null, issues: [], notes: ['2 objek dipindah ke Instalasi & Interior'] }
+      : { issues: [], drops: [], lengths: null })) as never)
+  })
+
+  it('calls ensure once on open and says what moved', async () => {
+    useInstallStore.setState({ projectId: null, base: null, ops: [] })
+    render(ui('p1'))
+    expect(await screen.findByText(/2 objek dipindah/)).toBeInTheDocument()
+    expect(vi.mocked(api.post).mock.calls.filter(([u]) => String(u).endsWith('/ensure'))).toHaveLength(1)
+  })
+
+  it('leaves pending work alone: no ensure while there are unsaved ops', async () => {
+    useInstallStore.getState().load(base, 'p1')
+    useInstallStore.getState().apply({ op: 'add_tray', path: [[0, 0], [3000, 0]], tray_class: 'data' })
+    render(ui('p1'))
+    await new Promise((r) => setTimeout(r, 50))
+    expect(vi.mocked(api.post).mock.calls.some(([u]) => String(u).endsWith('/ensure'))).toBe(false)
   })
 })

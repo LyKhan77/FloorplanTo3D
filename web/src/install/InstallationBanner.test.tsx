@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { api } from '../api/client'
 import type { ProjectDetail } from '../api/types'
@@ -15,9 +15,10 @@ const show = (p: ProjectDetail, onStarted = vi.fn()) =>
   render(<QueryClientProvider client={new QueryClient()}><InstallationBanner project={p} wallHeight={3000} onStarted={onStarted} /></QueryClientProvider>)
 
 describe('InstallationBanner', () => {
-  it('offers to start only when the layout has outputs and no installation exists', () => {
+  it('offers to start whenever no installation exists, outputs or not (fit-out: devices live there)', () => {
     show(project({ outputs: [] }))
-    expect(screen.queryByRole('button', { name: 'Mulai instalasi' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Mulai instalasi' })).toBeInTheDocument()
+    cleanup()
     show(project({ installation: { head: 1, layout_version: 3, layout_changed: false } }))
     expect(screen.queryByRole('button', { name: 'Mulai instalasi' })).toBeNull()
   })

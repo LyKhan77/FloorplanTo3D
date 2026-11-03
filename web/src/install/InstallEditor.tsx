@@ -8,15 +8,19 @@ import { ignoredTarget } from '../editor/lib/keys'
 import { useProject, useRuns } from '../api/hooks'
 import { stageLabel } from '../lib/runState'
 import type { Installation } from '../types/installation'
-import { buildInstallation, outputUrl, saveInstallation, useInstallation, useInstallOutputs, useInstallValidate, type InstallIssue } from './api'
+import { buildInstallation, ensureInstallation, outputUrl, saveInstallation, useInstallation, useInstallOutputs, useInstallValidate, type InstallIssue } from './api'
 import { RebaseNotice } from './InstallationBanner'
 import { InstallViewer } from './InstallViewer'
+import { LibraryPanel } from '../editor/panels/LibraryPanel'
+import { AssistPanel } from '../editor/assist/AssistPanel'
+import type { Template } from '../api/types'
 import { InstallPanels } from './InstallPanels'
 import { InstallWorkspace } from './InstallWorkspace'
 import { useInstallStore } from './store'
 
 /** Mode Instalasi of the editor tab (M12a): trace, check, save. The layout stays read-only here. */
-export function InstallEditor({ projectId, backdrop }: { projectId: string; backdrop: Backdrop | null }) {
+export function InstallEditor({ projectId, backdrop, templates }: { projectId: string; backdrop: Backdrop | null;
+  templates?: Template[] }) {
   const qc = useQueryClient()
   const { data: head } = useInstallation(projectId)
   const base = useInstallStore((s) => s.base)
@@ -24,6 +28,21 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
   const past = useInstallStore((s) => s.past)
   const future = useInstallStore((s) => s.future)
   const notice = useInstallStore((s) => s.notice)
+  const tool = useInstallStore((s) => s.tool)
+  // opening Instalasi & Interior: the installation exists, holds every device and stands on the newest layout
+  // (never over unsaved work: then the Rebase notice asks to Save first)
+  useEffect(() => {
+    const s = useInstallStore.getState()
+    if (s.projectId === projectId && s.ops.length) return
+    ensureInstallation(projectId).then((r) => {
+      const st = useInstallStore.getState()
+      if (st.projectId === projectId && st.ops.length) return
+      st.load(r.installation, projectId)
+      qc.setQueryData(['installation', projectId], r.installation)
+      for (const k of ['project', 'spec']) qc.invalidateQueries({ queryKey: [k, projectId] })
+      if (r.notes.length) st.setNotice({ kind: r.issues.length ? 'warning' : 'info', text: r.notes.join('; ') })
+    }).catch((e) => useInstallStore.getState().setNotice({ kind: 'error', text: e instanceof Error ? e.message : String(e) }))
+  }, [projectId, qc])
   const validation = useInstallValidate(projectId, base?.meta.version ?? null, ops)
   const [saving, setSaving] = useState(false)
   const [saveIssues, setSaveIssues] = useState<InstallIssue[]>([])
@@ -33,8 +52,6 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
   const { data: outputs = [] } = useInstallOutputs(projectId)
   const { data: project } = useProject(projectId)
   const stale = project?.installation?.layout_changed ? project : null
-  // Build 3D on a pinned older layout asks once per newer layout: the second click builds anyway
-  const [okForHead, setOkForHead] = useState<number | null>(null)
   const latest = outputs[0]
   // polls the installation run; when it ends: show the outputs (or why it failed) and stop polling
   // a build started before this editor opened (reopened mid-build) is followed too
@@ -64,13 +81,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
 
   const build = async () => {
     const s = useInstallStore.getState()
-    if (stale && okForHead !== stale.head) {
-      setOkForHead(stale.head)
-      s.setNotice({ kind: 'warning', text: `Build 3D akan memakai layout v${stale.installation!.layout_version}, `
-        + `terbaru v${stale.head}. Klik Rebase dulu, atau klik Build 3D lagi untuk tetap build.` })
-      return
-    }
-    try {
+    try {  // the server moves the installation onto the newest layout first
       const r = await buildInstallation(projectId)
       setSaveIssues([])
       setBuildRun(r.run_id)
@@ -164,6 +175,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
           tooltipPosition="bottom" aria-pressed={full} onClick={() => setFull(!full)} />
       </div>
       <aside className="editor__library" aria-label="Output instalasi">
+        <section className="editor-panel"><LibraryPanel templates={templates ?? []} /></section>
         {stale && <section className="editor-panel"><RebaseNotice project={stale} /></section>}
         <section className="editor-panel">
           <h4 className="editor-panel__title">Output 3D</h4>
@@ -197,7 +209,7 @@ export function InstallEditor({ projectId, backdrop }: { projectId: string; back
         )}
       </div>
       <aside className="editor__props" aria-label="Properti">
-        <InstallPanels validation={validation} saveIssues={saveIssues} />
+        {tool === 'assist' ? <AssistPanel projectId={projectId} /> : <InstallPanels validation={validation} saveIssues={saveIssues} />}
       </aside>
     </div>
   )

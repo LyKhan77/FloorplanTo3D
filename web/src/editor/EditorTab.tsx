@@ -9,7 +9,6 @@ import { geometryDiff, isEmptyDiff } from './lib/geometryDiff'
 import { ignoredTarget } from './lib/keys'
 import { IssuesPanel } from './panels/IssuesPanel'
 import { LayersPanel } from './panels/LayersPanel'
-import { LibraryPanel } from './panels/LibraryPanel'
 import { MeasurePanel } from './panels/MeasurePanel'
 import { PropertiesPanel } from './panels/PropertiesPanel'
 import { useEditorData } from './useEditorData'
@@ -23,7 +22,6 @@ import { AssistPanel } from './assist/AssistPanel'
 import { TasksPanel } from './review/TasksPanel'
 import { useBackdrop } from './review/useBackdrop'
 import { InstallEditor } from '../install/InstallEditor'
-import { useInstallation } from '../install/api'
 import { useInstallStore } from '../install/store'
 import { useEditorStore } from './store'
 import { Viewport } from './viewport/Viewport'
@@ -90,12 +88,11 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
     return () => window.removeEventListener('keydown', key)
   }, [])
 
-  // M12a: a project with an installation switches between the layout and the installation layer
-  const { data: installation } = useInstallation(projectId)
-  const installActive = useInstallStore((s) => s.active) && !!installation
-  const modeSwitch = installation ? (
+  // fit-out design: Layout holds the architecture, Instalasi & Interior every device (created on first open)
+  const installActive = useInstallStore((s) => s.active)
+  const modeSwitch = data.spec ? (
     <div className="editor-modes" role="group" aria-label="Mode editor">
-      {([[false, 'Layout'], [true, 'Instalasi']] as const).map(([on, label]) => (
+      {([[false, 'Layout'], [true, 'Instalasi & Interior']] as const).map(([on, label]) => (
         <Button key={label} size="sm" kind={installActive === on ? 'secondary' : 'ghost'} aria-pressed={installActive === on}
           onClick={() => useInstallStore.getState().setActive(on)}>{label}</Button>
       ))}
@@ -105,7 +102,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
   if (data.loading) return <Loading withOverlay={false} description="Memuat editor" />
   if (!data.spec) return <p className="helper">Belum ada spec. Impor spec dulu.</p>
 
-  if (installActive) return <>{modeSwitch}<InstallEditor projectId={projectId} backdrop={backdrop} /></>
+  if (installActive) return <>{modeSwitch}<InstallEditor projectId={projectId} backdrop={backdrop} templates={data.templates} /></>
 
   const cls = ['editor', left ? '' : 'editor--no-left', right ? '' : 'editor--no-right', full ? 'editor--full' : ''].filter(Boolean).join(' ')
   return (
@@ -117,9 +114,9 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
         full={full} onToggleFull={() => setFull((f) => !f)} />
       {saver.conflict && <RebaseDialog conflict={saver.conflict} onResolve={saver.resolve} />}
       {left && (
-        <aside className="editor__library" aria-label="Library template">
+        <aside className="editor__library" aria-label="Tugas review">
           {(data.shellUrl === null || mode === 'plan' || paused) && <TasksPanel projectId={projectId} tasks={validation.tasks} />}
-          <LibraryPanel templates={data.templates} />
+          <p className="helper editor-panel">Perangkat (rack, CRAC, UPS, panel, …) ditempatkan di mode Instalasi &amp; Interior.</p>
         </aside>
       )}
       <div className="editor__viewport">

@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { ApiError } from '../../api/client'
+import { useInstallStore } from '../../install/store'
+import type { InstallOp } from '../../install/reducer'
+import type { EditorOp } from '../ops/reducer'
 import { useEditorStore } from '../store'
 import { postDecision, streamAssist, type DrawnBox, type Proposal } from './stream'
 
@@ -8,7 +11,12 @@ export type Msg =
   | { role: 'user' | 'step' | 'question' | 'error' | 'info'; text: string }
   | { role: 'proposal'; proposal: Proposal; state: 'open' | 'accepted' | 'rejected' | 'stale' | 'revised' }
 
+export type AssistLayer = 'layout' | 'installation'
+
 interface AssistState {
+  /** layout: the chat edits the architecture (editor store); installation: the equipment (install store) */
+  layer: AssistLayer
+  setLayer(layer: AssistLayer): void
   box: Box | null
   drawn: DrawnBox[]  // boxes pointed at in the drawing this session: K1, K2, ...
   addDrawn(b: Omit<DrawnBox, 'id'>): string
@@ -25,7 +33,18 @@ interface AssistState {
 }
 
 const STALE = 'Usulan usang, kirim ulang: denah berubah sejak usulan dibuat.'
-const editorKey = () => { const s = useEditorStore.getState(); return JSON.stringify([s.baseVersion, s.ops]) }
+/** The store the chat edits: its base version, pending ops, selection, and how a proposal is applied. */
+function target(layer: AssistLayer) {
+  if (layer === 'installation') {
+    const s = useInstallStore.getState()
+    return { base: s.base?.meta.version ?? null, ops: s.ops as unknown[], selection: s.selection,
+      apply: (ops: unknown[]) => s.applyMany(ops as InstallOp[]) }
+  }
+  const s = useEditorStore.getState()
+  return { base: s.baseVersion, ops: s.ops as unknown[], selection: s.selection,
+    apply: (ops: unknown[]) => s.applyMany(ops as EditorOp[]) }
+}
+const editorKey = (layer: AssistLayer) => { const t = target(layer); return JSON.stringify([t.base, t.ops]) }
 
 /** One area-assist session (design §6.6): the marked box, the chat, and the open proposal. */
 export const useAssistStore = create<AssistState>()((set, get) => {
@@ -39,6 +58,7 @@ export const useAssistStore = create<AssistState>()((set, get) => {
     if (sid) postDecision(projectId, sid, accepted).catch(() => {})  // the log is best effort; the edit already happened
   }
   return {
+    layer: 'layout', setLayer: (layer) => { if (layer !== get().layer) set({ layer, box: null, drawn: [], sessionId: null, messages: [], proposal: null, baseKey: null }) },
     box: null, drawn: [], sessionId: null, messages: [], pending: false, proposal: null, baseKey: null,
     addDrawn: (b) => {
       // the same drawn box clicked again (within 50 mm): keep its K
@@ -53,17 +73,18 @@ export const useAssistStore = create<AssistState>()((set, get) => {
     close: () => set({ box: null, drawn: [], sessionId: null, messages: [], pending: false, proposal: null, baseKey: null }),
     send: async (projectId, text) => {
       const { box, sessionId, pending } = get()
-      const ed = useEditorStore.getState()
-      if (!box || pending || !text.trim() || ed.baseVersion === null) return
+      const layer = get().layer
+      const ed = target(layer)
+      if (!box || pending || !text.trim() || ed.base === null) return
       // a message while a proposal is open answers it: the server logs it as a revision, nothing was applied
       if (get().proposal) settle('revised')
-      const baseKey = editorKey()
+      const baseKey = editorKey(layer)
       push({ role: 'user', text })
       set({ pending: true })
       try {
         await streamAssist(projectId, {
-          ...(sessionId ? { session_id: sessionId } : {}), base_version: ed.baseVersion, ops: ed.ops, box,
-          selection: ed.selection, message: text, drawn: get().drawn,
+          ...(sessionId ? { session_id: sessionId } : {}), base_version: ed.base, ops: ed.ops as EditorOp[], box,
+          selection: ed.selection, message: text, drawn: get().drawn, layer,
         }, (e) => {
           if (e.event === 'session') set({ sessionId: e.session_id })
           else if (e.event === 'step' || e.event === 'question' || e.event === 'error') push({ role: e.event, text: e.text })
@@ -83,7 +104,8 @@ export const useAssistStore = create<AssistState>()((set, get) => {
     accept: (projectId) => {
       const { proposal, baseKey } = get()
       if (!proposal?.valid) return
-      if (editorKey() !== baseKey || !useEditorStore.getState().applyMany(proposal.ops)) {
+      const layer = get().layer
+      if (editorKey(layer) !== baseKey || !target(layer).apply(proposal.ops)) {
         settle('stale')
         push({ role: 'error', text: STALE })
         return

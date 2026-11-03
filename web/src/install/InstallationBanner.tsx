@@ -71,7 +71,7 @@ export function InstallationBanner({ project, onStarted }: { project: ProjectDet
   const param = (k: string) => (typeof project.params?.[k] === 'number' ? (project.params[k] as number) : null)
   return (
     <>
-      {!inst && project.outputs.length > 0 && <Button kind="tertiary" onClick={() => setOpen(true)}>Mulai instalasi</Button>}
+      {!inst && <Button kind="tertiary" onClick={() => setOpen(true)}>Mulai instalasi</Button>}
       <RebaseNotice project={project} />
       {error && <p className="helper" role="alert">{error}</p>}
       {open && <StartInstallationDialog ceiling={param('ceiling_height')} raised={param('raised_floor_height')} busy={busy}

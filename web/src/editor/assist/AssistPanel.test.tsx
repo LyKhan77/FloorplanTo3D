@@ -116,3 +116,25 @@ describe('drawn boxes', () => {
     expect(useAssistStore.getState().drawn).toHaveLength(1)
   })
 })
+
+describe('AssistPanel in Instalasi & Interior', () => {
+  it('Terima adds the ops to the installation, not the layout', async () => {
+    const { useInstallStore } = await import('../../install/store')
+    const inst = { schema_version: '1.0', meta: { version: 4, layout_version: 1, default_mounting: 'overhead', id_seq: {} },
+      cable_trays: [], objects: [], provenance_log: [] }
+    useInstallStore.getState().load(inst as never, 'p1')
+    st().load('p1', gt)
+    useAssistStore.getState().close()
+    useAssistStore.getState().setLayer('installation')
+    useAssistStore.getState().open([0, 0, 5000, 5000])
+    const add = { op: 'add_object', template_id: 'rack-42u-600x1200', template_version: '1.1.0', position: [2000, 3000, 0],
+      rotation: 0, dims: [600, 1200, 2000] }
+    script = [{ event: 'session', session_id: 's1' }, { ...proposal(), ops: [add] } as AssistEvent, { event: 'done' }]
+    render(<AssistPanel projectId="p1" />)
+    await send('isi')
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Terima' })) })
+    expect(useInstallStore.getState().ops).toHaveLength(1)
+    expect(st().ops).toEqual([])
+    useAssistStore.getState().setLayer('layout')
+  })
+})

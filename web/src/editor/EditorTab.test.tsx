@@ -89,6 +89,12 @@ describe('EditorTab', () => {
     expect(fire()).toBe(true)
   })
 
+  it('Layout is architecture only: no Library, and the equipment mode is always offered', async () => {
+    setup(3, [out(3)])
+    expect(await screen.findByRole('button', { name: 'Instalasi & Interior' })).toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Library template' })).toBeNull()
+  })
+
   it('store loads HEAD once per project', async () => {
     const qc = setup(4, [out(4)])
     await waitFor(() => expect(useEditorStore.getState().baseVersion).toBe(4))
