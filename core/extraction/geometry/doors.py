@@ -60,9 +60,9 @@ def _ordered(pts: np.ndarray) -> np.ndarray:
     return np.array(path)
 
 
-def _arc(pts: np.ndarray, s: float) -> dict | None:
+def _arc(pts: np.ndarray, s: float, radius_mm: tuple[float, float] = RADIUS_MM) -> dict | None:
     cx, cy, r, rms = _fit_circle(pts)
-    if not RADIUS_MM[0] <= r * s <= RADIUS_MM[1] or rms > MAX_RESIDUAL * r:
+    if not radius_mm[0] <= r * s <= radius_mm[1] or rms > MAX_RESIDUAL * r:
         return None
     ang = np.sort(np.degrees(np.arctan2(pts[:, 1] - cy, pts[:, 0] - cx)) % 360)
     gaps = np.diff(np.concatenate([ang, [ang[0] + 360]]))
@@ -75,16 +75,16 @@ def _arc(pts: np.ndarray, s: float) -> dict | None:
     return {"center": [cx, cy], "radius_px": r, "residual": rms, "ends": ends}
 
 
-def _arcs_in(path: np.ndarray, s: float, depth: int = 0) -> list[dict]:
+def _arcs_in(path: np.ndarray, s: float, depth: int = 0, radius_mm: tuple[float, float] = RADIUS_MM) -> list[dict]:
     """A path that is not one arc is split in the middle (two leaves of a double door touch where they meet)."""
     if len(path) < MIN_ARC_PX:
         return []
-    if a := _arc(path, s):
+    if a := _arc(path, s, radius_mm):
         return [a]
     if depth >= 3:
         return []
     mid = len(path) // 2
-    return _arcs_in(path[:mid], s, depth + 1) + _arcs_in(path[mid:], s, depth + 1)
+    return _arcs_in(path[:mid], s, depth + 1, radius_mm) + _arcs_in(path[mid:], s, depth + 1, radius_mm)
 
 
 def _branches(comp: np.ndarray) -> list[np.ndarray]:
@@ -102,7 +102,9 @@ def _branches(comp: np.ndarray) -> list[np.ndarray]:
     return out
 
 
-def find_arcs(curves: np.ndarray, s: float) -> list[dict]:
+def find_arcs(curves: np.ndarray, s: float, radius_px: tuple[float, float] | None = None) -> list[dict]:
+    """radius_px replaces the mm radius filter when the scale is not known yet (stage 2 door estimate)."""
+    s, radius_mm = (1.0, radius_px) if radius_px else (s, RADIUS_MM)
     n, labels, stats, _ = cv2.connectedComponentsWithStats(curves, connectivity=8)
     arcs = []
     for i in range(1, n):
@@ -114,12 +116,12 @@ def find_arcs(curves: np.ndarray, s: float) -> list[dict]:
         comp = (labels[y0:y + h + 1, x0:x + w + 1] == i).astype(np.uint8) * 255
         ys, xs = np.nonzero(comp)
         pts = np.column_stack([xs + x0, ys + y0])
-        whole = _arc(pts, s)
+        whole = _arc(pts, s, radius_mm)
         if whole:
             arcs.append(whole)
             continue
         for piece in _branches(comp):
-            arcs += _arcs_in(_ordered(piece + np.array([x0, y0])), s)
+            arcs += _arcs_in(_ordered(piece + np.array([x0, y0])), s, radius_mm=radius_mm)
     return sorted(arcs, key=lambda a: (round(a["center"][1]), round(a["center"][0])))
 
 
