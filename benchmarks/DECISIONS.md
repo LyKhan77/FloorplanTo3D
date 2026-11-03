@@ -64,3 +64,17 @@ Keputusan:
 - **json_schema tetap aktif (`STRATA_RESPONSE_FORMAT=1`).** Mematikannya mempercepat panggilan kecil (5.2 s → 0.8 s), tetapi tidak mempercepat prompt benchmark yang berisi gambar, dan akurasinya setara. Waktu panggilan didominasi prefill gambar dan few-shot: T1 tanpa few-shot 3.9 s, dengan few-shot 13.8 s.
 - **T1 tetap nonaktif.** Tanpa few-shot, model ini lebih buruk dari CV (0.552 vs 0.583). Dengan few-shot akurasinya naik ke 0.77–0.83, tetapi presisi hapusnya 0.81–0.85, di bawah syarat 0.90, sehingga ia akan menghapus dinding asli.
 - **T2 tetap nonaktif.** `is_door` jauh di atas CV (0.63 vs 0.21), tetapi engsel lebih buruk (0.60 vs 0.80), dan syarat §7.2 adalah engsel/arah.
+
+## 2026-11-03 — Resolusi rasterisasi PDF (`PDF_DPI`), Ancol p13
+
+Tahap 0–5 pada PDF Ancol halaman 13 (foto dihapus, `drawing_bbox` baru, skala dari pintu, mask cable tray), kandidat
+terpilih tahap 5. Syarat ganti ke 600 dpi: dinding lebih tepat di dinding asli **dan** V004 + V005 turun.
+
+| dpi | mm/px (asli) | dinding | kolom | bukaan | ruang | V004 | V005 | issues | tahap 3 |
+|---|---|---|---|---|---|---|---|---|---|
+| 300 | 31.88 | 277 | 84 | 57 | 2 | 233 | 79 | 320 | 11.4 s |
+| 600 | 15.15 (= 30.3 per px 300 dpi) | 329 | 38 | 60 | 7 | 264 | 138 | 412 | 61.9 s |
+
+Keputusan: **tetap 300 dpi.** V004 + V005 naik dari 312 ke 402, dan tahap 3 lima kali lebih lambat. 600 dpi memang
+memangkas kolom palsu (84 → 38) dan menambah ruang (2 → 7), tetapi penutupan ruang adalah fase debug berikutnya.
+Ukur ulang setelah fase itu.
