@@ -44,3 +44,12 @@ def test_containment_glass_is_see_through():
 def test_material_budget(tid, dims):
     """core/templates/validate.py refuses an asset with more than 8 materials."""
     assert len({p.material for p in parts(tid, dims)}) <= 8
+
+
+def test_general_technical_room_units_are_there():
+    ids = {t[0]: t[2] for t in PLACEHOLDERS}
+    want = {"ahu-unit-generic": "cooling", "transformer-dry-generic": "power", "genset-generic": "power",
+            "sts-cabinet-generic": "power", "battery-cabinet-generic": "battery", "fm200-cylinder-bank": "fire",
+            "vesda-panel": "fire", "fire-alarm-panel": "fire", "noc-desk-generic": "furniture",
+            "office-chair-generic": "furniture", "storage-cabinet-generic": "other"}
+    assert {k: ids.get(k) for k in want} == want and set(ids) == set(MODELS)

@@ -15,4 +15,4 @@ fm200_z_mm: 1400             # FM-200 control panel, beside the main door
 reader_z_mm: 1100            # access reader, latch side of the door
 cctv_below_ceiling_mm: 300   # camera top below the ceiling
 fire_cylinder_per_m2: 50     # one cylinder per this much floor
-wall_mounted: [fire-control-panel, cctv-camera-bullet, access-reader-generic]
+wall_mounted: [fire-control-panel, cctv-camera-bullet, access-reader-generic, vesda-panel, fire-alarm-panel]

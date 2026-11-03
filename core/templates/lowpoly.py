@@ -239,12 +239,128 @@ def _door(w, d, h) -> list[Part]:
     return ps
 
 
+def _ahu(w, d, h) -> list[Part]:
+    """Air handling unit: a long casing in sections (filter, coil, fan) with access doors and an intake louvre."""
+    x, y = w / 2, d / 2
+    ps = [B("frame", -x + 30, x - 30, -y + 30, y - 30, 0, 150), B("light", -x, x, -y, y - 20, 150, h)]
+    sections = 3
+    sec = (w - 40 - (sections - 1) * 15) / sections
+    for i in range(sections):
+        x0 = -x + 20 + i * (sec + 15)
+        ps += [B("white", x0, x0 + sec, y - 20, y - 4, 200, h - 60),
+               B("steel", x0 + sec - 70, x0 + sec - 50, y - 4, y, h / 2 - 120, h / 2 + 120)]
+    for k in range(8):  # intake louvre on the first section
+        z = 400 + k * 160
+        ps.append(B("vent", -x + 60, -x + 20 + sec - 60, y - 4, y, z, z + 70))
+    ps.append(B("blue", -x, x, y - 4, y, h - 50, h - 30))
+    return ps
+
+
+def _transformer(w, d, h) -> list[Part]:
+    """Dry-type transformer in a louvred enclosure."""
+    x, y = w / 2, d / 2
+    ps = [B("frame", -x + 20, x - 20, -y + 20, y - 20, 0, 100), B("light", -x, x, -y, y - 20, 100, h)]
+    for k in range(int((h - 400) // 120)):
+        z = 250 + k * 120
+        ps.append(B("vent", -x + 100, x - 100, y - 20, y, z, z + 50))
+    ps += [B("yellow", -150, 150, y - 2, y, h - 280, h - 130), B("frame", -x, x, -y, y, h - 40, h)]
+    return ps
+
+
+def _genset(w, d, h) -> list[Part]:
+    """Enclosed diesel generator set: base frame, acoustic canopy with louvres and doors, exhaust on the roof."""
+    x, y = w / 2, d / 2
+    ps = [B("frame", -x, x, -y, y, 0, 150), B("panel", -x + 20, x - 20, -y + 20, y - 20, 150, h - 150)]
+    for i in range(3):  # side access doors
+        x0 = -x + 200 + i * (w - 400) / 3
+        ps.append(B("light", x0, x0 + (w - 400) / 3 - 40, y - 20, y - 4, 300, h - 300))
+    for k in range(6):
+        z = 450 + k * 180
+        ps += [B("vent", -x + 20, -x + 24, -y + 200, y - 200, z, z + 90), B("vent", x - 24, x - 20, -y + 200, y - 200, z, z + 90)]
+    ps += [B("frame", -x + 20, x - 20, -y + 20, y - 20, h - 150, h - 100),
+           C("steel", x - 400, 0, 120, h - 100, h), B("yellow", -x + 20, x - 20, y - 4, y, 160, 200)]
+    return ps
+
+
+def _sts(w, d, h) -> list[Part]:
+    ps = _sections(w, d, h, "frame", "panel", 1)
+    y = d / 2
+    ps += [B("screen", -150, 150, y - 4, y, h - 520, h - 380), B("led", -150, -110, y - 2, y, h - 340, h - 310),
+           B("red", 110, 150, y - 2, y, h - 340, h - 310)]
+    return ps
+
+
+def _battery_cabinet(w, d, h) -> list[Part]:
+    """Closed battery cabinet: two doors with vent slots."""
+    x, y = w / 2, d / 2
+    ps = [B("frame", -x + 20, x - 20, -y + 20, y - 40, 0, 80), B("battery", -x, x, -y, y - 20, 80, h)]
+    half = (w - 50) / 2
+    for i in range(2):
+        x0 = -x + 15 + i * (half + 20)
+        ps.append(B("panel", x0, x0 + half, y - 20, y - 4, 100, h - 30))
+        for k in range(10):
+            z = 250 + k * 140
+            ps.append(B("vent", x0 + 60, x0 + half - 60, y - 4, y - 2, z, z + 40))
+    ps.append(B("led", -x + 40, -x + 70, y - 2, y, h - 120, h - 100))
+    return ps
+
+
+def _fm200_bank(w, d, h) -> list[Part]:
+    """FM-200 cylinder bank: cylinders in a rack frame, joined by a manifold."""
+    x, y = w / 2, d / 2
+    r = min(d / 2 - 30, 160)
+    n = max(1, int((w - 100) // (2 * r + 60)))
+    pitch = (w - 100) / n
+    body = h - 350
+    ps = [B("frame", -x, x, -y, y, 0, 40), B("frame", -x, -x + 50, -y, -y + 50, 0, h), B("frame", x - 50, x, -y, -y + 50, 0, h),
+          B("frame", -x, x, -y, -y + 50, body * 0.6, body * 0.6 + 50), B("steel", -x + 50, x - 50, -40, 40, h - 120, h - 40)]
+    for k in range(n):
+        cx = -x + 50 + pitch * (k + 0.5)
+        ps += [C("red", cx, 0, r, 40, body), C("steel", cx, 0, 40, body, body + 120), B("frame", cx - 50, cx + 50, -50, 50, body + 120, h - 120)]
+    return ps
+
+
+def _wall_panel(w, d, h, face: str) -> list[Part]:
+    """A small wall-mounted detector / alarm panel (the object's z places it on the wall)."""
+    x, y = w / 2, d / 2
+    return [B("frame", -x, x, -y, -y + 10, 0, h), B("light", -x + 5, x - 5, -y + 10, y - 10, 5, h - 5),
+            B(face, -x + 15, x - 15, y - 10, y - 2, 15, h - 15), B("screen", -x + 40, x - 40, y - 2, y, h - 160, h - 60),
+            B("led", -x + 40, -x + 70, y - 2, y, 60, 90), B("yellow", x - 70, x - 40, y - 2, y, 60, 90)]
+
+
+def _noc_desk(w, d, h) -> list[Part]:
+    """NOC operator desk with two monitors."""
+    x, y = w / 2, d / 2
+    top = 750
+    ps = [B("white", -x, x, -y, y, top - 30, top), B("frame", -x, -x + 40, -y, y, 0, top - 30),
+          B("frame", x - 40, x, -y, y, 0, top - 30), B("panel", -x + 40, x - 40, -y, -y + 20, 300, top - 30)]
+    for cx in (-w / 4, w / 4):
+        ps += [B("frame", cx - 40, cx + 40, -y + 100, -y + 180, top, top + 120),
+               B("vent", cx - 300, cx + 300, -y + 100, -y + 140, top + 120, h), B("screen", cx - 280, cx + 280, -y + 140, -y + 142, top + 140, h - 20)]
+    return ps
+
+
+def _chair(w, d, h) -> list[Part]:
+    x, y = w / 2, d / 2
+    return [B("frame", -x, x, -y, y, 0, 60), C("steel", 0, 0, 30, 60, 420), B("panel", -x + 50, x - 50, -y + 50, y - 50, 420, 500),
+            B("panel", -x + 60, x - 60, -y, -y + 80, 500, h)]
+
+
+def _storage(w, d, h) -> list[Part]:
+    ps = _sections(w, d, h, "light", "white", 2)
+    return ps
+
+
 MODELS = {
     "rack-42u-600x1200": _rack, "rack-48u-800x1200": _rack, "crac-unit-generic": _crac, "ups-cabinet-generic": _ups,
     "battery-rack-generic": _battery, "pdu-floor-generic": _pdu, "fire-cylinder-generic": _fire,
     "inrow-cooler-300x1200": _inrow, "panel-mdb-generic": _mdb, "ats-cabinet-generic": _ats,
     "network-rack-2post": _network, "fire-control-panel": _fire_panel, "cctv-camera-bullet": _cctv,
     "access-reader-generic": _reader, "containment-roof-600": _roof, "containment-door-1200": _door,
+    "ahu-unit-generic": _ahu, "transformer-dry-generic": _transformer, "genset-generic": _genset,
+    "sts-cabinet-generic": _sts, "battery-cabinet-generic": _battery_cabinet, "fm200-cylinder-bank": _fm200_bank,
+    "vesda-panel": lambda w, d, h: _wall_panel(w, d, h, "red"), "fire-alarm-panel": lambda w, d, h: _wall_panel(w, d, h, "red"),
+    "noc-desk-generic": _noc_desk, "office-chair-generic": _chair, "storage-cabinet-generic": _storage,
 }
 
 

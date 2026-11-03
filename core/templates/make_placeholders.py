@@ -36,9 +36,21 @@ PLACEHOLDERS = [
     ("access-reader-generic", (90, 40, 140), "security", ""),
     ("containment-roof-600", (600, 1200, 60), "structure", "d"),  # across the aisle, on top of the racks
     ("containment-door-1200", (1200, 100, 2100), "structure", "w"),
+    ("ahu-unit-generic", (3000, 1200, 2200), "cooling", "w"),
+    ("transformer-dry-generic", (1800, 1200, 2200), "power", ""),
+    ("genset-generic", (4000, 1500, 2200), "power", "w"),
+    ("sts-cabinet-generic", (800, 800, 2000), "power", ""),
+    ("battery-cabinet-generic", (1200, 800, 2000), "battery", "w"),
+    ("fm200-cylinder-bank", (1500, 500, 1800), "fire", "w"),
+    ("vesda-panel", (350, 120, 450), "fire", ""),  # wall mounted
+    ("fire-alarm-panel", (600, 150, 800), "fire", ""),  # wall mounted
+    ("noc-desk-generic", (1800, 800, 1250), "furniture", "w"),
+    ("office-chair-generic", (600, 600, 1100), "furniture", ""),
+    ("storage-cabinet-generic", (1000, 500, 2000), "other", "w"),
 ]
 CATEGORY_COLOR = {"rack": "#393939", "cooling": "#4589FF", "power": "#F1C21B", "battery": "#24A148", "fire": "#DA1E28",
-                  "network": "#8A3FFC", "security": "#007D79", "structure": "#6F6F6F"}
+                  "network": "#8A3FFC", "security": "#007D79", "structure": "#6F6F6F", "furniture": "#8A6A4F",
+                  "other": "#8D8D8D"}
 
 
 def _round50(v: float) -> int:

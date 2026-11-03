@@ -9,7 +9,7 @@ from core.interior.rules import load_rules
 def test_defaults_load():
     r = load_rules()
     assert (r.cold_aisle_mm, r.hot_aisle_mm, r.grid_mm, r.max_row_len) == (1200, 1000, 600, 12)
-    assert "cctv-camera-bullet" in r.wall_mounted
+    assert {"cctv-camera-bullet", "vesda-panel", "fire-alarm-panel"} <= set(r.wall_mounted)
 
 
 def test_unknown_key_rejected(tmp_path):
