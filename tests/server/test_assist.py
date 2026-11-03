@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -93,7 +94,7 @@ def test_a_box_that_is_a_whole_room_is_no_drawn_box():
     from core.spec.models import Spec
     from server.routes.assist import _room_of_box
 
-    gt = Spec.model_validate_json(open("benchmarks/gatsu/gt_spec.json").read())
+    gt = Spec.model_validate_json(Path("benchmarks/gatsu/gt_spec.json").read_text())
     r = next(r for r in gt.rooms if r.id == "R34")  # AHU ROOM
     from shapely.geometry import Polygon
 

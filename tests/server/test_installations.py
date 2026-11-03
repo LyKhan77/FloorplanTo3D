@@ -89,3 +89,36 @@ def test_build_rebases_first(setup_client, project_with_gt, monkeypatch):
     monkeypatch.setattr(c.app.state.orchestrator, "start_run", lambda *a, **k: {"run_id": "r1", "status": "queued"})
     assert c.post(f"{base(pid)}/build", json={"version": "HEAD"}).status_code == 202
     assert c.get(f"{base(pid)}/HEAD").json()["meta"]["layout_version"] == 2
+
+
+def test_ensure_refused_cleanly_when_the_installation_has_errors(setup_client, project_with_gt, monkeypatch):
+    from core.installation.store import InstallationStore
+    from core.spec.store import ValidationFailed
+    from core.spec.validate import Issue
+
+    c, pid = setup_client, project_with_gt
+    v = c.get(f"/api/projects/{pid}/specs/HEAD").json()["meta"]["version"]
+    add = {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.1.0",
+           "position": [2000, 2000, 0], "rotation": 0, "dims": [600, 1200, 2000]}
+    c.post(f"/api/projects/{pid}/specs", json={"base_version": v, "ops": [add]})
+
+    def refuse(*a, **k):
+        raise ValidationFailed([Issue("I001", "error", ["T1"], "T1 rusak")])
+    monkeypatch.setattr(InstallationStore, "commit_ops", refuse)
+    r = c.post(f"{base(pid)}/ensure")
+    assert r.status_code == 409 and "belum dipindah" in r.json()["error"]["message"]
+
+
+def test_a_device_moved_in_2d_saves(setup_client, project_with_gt):
+    """Review C1: the web's move / turn ops must pass the server's 'moving needs a reason' rule."""
+    c, pid = setup_client, project_with_gt
+    c.post(f"{base(pid)}/start", json={})
+    add = {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.1.0",
+           "position": [11000, 8000, 0], "rotation": 0, "dims": [600, 1200, 2000]}
+    r = c.post(base(pid), json={"base_version": 1, "ops": [add]})
+    rid = r.json()["installation"]["objects"][0]["id"]
+    from tests.server.web_ops import (
+        moved,  # the exact op the web editor sends (web/src/install/deviceOps.ts)
+    )
+    r = c.post(base(pid), json={"base_version": 2, "ops": [moved(rid, [11500, 8000, 0])]})
+    assert r.status_code == 201, r.text

@@ -63,3 +63,20 @@ describe('InstallPanels device properties', () => {
     expect(useInstallStore.getState().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'O7', position: [3000, 100, 1400] })
   })
 })
+
+describe('InstallPanels device ops the server accepts', () => {
+  it('X and rotation fields carry a reason', () => {
+    const o = { id: 'O8', template_id: 'ups-cabinet-generic', template_version: '1.1.0', position: [3000, 1000, 0], rotation: 0,
+      dims: [1200, 800, 2000], room_id: null, label: null, locked: false }
+    useInstallStore.getState().load({ schema_version: '1.0', meta: { version: 1, layout_version: 1, default_mounting: 'overhead', id_seq: {} },
+      cable_trays: [], objects: [o], provenance_log: [] } as never, 'p1')
+    useInstallStore.getState().select(['O8'])
+    render(<InstallPanels validation={{ issues: [], drops: [], lengths: null, pending: false, error: null }} saveIssues={[]} />)
+    for (const [label, v] of [['X (mm)', '3500'], ['Rotasi (°)', '90']]) {
+      const f = screen.getByLabelText(label)
+      fireEvent.change(f, { target: { value: v } })
+      fireEvent.blur(f)
+    }
+    expect(useInstallStore.getState().ops.map((x) => (x as { reason?: string }).reason)).toEqual(['dipindah di editor', 'diputar di editor'])
+  })
+})

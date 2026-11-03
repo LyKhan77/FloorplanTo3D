@@ -114,8 +114,14 @@ def ensure_route(pid: str, request: Request):
     except (OSError, ValueError):
         params = {}
     run = latest_run(storage, pid)
-    out = ensure(specs, _store(request, pid), _templates(request), params,
-                 review_paused=bool(run and run.get("status") == "needs_review"))
+    try:
+        out = ensure(specs, _store(request, pid), _templates(request), params,
+                     review_paused=bool(run and run.get("status") == "needs_review"))
+    except ValidationFailed as e:
+        raise ApiError(409, "installation_invalid", "instalasi punya error; perbaiki dulu, objek layout belum dipindah",
+                       {"issues": _issues(e.issues)}) from None
+    except VersionConflict:
+        raise ApiError(409, "conflict", "layout atau instalasi berubah bersamaan; buka ulang mode ini") from None
     touch(storage, pid)
     return {**out, "installation": out["installation"].model_dump(mode="json"), "issues": _issues(out["issues"])}
 

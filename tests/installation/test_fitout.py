@@ -72,3 +72,43 @@ def test_auto_rebase_only_when_newer(stores):
     specs.commit_ops(specs.head(), [{"op": "rename_room", "id": "R1", "name": "X"}], "editor", "rename")
     version, _ = auto_rebase(specs, store, TEMPLATES)
     assert version == specs.head() and store.load("HEAD").meta.layout_version == specs.head()
+
+
+def test_moving_racks_is_no_I008(stores):
+    """Review: every moved rack came back as "rack tidak ada lagi di layout" after the move's rebase."""
+    specs, store = stores
+    with_objects(specs, obj("rack-42u-600x1200", 2000, 3000))
+    store.start(specs.head(), None, None, "overhead")  # an installation standing on a layout that lists the rack
+    out = ensure(specs, store, TEMPLATES, {}, review_paused=False)
+    assert out["moved"] == 1 and not [i for i in out["issues"] if i.code == "I008"]
+
+
+def test_a_moved_device_moved_again_is_not_duplicated_by_a_restore(stores):
+    specs, store = stores
+    with_objects(specs, obj("rack-42u-600x1200", 2000, 3000))
+    ensure(specs, store, TEMPLATES, {}, review_paused=False)
+    inst = store.load("HEAD")
+    rk = inst.objects[0].id
+    store.commit_ops(inst.meta.version, [{"op": "update_object", "id": rk, "position": [3500, 4000, 0], "reason": "x"}],
+                     "editor", "move", specs.load(inst.meta.layout_version), TEMPLATES)
+    with_objects(specs, obj("rack-42u-600x1200", 2000, 3000))  # the old layout restored: the rack at its old spot
+    out = ensure(specs, store, TEMPLATES, {}, review_paused=False)
+    assert out["moved"] == 0 and len(store.load("HEAD").objects) == 1
+
+
+def test_two_ensures_at_once_move_once(stores):
+    import threading
+
+    specs, store = stores
+    with_objects(specs, obj("rack-42u-600x1200", 2000, 3000))
+    errors = []
+
+    def go():
+        try:
+            ensure(specs, InstallationStore(store.dir), TEMPLATES, {}, review_paused=False)
+        except Exception as e:  # noqa: BLE001
+            errors.append(e)
+    ts = [threading.Thread(target=go) for _ in range(2)]
+    [t.start() for t in ts]
+    [t.join() for t in ts]
+    assert errors == [] and len(store.load("HEAD").objects) == 1

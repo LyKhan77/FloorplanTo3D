@@ -147,3 +147,30 @@ describe('InstallWorkspace device editing (fit-out, 2D)', () => {
     expect(ist().ops.at(-1)).toMatchObject({ op: 'update_object', id: 'RK1', rotation: 90 })
   })
 })
+
+describe('InstallWorkspace device ops the server accepts', () => {
+  it('a move and a turn carry the reason the server asks for (review C1)', () => {
+    const rack = { id: 'RK1', template_id: 'rack-42u-600x1200', template_version: '1.1.0', position: [2000, 3000, 0], rotation: 0,
+      dims: [600, 1200, 2000], room_id: null, label: null, locked: false }
+    useEditorStore.getState().load('p1', gt)
+    ist().load({ ...base, objects: [rack] } as unknown as Installation)
+    ist().setTool('select')
+    const { svg } = setup()
+    ist().select(['RK1'])
+    fireEvent.pointerDown(svg, { clientX: 2000, clientY: -3000, button: 0 })
+    fireEvent.pointerMove(svg, { clientX: 2500, clientY: -3000, button: 0 })
+    fireEvent.pointerUp(svg, { clientX: 2500, clientY: -3000, button: 0 })
+    fireEvent.keyDown(window, { key: 'r' })
+    expect(ist().ops.map((o) => (o as { reason?: string }).reason)).toEqual(['dipindah di editor', 'diputar di editor'])
+  })
+
+  it('leaving the installation canvas with tool A open ends the equipment chat (review: Terima to the wrong store)', async () => {
+    const { useAssistStore } = await import('../editor/assist/store')
+    ist().load(base)
+    ist().setTool('assist')
+    const r = setup()
+    expect(useAssistStore.getState().layer).toBe('installation')
+    r.unmount()
+    expect(useAssistStore.getState().layer).toBe('layout')
+  })
+})

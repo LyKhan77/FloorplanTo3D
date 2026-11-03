@@ -5,6 +5,7 @@ import type { CableTray, PlacedObject } from '../types/installation'
 import type { InstallIssue, InstallValidation } from './api'
 import { SIDE_HEIGHTS, TRAY_WIDTHS, type InstallOp } from './reducer'
 import { useInstallStore } from './store'
+import { MOVE_REASON, TURN_REASON } from './deviceOps'
 
 const ICON = { error: ErrorFilled, warning: WarningAltFilled, info: InformationFilled }
 const MOUNT = ['default', 'overhead', 'underfloor'] as const
@@ -51,10 +52,10 @@ function RackForm({ o }: { o: PlacedObject }) {
       <TextInput id="ir-label" labelText="Label" size="sm" defaultValue={o.label ?? ''}
         onBlur={(e) => { if ((e.target.value || null) !== (o.label ?? null)) apply({ op: 'update_object', id: o.id, label: e.target.value || null }) }} />
       <div className="install-device-grid">
-        {field('ir-x', 'X (mm)', x, (v) => apply({ op: 'update_object', id: o.id, position: [v, y, z] }))}
-        {field('ir-y', 'Y (mm)', y, (v) => apply({ op: 'update_object', id: o.id, position: [x, v, z] }))}
-        {field('ir-z', 'Z (mm)', z, (v) => apply({ op: 'update_object', id: o.id, position: [x, y, v] }))}
-        {field('ir-rot', 'Rotasi (°)', o.rotation ?? 0, (v) => apply({ op: 'update_object', id: o.id, rotation: ((v % 360) + 360) % 360 }))}
+        {field('ir-x', 'X (mm)', x, (v) => apply({ op: 'update_object', id: o.id, position: [v, y, z], reason: MOVE_REASON }))}
+        {field('ir-y', 'Y (mm)', y, (v) => apply({ op: 'update_object', id: o.id, position: [x, v, z], reason: MOVE_REASON }))}
+        {field('ir-z', 'Z (mm)', z, (v) => apply({ op: 'update_object', id: o.id, position: [x, y, v], reason: MOVE_REASON }))}
+        {field('ir-rot', 'Rotasi (°)', o.rotation ?? 0, (v) => apply({ op: 'update_object', id: o.id, rotation: ((v % 360) + 360) % 360, reason: TURN_REASON }))}
         {field('ir-w', 'Lebar (mm)', w, (v) => apply({ op: 'update_object', id: o.id, dims: [v, d, h] }))}
         {field('ir-d', 'Dalam (mm)', d, (v) => apply({ op: 'update_object', id: o.id, dims: [w, v, h] }))}
         {field('ir-h', 'Tinggi (mm)', h, (v) => apply({ op: 'update_object', id: o.id, dims: [w, d, v] }))}

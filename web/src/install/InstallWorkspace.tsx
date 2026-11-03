@@ -9,6 +9,7 @@ import { ApiError } from '../api/client'
 import { fitBox, snapBox, snapTray, type Drop, type SnapBox } from './api'
 import { InstallLayer } from './InstallLayer'
 import { cleanPath, DEFAULT_WIDTH, TRAY_COLOUR, type InstallOp } from './reducer'
+import { MOVE_REASON, TURN_REASON } from './deviceOps'
 import { useInstallStore, type InstallTool } from './store'
 import { areaPointer } from '../editor/assist/areaPointer'
 import { ProposalLayer } from '../editor/assist/ProposalLayer'
@@ -100,6 +101,8 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     if (tool === 'assist') useAssistStore.getState().setLayer('installation')
     else if (useAssistStore.getState().layer === 'installation') useAssistStore.getState().close()
   }, [tool])
+  // leaving the installation canvas ends an equipment chat: its Terima must never land in the layout's mode
+  useEffect(() => () => { if (useAssistStore.getState().layer === 'installation') useAssistStore.getState().setLayer('layout') }, [])
   // select tool: dragging a selected device moves it
   const [moving, setMoving] = useState<{ id: string; from: Pt; to: Pt } | null>(null)
   const onPointer = (kind: 'down' | 'move' | 'up', mm: Pt, e: React.PointerEvent) => {
@@ -133,7 +136,8 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
     setMoving(null)
     const o = s.view?.objects?.find((x) => x.id === moving.id)
     if (o && Math.hypot(dx, dy) >= MOVE_MIN_MM) {
-      s.apply({ op: 'update_object', id: o.id, position: [Math.round(o.position[0] + dx), Math.round(o.position[1] + dy), o.position[2]] })
+      s.apply({ op: 'update_object', id: o.id, position: [Math.round(o.position[0] + dx), Math.round(o.position[1] + dy), o.position[2]],
+        reason: MOVE_REASON })
     }
     return true
   }
@@ -168,7 +172,7 @@ export function InstallWorkspace({ projectId, backdrop, drops }: { projectId: st
       if (t) s.setTool(t)
       if (e.key.toLowerCase() === 'r' && s.tool === 'select' && s.selection.length === 1) {
         const o = s.view?.objects?.find((x) => x.id === s.selection[0])
-        if (o) s.apply({ op: 'update_object', id: o.id, rotation: ((o.rotation ?? 0) + 90) % 360 })
+        if (o) s.apply({ op: 'update_object', id: o.id, rotation: ((o.rotation ?? 0) + 90) % 360, reason: TURN_REASON })
       }
     }
     window.addEventListener('keydown', key)
