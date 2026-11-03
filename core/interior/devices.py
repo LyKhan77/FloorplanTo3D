@@ -85,13 +85,14 @@ def _airflow(p: Placement, rules: Rules) -> Polygon:
                                                   f[1] * rules.row_end_clear_mm)).convex_hull
 
 
-def _containment(lay: Layout, lib, rules: Rules) -> None:
+def _containment(lay: Layout, space: Space, lib, rules: Rules) -> None:
     """Roof modules over each cold aisle (on top of the racks) and a door at both aisle ends."""
     roof, door = lib.get(ROOF), lib.get(DOOR)
-    racks = [p for r in lay.meta.get("runs", []) for p in r if lib[p.template_id].category in ("rack", "network")]
+    # every item in the runs (PDU and in-row coolers too): the aisle doors stand beyond the whole row
+    racks = [p for r in lay.meta.get("runs", []) for p in r]
     if not roof or not door or not racks:
         return
-    h = max(p.dims[2] for p in racks)
+    h = max(p.dims[2] for p in racks if lib[p.template_id].category in ("rack", "network"))
     lines: dict[tuple, list[Placement]] = {}
     for p in racks:
         ang = round(p.rotation) % 180
@@ -104,10 +105,9 @@ def _containment(lay: Layout, lib, rules: Rules) -> None:
         other = lines.get((ang, front_y + rules.cold_aisle_mm, -1))
         if not other:
             continue
-        xs_a = [x for x, _ in members]
-        xs_b = [x for x, _ in other]
-        w = members[0][1].dims[0]
-        lo, hi = max(min(xs_a), min(xs_b)) - w / 2, min(max(xs_a), max(xs_b)) + w / 2
+        ends = lambda ms: (min(x - p.dims[0] / 2 for x, p in ms), max(x + p.dims[0] / 2 for x, p in ms))
+        (a0, a1), (b0, b1) = ends(members), ends(other)
+        lo, hi = min(a0, b0), max(a1, b1)  # the aisle runs as far as the longer row
         y = front_y + rules.cold_aisle_mm / 2
         n = int((hi - lo) // roof.w)
         start = lo + ((hi - lo) - n * roof.w) / 2
@@ -116,8 +116,12 @@ def _containment(lay: Layout, lib, rules: Rules) -> None:
             lay.placements.append(Placement(ROOF, roof.version, c.x, c.y, h, ang, (roof.w, rules.cold_aisle_mm, roof.h)))
         for x in (lo - door.d / 2, hi + door.d / 2):
             c = affinity.rotate(Point(x, y), ang, origin=(0, 0))
-            lay.placements.append(Placement(DOOR, door.version, c.x, c.y, 0.0, ang + 90,
-                                            (rules.cold_aisle_mm, door.d, door.h)))
+            p = Placement(DOOR, door.version, c.x, c.y, 0.0, ang + 90, (rules.cold_aisle_mm, door.d, door.h))
+            if not space.room.buffer(1).covers(p.footprint()) or any(
+                    p.footprint().intersection(dr.zone).area > 1 for dr in space.doors):
+                lay.notes.append("pintu containment di ujung lorong dekat pintu ruang dilewati (jalur pintu)")
+                continue
+            lay.placements.append(p)
 
 
 def _door_devices(lay: Layout, space: Space, lib, items, rules: Rules) -> None:
@@ -191,6 +195,10 @@ def fill(space: Space, lib: dict[str, Tpl], items: dict[str, int | None], option
     as many as fit / the rule default)."""
     options = {"containment": False, "cooling": None, "rows": "auto", **(options or {})}
     want_crac = options.get("cooling") == "crac" or CRAC in items
+    # the panel and reader beside the door come first: floor equipment then keeps clear of them
+    at_door = Layout()
+    _door_devices(at_door, space, lib, items, rules)
+    space = replace(space, blocked=[*space.blocked, *[p.footprint().buffer(50) for p in at_door.placements]])
     if kind == "rows":
         best = None
         for row_opt, ang in (("ew", 0.0), ("ns", 90.0)):
@@ -212,8 +220,9 @@ def fill(space: Space, lib: dict[str, Tpl], items: dict[str, int | None], option
     else:
         lay = layout_lineup(space, lib, items, rules)
     if options.get("containment"):
-        _containment(lay, lib, rules)
-    _door_devices(lay, space, lib, items, rules)
+        _containment(lay, space, lib, rules)
+    lay.placements += at_door.placements
+    lay.notes += at_door.notes
     if CCTV in items and CCTV in lib:
         _cameras(lay, space, lib, items[CCTV] or 2, rules)
     if CYL in items and CYL in lib:
