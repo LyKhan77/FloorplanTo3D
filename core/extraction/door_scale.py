@@ -12,6 +12,9 @@ from core.extraction.geometry.doors import find_arcs
 
 MIN_DOORS = 3
 STRAIGHT_RUN_FRAC = 1 / 220  # straight runs this long (share of the image width) are walls, not arcs: 15 px at 3300
+# swing radius bounds as a share of the image width (scale-free): lettering and small circles fall below the floor,
+# which a fixed px floor would let in once a PDF is rasterised finer (Ancol p13 doors: width/127 at 300 and 600 dpi)
+RADIUS_FRAC = (1 / 250, 1 / 20)
 
 
 def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], leaf_mm: float) -> dict | None:
@@ -23,7 +26,7 @@ def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], lea
     straight = cv2.morphologyEx(sk, cv2.MORPH_OPEN, np.ones((1, run), np.uint8)) | \
         cv2.morphologyEx(sk, cv2.MORPH_OPEN, np.ones((run, 1), np.uint8))
     curves = np.where(cv2.dilate(straight, np.ones((5, 5), np.uint8)) > 0, 0, sk).astype(np.uint8)
-    arcs = find_arcs(curves, 1.0, radius_px=(8, binary.shape[1] / 20))
+    arcs = find_arcs(curves, 1.0, radius_px=tuple(f * binary.shape[1] for f in RADIUS_FRAC))
     if len(arcs) < MIN_DOORS:
         return None
     r = float(np.median([a["radius_px"] for a in arcs]))
