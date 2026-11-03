@@ -60,12 +60,16 @@ def installation_build_input(inst: Installation, layout: Spec, templates_root: P
     meshes, cutters = installation_items(inst, layout, templates)
     doc["meshes"] += meshes
     doc["cutters"] += cutters
-    racks, rack_warnings = _instances(layout.model_copy(update={"objects": inst.objects}), templates_root)
-    for r in racks:
-        r["name"], r["collection"] = r["name"].replace("obj_", "rack_", 1), "Racks"
-        r["props"] |= {"spec_type": "rack", "spec_version": inst.meta.version}
-    doc["instances"] += racks
-    warnings += rack_warnings
+    items, item_warnings = _instances(layout.model_copy(update={"objects": inst.objects}), templates_root)
+    for r in items:  # racks keep their own layer; every other device goes to Equipment
+        if templates.get(r["props"].get("template_id")) in ("rack", "network"):
+            r["name"], r["collection"] = r["name"].replace("obj_", "rack_", 1), "Racks"
+            r["props"] |= {"spec_type": "rack", "spec_version": inst.meta.version}
+        else:
+            r["collection"] = "Equipment"
+            r["props"] |= {"spec_type": "equipment", "spec_version": inst.meta.version}
+    doc["instances"] += items
+    warnings += item_warnings
     png = write_perforation_png(Path(work) / "perforation.png", TRAY_COLOR)
     doc["materials"] = MATERIALS | copy.deepcopy(INSTALL_MATERIALS)
     doc["materials"]["tray_galv"]["texture"] = str(png.resolve())

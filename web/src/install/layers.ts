@@ -1,7 +1,7 @@
 import { Plane, Vector3 } from 'three'
 
 /** Viewer layers of the installation GLB, from the exported object names (core/installation/geometry.py, build.py). */
-export const LAYERS = ['Tray data', 'Tray power', 'Hanger', 'Drop', 'Rack', 'Dinding', 'Plafon', 'Raised floor'] as const
+export const LAYERS = ['Tray data', 'Tray power', 'Hanger', 'Drop', 'Rack', 'Perangkat', 'Dinding', 'Plafon', 'Raised floor'] as const
 export type Layer = (typeof LAYERS)[number]
 export const LAYERS_OFF: Layer[] = ['Plafon']  // the ceiling hides the room from above until switched on
 
@@ -9,7 +9,7 @@ export const LAYERS_OFF: Layer[] = ['Plafon']  // the ceiling hides the room fro
 const BUILDING = ['wall_', 'column_', 'door_', 'frame_', 'leaf_', 'window_']
 
 const PREFIX: [string, Layer][] = [['tray_data_', 'Tray data'], ['tray_power_', 'Tray power'], ['hanger_', 'Hanger'],
-  ['drop_', 'Drop'], ['rack_', 'Rack'], ['ceiling', 'Plafon'], ['raised_floor', 'Raised floor'],
+  ['drop_', 'Drop'], ['rack_', 'Rack'], ['obj_', 'Perangkat'], ['ceiling', 'Plafon'], ['raised_floor', 'Raised floor'],
   ...BUILDING.map((p): [string, Layer] => [p, 'Dinding'])]
 
 export function layerOf(name: string): Layer | null {

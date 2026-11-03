@@ -8,7 +8,7 @@ from mathutils import Matrix
 
 MM = 0.001
 SHELL_CHILDREN = ("Walls", "Columns", "Doors", "Windows", "Stairs", "Floors")
-INSTALLATION_CHILDREN = ("TrayData", "TrayPower", "Hangers", "Drops", "Racks")  # M12b
+INSTALLATION_CHILDREN = ("TrayData", "TrayPower", "Hangers", "Drops", "Racks", "Equipment")  # M12b
 MERGE_DIST_M = 0.0001  # 0.1 mm
 
 

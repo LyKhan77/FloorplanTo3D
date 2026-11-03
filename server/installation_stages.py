@@ -55,7 +55,7 @@ def _verify(ctx) -> dict:
 
 
 def _report(ctx) -> dict:
-    from core.installation.report import write_installation_report
+    from core.installation.report import equipment_schedule, write_installation_report
 
     inst, layout, templates = ctx.state["inst"], ctx.state["layout"], ctx.state["templates"]
     summary = json.loads((ctx.work_dir / "installation.json").read_text())
@@ -64,6 +64,7 @@ def _report(ctx) -> dict:
                          "length": round(sum(math.dist(a, b) for a, b in zip(t.path, t.path[1:], strict=False)))}
                         for t in inst.cable_trays]
     summary["racks"] = [r.id for r in racks(inst, layout, templates)]
+    summary["equipment"] = equipment_schedule(inst, templates)
     renders = {p.stem: f"renders/{p.name}" for p in sorted((ctx.work_dir / "renders").glob("*.png"))} \
         if (ctx.work_dir / "renders").exists() else {}
     project = json.loads((ctx.project_dir / "project.json").read_text()).get("name", ctx.pid)

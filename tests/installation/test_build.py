@@ -67,3 +67,17 @@ def test_publish_replaces_atomically(tmp_path):
     out = install_publish(work, root, 2)
     assert sorted(p.name for p in root.iterdir()) == ["v2"] and (out / "installation.json").read_text() == "v2 again"
     assert (out / "renders" / "top.png").exists() and list((tmp_path / "project" / "outputs").iterdir()) == []
+
+
+def test_racks_and_other_equipment_get_their_own_collections(tmp_path, monkeypatch):
+    from core.installation import build as build_mod
+
+    crac = PlacedObject(id="O2", template_id="crac-unit-generic", template_version="1.0.0", position=(7000, 3000, 0),
+                        dims=(2500, 900, 1950))
+    fake = lambda spec, root: ([{"name": f"obj_{o.id}", "props": {"spec_id": o.id, "template_id": o.template_id}}
+                                for o in spec.objects], [])
+    monkeypatch.setattr(build_mod, "_instances", fake)
+    doc, _ = installation_build_input(inst([], [RACK, crac]), spec_with_rooms(), None,
+                                      {**TEMPLATES, "crac-unit-generic": "cooling"}, tmp_path, "BLENDER_EEVEE")
+    by = {i["name"]: i["collection"] for i in doc["instances"]}
+    assert by == {"rack_RK1": "Racks", "obj_O2": "Equipment"}

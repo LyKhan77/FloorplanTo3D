@@ -8,6 +8,14 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from core.report.render import TEMPLATES
 
 
+def equipment_schedule(inst, templates: dict[str, str]) -> list[dict]:
+    """Every device by template: [{template_id, category, count}], sorted by template id."""
+    counts: dict[str, int] = {}
+    for o in inst.objects:
+        counts[o.template_id] = counts.get(o.template_id, 0) + 1
+    return [{"template_id": t, "category": templates.get(t, "other"), "count": n} for t, n in sorted(counts.items())]
+
+
 def write_installation_report(out_dir: Path, summary: dict, renders: dict[str, str], project: str,
                               pdf: bool = True) -> tuple[Path, Path | None]:
     out_dir = Path(out_dir)

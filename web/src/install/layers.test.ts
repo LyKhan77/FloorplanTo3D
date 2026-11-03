@@ -8,6 +8,7 @@ describe('layerOf', () => {
     expect(layerOf('hanger_T1_3')).toBe('Hanger')
     expect(layerOf('drop_RK1_T1')).toBe('Drop')
     expect(layerOf('rack_RK1')).toBe('Rack')
+    expect(layerOf('obj_O2')).toBe('Perangkat')
     expect(layerOf('ceiling')).toBe('Plafon')
     expect(layerOf('raised_floor_panels')).toBe('Raised floor')
     expect(layerOf('wall_W1')).toBe('Dinding')
