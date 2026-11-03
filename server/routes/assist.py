@@ -134,7 +134,31 @@ def drawn_box(pid: str, body: DrawnBoxBody, request: Request):
         raise ApiError(422, "bad_request", "kirim at, atau a dan b")
     if found is None:
         raise ApiError(422, "no_box", "tidak ada kotak di sini")
+    store = SpecStore(request.app.state.storage.project_dir(pid) / "specs")
+    head = store.head()
+    if head is not None and (rid := _room_of_box(store.load(head), found)):
+        # a click on an empty room finds the room's own outline: that picks the room, it is no drawn equipment
+        raise ApiError(422, "is_room", f"ini ruang {rid}, bukan kotak perangkat")
     return found
+
+
+def _room_of_box(spec, found: dict) -> str | None:
+    """The room whose outline the box is (IoU >= 0.7), or None."""
+    from shapely.geometry import Polygon
+    from shapely.geometry import box as sbox
+
+    (cx, cy), (short, long_) = found["center"], found["size"]
+    sx, sy = (short, long_) if found["rotation"] == 0 else (long_, short)
+    b = sbox(cx - sx / 2, cy - sy / 2, cx + sx / 2, cy + sy / 2)
+    for r in spec.rooms:
+        poly = Polygon(r.polygon, r.holes)
+        inter = poly.intersection(b).area
+        if inter and inter / poly.union(b).area >= ROOM_IOU:
+            return r.id
+    return None
+
+
+ROOM_IOU = 0.7
 
 
 @router.post("/area/{sid}/decision", status_code=204)

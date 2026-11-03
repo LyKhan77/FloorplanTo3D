@@ -129,7 +129,7 @@ def layout_rows(space: Space, lib: dict[str, Tpl], items: dict[str, int | None],
                 rules: Rules) -> Layout:
     rack_ids = [t for t in items if t in lib and lib[t].category in ("rack", "network")]
     if not rack_ids:
-        return Layout(notes=["tidak ada rack di permintaan"], meta={"runs": []})
+        return Layout(meta={"runs": []})  # no racks: the other items stand against the walls (devices._leftovers)
     rack = lib[rack_ids[0]]
     notes = [f"{t} dilewati: baris memakai satu jenis rack ({rack.id})" for t in rack_ids[1:]]
     target = items[rack.id]

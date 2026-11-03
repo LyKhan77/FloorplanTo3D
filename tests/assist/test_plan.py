@@ -372,3 +372,15 @@ def test_fill_room_outside_the_area_is_rejected_not_a_crash(library_dir):
     tr = translate(plan({"type": "fill_room", "room": "R2", "items": [{"template": "rack-42u-600x1200"}]}), s, ctx,
                    ASK, None, None, interior=interior(library_dir))
     assert all(o["position"][0] < 5000 for o in tr.ops if o["op"] == "add_object")
+
+
+def test_a_unit_that_does_not_fit_goes_to_the_revision_with_its_alternative(library_dir):
+    """A CRAC in a tiny room: the problem names the in-row cooler, so Strata's one revision can swap it."""
+    from tests.interior.conftest import hall
+
+    s = hall(w=2700, h=3700, doors=[(0, 300, 900)])
+    ctx = area_context(s, (-200, -200, 2900, 3900), [], None, None)
+    tr = translate(plan({"type": "fill_room", "room": s.rooms[0].id, "layout": "lineup",
+                         "items": [{"template": "crac-unit-generic"}]}), s, ctx, ASK, None, None,
+                   interior=interior(library_dir))
+    assert any("inrow-cooler-300x1200" in r for r in tr.rejected)

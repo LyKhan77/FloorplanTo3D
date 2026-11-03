@@ -707,7 +707,9 @@ def _objects(by_type: dict, spec: Spec, ctx: AreaContext, it: Interior, out: Tra
             continue
         space = room_space(spec, rid, ctx.box, it.ceiling, lib, rules)
         lay = fill(space, lib, items, act.options.model_dump(), act.layout or layout_kind(list(items), lib), rules)
-        out.notes += lay.notes
+        # a unit that does not fit but has a same-category alternative that does: a problem, so the revision swaps it
+        out.rejected += [n for n in lay.notes if "; yang muat dari kategori" in n]
+        out.notes += [n for n in lay.notes if "; yang muat dari kategori" not in n]
         groups.append((lay.placements, space))
     boxes = {b["id"]: b for b in it.drawn}
     for act in by_type.get("place_drawn", []):

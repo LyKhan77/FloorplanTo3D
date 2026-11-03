@@ -87,3 +87,19 @@ def test_drawn_boxes_reach_the_context(setup_client, project_with_gt, fake):
     k1 = {"id": "K1", "center": [6000, 8000], "size": [800, 1200], "rotation": 0}
     events(post(setup_client, project_with_gt, drawn=[k1], message="K1 itu apa"))
     assert "K1" in json.dumps(fake.calls[0])
+
+
+def test_a_box_that_is_a_whole_room_is_no_drawn_box():
+    from core.spec.models import Spec
+    from server.routes.assist import _room_of_box
+
+    gt = Spec.model_validate_json(open("benchmarks/gatsu/gt_spec.json").read())
+    r = next(r for r in gt.rooms if r.id == "R34")  # AHU ROOM
+    from shapely.geometry import Polygon
+
+    x0, y0, x1, y1 = Polygon(r.polygon).bounds
+    whole = {"center": [(x0 + x1) / 2, (y0 + y1) / 2], "size": sorted([x1 - x0, y1 - y0]),
+             "rotation": 0 if y1 - y0 >= x1 - x0 else 90}
+    assert _room_of_box(gt, whole) == "R34"
+    small = {**whole, "size": [600, 1200]}
+    assert _room_of_box(gt, small) is None

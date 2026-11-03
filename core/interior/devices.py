@@ -6,7 +6,7 @@ from dataclasses import replace
 from shapely import affinity
 from shapely.geometry import Point, Polygon
 
-from core.interior.layout import Layout, Placement, rotation_for
+from core.interior.layout import Layout, Placement, clearance, rotation_for
 from core.interior.library import Tpl
 from core.interior.lineup import _inward, layout_lineup
 from core.interior.rows import layout_rows
@@ -36,8 +36,10 @@ def _fits(fp: Polygon, space: Space, taken: list[Polygon]) -> bool:
     return all(fp.intersection(b).area <= 1 for b in [*space.blocked, *taken])
 
 
-def _on_wall(tpl: Tpl, space: Space, taken, edges, z: float, prefer=None, step: float = 200) -> Placement | None:
-    """The first free spot with the back against one of `edges`, facing into the room; nearest `prefer` first."""
+def _on_wall(tpl: Tpl, space: Space, taken, edges, z: float, prefer=None, step: float = 200,
+             front: float = 0.0) -> Placement | None:
+    """The first free spot with the back against one of `edges`, facing into the room; nearest `prefer` first.
+    `front` mm in front of it must be free too (working space, airflow)."""
     spots = []
     for edge in edges:
         ang, ax, ay = _inward(space, edge)
@@ -50,8 +52,14 @@ def _on_wall(tpl: Tpl, space: Space, taken, edges, z: float, prefer=None, step: 
             along += step
     for _, x, y, ang in sorted(spots):
         p = Placement(tpl.id, tpl.version, x, y, z, ang, (tpl.w, tpl.d, tpl.h))
-        if _fits(p.footprint(), space, taken):
-            return p
+        if not _fits(p.footprint(), space, taken):
+            continue
+        if front:
+            f = p.front()
+            zone = p.footprint().union(affinity.translate(p.footprint(), f[0] * front, f[1] * front)).convex_hull
+            if not _fits(zone, space, taken):
+                continue
+        return p
     return None
 
 
@@ -240,5 +248,42 @@ def fill(space: Space, lib: dict[str, Tpl], items: dict[str, int | None], option
     if CYL in items and CYL in lib:
         _cylinders(lay, space, lib, items[CYL] or max(1, math.ceil(space.room.area / 1e6 / rules.fire_cylinder_per_m2)),
                    rules)
+    _leftovers(lay, space, lib, items, rules)
     return lay
+
+
+HANDLED = {PANEL, READER, CCTV, CYL, ROOF, DOOR}  # placed by their own rules above
+
+
+def _leftovers(lay: Layout, space: Space, lib, items: dict, rules: Rules) -> None:
+    """What the layout did not place (a CRAC asked in a line-up room, a rack in a room too small for rows) stands
+    against a wall with its front space free; what still does not fit is named."""
+    taken = _taken(lay, lib, rules)
+    for tid, count in items.items():
+        if tid in HANDLED or tid not in lib:
+            continue
+        tpl = lib[tid]
+        placed = sum(p.template_id == tid for p in lay.placements)
+        want = count if count is not None else (1 if placed == 0 else 0)
+        added = 0
+        front = clearance(tpl, rules)[0] or (rules.row_end_clear_mm if tpl.category == "cooling" else 0)
+        while placed + added < want:
+            p = _on_wall(tpl, space, taken, space.walls, 0.0, front=front)
+            if p is None:
+                break
+            p.against_wall = True
+            lay.placements.append(p)
+            taken += [p.footprint(), *p.zones(tpl, rules)]
+            added += 1
+        if added and tpl.category in ("rack", "network"):
+            lay.notes.append(f"{added} {tid} menempel dinding (ruang tidak cukup untuk baris; tanpa akses belakang)")
+            if placed + added >= want:  # the rows' own shortfall note no longer holds
+                lay.notes = [n for n in lay.notes if not (n.startswith("muat ") and n.endswith(" rack"))]
+        if placed + added < want:
+            got = placed + added
+            msg = f"{tid} tidak muat di ruang ini" if got == 0 else f"{tid}: muat {got} dari {want}"
+            fits = [o.id for o in lib.values() if o.category == tpl.category and o.id != tid and o.id not in HANDLED
+                    and _on_wall(o, space, taken, space.walls, 0.0,
+                                 front=clearance(o, rules)[0] or (rules.row_end_clear_mm if o.category == "cooling" else 0))]
+            lay.notes.append(msg + (f"; yang muat dari kategori {tpl.category}: {', '.join(fits)}" if fits else ""))
 

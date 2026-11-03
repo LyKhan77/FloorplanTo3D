@@ -22,6 +22,7 @@ class Placement:
     rotation: float  # degrees CCW; the front is (-sin, cos)
     dims: tuple[float, float, float]
     source: Literal["rules", "drawing"] = "rules"
+    against_wall: bool = False  # set against a wall with no rear access: no back working space is asked of it
 
     def _place(self, g):
         return affinity.translate(affinity.rotate(g, self.rotation, origin=(0, 0)), self.x, self.y)
@@ -37,7 +38,7 @@ class Placement:
         out = []
         if front:
             out.append(self._place(sbox(-w / 2, d / 2, w / 2, d / 2 + front)))
-        if back:
+        if back and not self.against_wall:
             out.append(self._place(sbox(-w / 2, -d / 2 - back, w / 2, -d / 2)))
         return out
 

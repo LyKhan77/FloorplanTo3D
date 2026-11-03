@@ -54,7 +54,8 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
             if (!s.box) s.open(boxAround(found.center, found.size))
             s.addDrawn(found)
           }).catch((err) => {
-            if (err instanceof ApiError && err.code === 'no_box') return  // a click on empty floor or a wall: just a selection
+            // a click on empty floor, a wall or a room's own outline: just a selection (the room stays selected)
+            if (err instanceof ApiError && (err.code === 'no_box' || err.code === 'is_room')) return
             useEditorStore.getState().setNotice({ kind: 'warning', text: err instanceof Error ? err.message : String(err) })
           })
         }

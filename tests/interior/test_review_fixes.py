@@ -66,3 +66,38 @@ def test_new_object_on_an_existing_one_is_an_overlap(lib):
     ps, _ = place_drawn([{"id": "K1", "center": [3000, 3000], "size": [800, 1200], "rotation": 90}],
                         lib["ups-cabinet-generic"], s, R)
     assert any(i["code"] == "O001" for i in check(ps, s, lib, R))
+
+
+def test_cooling_in_a_lineup_room_goes_on_a_wall(lib):
+    """Strata asked for a CRAC with layout 'lineup' (test-2 AHU room, 2026-11-03: dropped silently). A 3 x 4.4 m room:
+    the 2.5 m CRAC on the north wall with 1.2 m airflow in front, clear of the south door's zone."""
+    s = sp(hall(w=3200, h=4600, doors=[(0, 300, 900)]), lib)
+    lay = fill(s, lib, {"crac-unit-generic": None}, {}, "lineup", R)
+    (crac,) = [p for p in lay.placements if p.template_id == "crac-unit-generic"]
+    assert s.room.buffer(1).covers(crac.footprint()) and crac.footprint().distance(s.room.exterior) < 2
+    assert not check(lay.placements, s, lib, R)
+
+
+def test_one_rack_in_a_small_room_goes_on_a_wall(lib):
+    """Rows need about 3 x 3.4 m; one rack in 2.5 x 3.5 m stands against a wall with its front space free."""
+    s = sp(hall(w=2700, h=3700, doors=[(0, 300, 900)]), lib)
+    lay = fill(s, lib, {RACK: 1}, {}, "rows", R)
+    racks = [p for p in lay.placements if p.template_id == RACK]
+    assert len(racks) == 1 and any("dinding" in n for n in lay.notes)
+    assert not any(n.startswith("muat 0") for n in lay.notes)  # the shortfall was covered
+    assert check(lay.placements, s, lib, R) == []  # no back working space asked of a rack set against a wall
+    (front,) = racks[0].zones(lib[RACK], R)[:1]
+    assert s.room.buffer(1).covers(front)
+
+
+def test_an_item_that_cannot_be_placed_is_named(lib):
+    s = sp(hall(w=1500, h=1500), lib)
+    lay = fill(s, lib, {"crac-unit-generic": 1}, {}, "lineup", R)
+    assert not lay.placements and any("crac-unit-generic" in n for n in lay.notes)
+
+
+def test_a_unit_that_does_not_fit_suggests_one_that_does(lib):
+    """test-2 AHU room: a CRAC (2.5 m + 1.2 m airflow) does not fit 2.5 x 3.5 m; an in-row cooler does."""
+    s = sp(hall(w=2700, h=3700, doors=[(0, 300, 900)]), lib)
+    lay = fill(s, lib, {"crac-unit-generic": None}, {}, "lineup", R)
+    assert any("crac-unit-generic tidak muat" in n and "inrow-cooler-300x1200" in n for n in lay.notes)

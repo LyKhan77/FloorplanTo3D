@@ -163,8 +163,8 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
         # nothing survived translation: say why in the chat instead of a card with Terima disabled
         s.proposals.append({"ops": [], "valid": False, "instruction": message, "summary": _summary(tr, problems),
                             "explanation": plan.explanation, "notes": tr.notes + problems})
-        yield {"event": "error", "text": "Tidak ada perubahan yang bisa diusulkan: " + "; ".join(problems or tr.notes)
-               + ". Perjelas instruksinya atau ubah area."}
+        why = "; ".join(problems or tr.notes) or "rencana Strata tidak menghasilkan objek atau perubahan yang bisa ditempatkan"
+        yield {"event": "error", "text": f"Tidak ada perubahan yang bisa diusulkan: {why}. Perjelas instruksinya atau ubah area."}
         return
     yield {"event": "step", "text": "Validasi: 0 error baru" if not problems else f"Masih ada {len(problems)} masalah"}
     proposal = {"ops": tr.ops, "deleted": tr.deleted, "added": tr.added, "moved": tr.moved, "openings": tr.openings,

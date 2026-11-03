@@ -165,3 +165,13 @@ def test_o001_triggers_revision(tmp_path, library_dir):
                        templates_dir=library_dir, drawn=ks))
     p = next(e for e in ev if e["event"] == "proposal")
     assert len(c.calls) == 2 and p["valid"] and len(p["objects"]) == 1
+
+
+def test_an_empty_result_still_says_why(tmp_path, monkeypatch):
+    from core.assist import session
+    from core.assist.plan import Translation
+
+    monkeypatch.setattr(session, "translate", lambda *a, **k: Translation())
+    c = FakeClient(act({"type": "delete_wall", "id": "W5"}), act({"type": "delete_wall", "id": "W5"}))
+    ev = turn(c, new(), "isi", tmp_path)
+    assert kinds(ev)[-2] == "error" and ": ." not in ev[-2]["text"] and len(ev[-2]["text"]) > 40
