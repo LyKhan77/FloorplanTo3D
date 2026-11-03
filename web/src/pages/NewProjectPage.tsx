@@ -1,15 +1,16 @@
 import {
   Accordion, AccordionItem, Button, Dropdown, FileUploaderDropContainer, FileUploaderItem, Form, InlineNotification,
-  NumberInput, Stack, TextArea, TextInput, Toggle,
+  NumberInput, SelectableTile, Stack, TextArea, TextInput, Toggle,
 } from '@carbon/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useCreateProject, useProfiles } from '../api/hooks'
+import { useCreateProject, usePdfPages, useProfiles } from '../api/hooks'
 import { buildProjectForm } from '../lib/params'
 
 const SITE_TYPES = ['data_hall', 'data_center', 'office', 'mixed', 'other']
 const MAX_MB = 50
+const isPdf = (f: File) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name)
 
 export function NewProjectPage() {
   const navigate = useNavigate()
@@ -23,7 +24,9 @@ export function NewProjectPage() {
   const [wallThickness, setWallThickness] = useState<number | null>(null)
   const [floorName, setFloorName] = useState('')
   const [siteType, setSiteType] = useState('')
-  const [mmPerPx, setMmPerPx] = useState('')
+  const [doorLeafWidth, setDoorLeafWidth] = useState<number | null>(null)
+  const [page, setPage] = useState(1)
+  const pdfPages = usePdfPages()
   const [useStrata, setUseStrata] = useState(true)
   const [reviewPause, setReviewPause] = useState(true)
   const [profileId, setProfileId] = useState<string | null>(null)
@@ -38,6 +41,9 @@ export function NewProjectPage() {
     setFile(f)
     if (!name) setName(f.name.replace(/\.[^.]+$/, ''))
     setPreview(f.type.startsWith('image/') ? URL.createObjectURL(f) : null)
+    setPage(1)
+    pdfPages.reset()
+    if (isPdf(f)) pdfPages.mutate(f, { onError: (e) => setError(e instanceof ApiError ? e.message : String(e)) })
   }
 
   const submit = (start: boolean) => {
@@ -45,7 +51,7 @@ export function NewProjectPage() {
     try {
       const form = buildProjectForm(file, {
         name, prompt, wallHeight, doorHeight, wallThickness, floorName, siteType,
-        mmPerPx: mmPerPx ? Number(mmPerPx) : null, useStrata, reviewPause, profileId, start,
+        doorLeafWidth, page: isPdf(file) ? page : null, useStrata, reviewPause, profileId, start,
       })
       create.mutate(form, {
         onSuccess: (r) => navigate(`/projects/${r.project_id}?tab=pipeline`),
@@ -67,8 +73,21 @@ export function NewProjectPage() {
             <p className="cds--label-description">JPEG, PNG, atau PDF, maksimal {MAX_MB} MB.</p>
             <FileUploaderDropContainer accept={['.jpg', '.jpeg', '.png', '.pdf']} labelText="Seret file ke sini atau klik untuk memilih"
               onAddFiles={(_e, { addedFiles }) => pick(addedFiles)} />
-            {file && <FileUploaderItem name={file.name} status="edit" onDelete={() => { setFile(null); setPreview(null) }} />}
+            {file && <FileUploaderItem name={file.name} status="edit" onDelete={() => { setFile(null); setPreview(null); pdfPages.reset() }} />}
             {preview && <img src={preview} alt="Pratinjau denah" className="upload-preview" />}
+            {pdfPages.isPending && <p className="helper">Memuat halaman…</p>}
+            {pdfPages.data && (
+              <fieldset className="pdf-pages">
+                <legend className="cds--label">Pilih halaman denah ({pdfPages.data.page_count} halaman)</legend>
+                {pdfPages.data.pages.map((p) => (
+                  <SelectableTile key={p.page} id={`pdf-page-${p.page}`} name="pdf-page" value={String(p.page)}
+                    selected={p.page === page} onChange={() => setPage(p.page)}>
+                    <img src={p.thumb} alt={`Halaman ${p.page}`} />
+                    <span>Hal. {p.page}</span>
+                  </SelectableTile>
+                ))}
+              </fieldset>
+            )}
           </div>
           <TextInput id="name" labelText="Nama project" value={name} onChange={(e) => setName(e.target.value)} />
           <TextArea id="prompt" labelText="Prompt" placeholder="Data hall lantai 1, tinggi dinding 4.5 m, pintu 2.4 m"
@@ -85,8 +104,9 @@ export function NewProjectPage() {
                 <TextInput id="floor" labelText="Nama lantai" value={floorName} onChange={(e) => setFloorName(e.target.value)} />
                 <Dropdown id="site-type" titleText="Tipe site" label="Pilih tipe site" items={SITE_TYPES}
                   selectedItem={siteType || null} onChange={({ selectedItem }) => setSiteType(selectedItem ?? '')} />
-                <TextInput id="scale" labelText="Skala manual (mm per px)" helperText="Kosongkan agar dihitung dari grid dan dimensi"
-                  value={mmPerPx} onChange={(e) => setMmPerPx(e.target.value)} />
+                <NumberInput id="door-leaf-width" label="Lebar pintu standar (mm)" min={1} allowEmpty placeholder="800"
+                  helperText="Dipakai untuk skala bila denah tidak punya dimensi; diisi berarti selalu dipakai"
+                  value={doorLeafWidth ?? ''} onChange={(_e, { value }) => setDoorLeafWidth(value === '' ? null : Number(value))} />
                 <Toggle id="strata" labelText="Gunakan Strata" toggled={useStrata} onToggle={setUseStrata} />
                 <Toggle id="review-pause" labelText="Berhenti untuk review sebelum build 3D" toggled={reviewPause}
                   onToggle={setReviewPause} />

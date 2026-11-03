@@ -76,6 +76,7 @@ function GridStage({ projectId, art, metrics: m, warnings, attention }: {
   const [touched, setTouched] = useState(false)
   const mm = Number(value)
   const valid = value.trim() !== '' && Number.isFinite(mm) && mm > 0
+  const loud = attention || m.scale_source === 'door_estimate'
   return (
     <>
       {typeof m.mm_per_px === 'number' && (
@@ -86,17 +87,17 @@ function GridStage({ projectId, art, metrics: m, warnings, attention }: {
         <img src={art('02_grid/overlay.png')} alt="Sumbu grid dan dimensi yang dipakai untuk skala" className="artifact-img" />
         <figcaption className="helper">Magenta: sumbu grid · Hijau: dimensi dipakai · Merah: dimensi dibuang</figcaption>
       </figure>
-      <Button kind={attention ? 'primary' : 'tertiary'} size="sm" onClick={() => setOpen(true)}>Isi skala manual</Button>
-      <Modal open={open} modalHeading="Skala manual" primaryButtonText="Jalankan" secondaryButtonText="Batal"
+      <Button kind={loud ? 'primary' : 'tertiary'} size="sm" onClick={() => setOpen(true)}>Ubah lebar pintu</Button>
+      <Modal open={open} modalHeading="Lebar pintu standar" primaryButtonText="Jalankan" secondaryButtonText="Batal"
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() => {
           setTouched(true)
           if (!valid) return
-          start.mutate({ kind: 'from_stage', from_stage: 2, params_override: { mm_per_px: mm } })
+          start.mutate({ kind: 'from_stage', from_stage: 2, params_override: { door_leaf_width: mm } })
           setOpen(false)
         }}>
-        <TextInput id="manual-scale" labelText="Skala manual (mm per px)" value={value} inputMode="decimal"
-          helperText="mm per piksel gambar asli; tahap 2 dijalankan ulang" onChange={(e) => setValue(e.target.value)}
+        <TextInput id="door-leaf-width-rerun" labelText="Lebar pintu standar (mm)" value={value} inputMode="decimal" placeholder="800"
+          helperText="Skala dihitung ulang dari busur pintu; tahap 2 dijalankan ulang" onChange={(e) => setValue(e.target.value)}
           invalid={touched && !valid} invalidText="Isi angka lebih dari 0" />
       </Modal>
     </>

@@ -14,12 +14,19 @@ describe('buildProjectForm', () => {
   it('maps every advanced field', () => {
     const fd = buildProjectForm(new File(['x'], 'a.png'), {
       name: 'A', wallHeight: 4500, doorHeight: 2400, wallThickness: 200, floorName: 'Lantai 1', siteType: 'data_hall',
-      mmPerPx: 25.8, useStrata: false, start: false,
+      doorLeafWidth: 850, useStrata: false, start: false,
     })
     expect(JSON.parse(fd.get('params') as string)).toEqual({
       wall_height: 4500, door_height: 2400, wall_thickness: 200, floor_name: 'Lantai 1', site_type: 'data_hall',
-      mm_per_px: 25.8, use_strata: false,
+      door_leaf_width: 850, use_strata: false,
     })
+  })
+
+  it('sends the PDF page and the door width, never mm_per_px', () => {
+    const fd = buildProjectForm(new File(['x'], 'a.pdf'), { page: 13, doorLeafWidth: 850, start: true })
+    expect(fd.get('page')).toBe('13')
+    expect(JSON.parse(fd.get('params') as string)).toEqual({ door_leaf_width: 850 })
+    expect(buildProjectForm(new File(['x'], 'a.png'), { start: true }).get('page')).toBeNull()
   })
 
   it('rejects non-positive numbers', () => {

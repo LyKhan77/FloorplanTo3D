@@ -33,19 +33,35 @@ describe('ExtractionStage', () => {
     expect(screen.getByText('dimensi total 28000 ≠ jumlah bagian')).toBeInTheDocument()
   })
 
-  it('needs_attention offers manual scale', async () => {
+  it('needs_attention offers the door width', async () => {
     post.mockResolvedValue({ run_id: 'r2' })
-    show(run([stage(0), stage(1), stage(2, { status: 'needs_attention' })]), 2, 'Skala tidak dapat ditentukan, isi skala manual')
-    expect(screen.getByText('Skala tidak dapat ditentukan, isi skala manual')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Isi skala manual' }))
-    const input = screen.getByLabelText('Skala manual (mm per px)')
+    show(run([stage(0), stage(1), stage(2, { status: 'needs_attention' })]), 2, 'Skala tidak dapat ditentukan: tidak ada dimensi maupun pintu')
+    expect(screen.getByText('Skala tidak dapat ditentukan: tidak ada dimensi maupun pintu')).toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'Ubah lebar pintu' })
+    expect(button.className).toMatch(/cds--btn--primary/)
+    fireEvent.click(button)
+    const input = screen.getByLabelText('Lebar pintu standar (mm)')
     fireEvent.change(input, { target: { value: '0' } })
     fireEvent.click(screen.getByRole('button', { name: 'Jalankan' }))
     expect(post).not.toHaveBeenCalled()
-    fireEvent.change(input, { target: { value: '26.5' } })
+    fireEvent.change(input, { target: { value: '900' } })
     fireEvent.click(screen.getByRole('button', { name: 'Jalankan' }))
     await waitFor(() => expect(post).toHaveBeenCalledWith('/api/projects/p1/runs',
-      { kind: 'from_stage', from_stage: 2, params_override: { mm_per_px: 26.5 } }))
+      { kind: 'from_stage', from_stage: 2, params_override: { door_leaf_width: 900 } }))
+  })
+
+  it('door_estimate shows its warning and a primary door-width button', () => {
+    const w = 'Skala diperkirakan dari 52 pintu (lebar pintu 800 mm). Ubah lebar pintu bila ukuran tidak sesuai.'
+    show(run([stage(0), stage(1), stage(2, { metrics: { mm_per_px: 30.7, scale_source: 'door_estimate', axes_v: 0, axes_h: 0, residual_max_pct: 0 },
+      warnings: [w] })], 'needs_review'), 2)
+    expect(screen.getByText(w)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ubah lebar pintu' }).className).toMatch(/cds--btn--primary/)
+  })
+
+  it('a grid scale keeps the door-width button quiet', () => {
+    show(run([stage(0), stage(1), stage(2, { metrics: { mm_per_px: 25.8, scale_source: 'grid_dimensions', axes_v: 6, axes_h: 3, residual_max_pct: 0 } })],
+      'needs_review'), 2)
+    expect(screen.getByRole('button', { name: 'Ubah lebar pintu' }).className).toMatch(/cds--btn--tertiary/)
   })
 
   it('stage 0 lists final params', async () => {

@@ -110,6 +110,24 @@ body {
   border: 1px solid #393939;
 }
 
+.pdf-pages {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  max-height: 24rem;
+  overflow-y: auto;
+
+  legend {
+    grid-column: 1 / -1;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+  }
+}
+
 .helper {
   color: #c6c6c6;
   font-size: 0.875rem;

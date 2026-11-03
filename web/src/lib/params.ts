@@ -6,7 +6,8 @@ export interface ProjectFields {
   wallThickness?: number | null
   floorName?: string
   siteType?: string
-  mmPerPx?: number | null
+  doorLeafWidth?: number | null
+  page?: number | null
   useStrata?: boolean
   reviewPause?: boolean
   profileId?: string | null
@@ -26,7 +27,7 @@ export function buildProjectForm(file: File, f: ProjectFields): FormData {
   num('wall_thickness', f.wallThickness)
   if (f.floorName) params.floor_name = f.floorName
   if (f.siteType) params.site_type = f.siteType
-  num('mm_per_px', f.mmPerPx)
+  num('door_leaf_width', f.doorLeafWidth)
   if (f.useStrata !== undefined) params.use_strata = f.useStrata
   if (f.reviewPause !== undefined) params.review_pause = f.reviewPause
 
@@ -36,6 +37,7 @@ export function buildProjectForm(file: File, f: ProjectFields): FormData {
   if (f.prompt) fd.append('prompt', f.prompt)
   if (Object.keys(params).length) fd.append('params', JSON.stringify(params))
   if (f.profileId) fd.append('profile_id', f.profileId)
+  if (f.page) fd.append('page', String(f.page))
   fd.append('start', String(f.start))
   return fd
 }

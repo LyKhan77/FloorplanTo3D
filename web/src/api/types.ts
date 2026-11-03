@@ -16,6 +16,12 @@ export interface Stage {
   warnings: string[]
 }
 
+/** POST /api/pdf/pages: a thumbnail per page of a PDF, before a project exists. */
+export interface PdfPages {
+  page_count: number
+  pages: { page: number; thumb: string }[]
+}
+
 export interface Run {
   run_id: string
   project_id: string

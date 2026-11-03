@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type { Spec } from '../types/spec'
-import type { AppConfig, Health, OutputVersion, Profile, ProjectDetail, ProjectSummary, Run, SpecDiff, SpecVersion, Template } from './types'
+import type { AppConfig, Health, OutputVersion, PdfPages, Profile, ProjectDetail, ProjectSummary, Run, SpecDiff, SpecVersion, Template } from './types'
 
 const P = (id: string) => `/api/projects/${id}`
 
@@ -36,6 +36,16 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: (form: FormData) => api.upload<{ project_id: string; run_id: string | null }>('/api/projects', form),
     onSuccess: invalidate,
+  })
+}
+
+export function usePdfPages() {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData()
+      form.append('file', file)
+      return api.upload<PdfPages>('/api/pdf/pages', form)
+    },
   })
 }
 
