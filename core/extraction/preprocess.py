@@ -60,7 +60,8 @@ def load_raster(path: Path, page: int = 1) -> np.ndarray:
             for r in photos:
                 pg.add_redact_annot(r)
             if photos:
-                pg.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
+                # pixels, not whole images: a raster underlay under a photo keeps everything outside the photo
+                pg.apply_redactions(images=fitz.PDF_REDACT_IMAGE_PIXELS, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
                                     text=fitz.PDF_REDACT_TEXT_NONE)
             k = PDF_DPI / 72
             pix = pg.get_pixmap(matrix=fitz.Matrix(k, k), alpha=False)
@@ -131,9 +132,10 @@ def binarize(gray: np.ndarray, k: float = 0.2, window: int = 25) -> np.ndarray:
     return np.where(gray < threshold_sauvola(gray, window_size=window, k=k), 255, 0).astype(np.uint8)
 
 
-def drawing_bbox(binary: np.ndarray, colour: np.ndarray | None = None) -> tuple[int, int, int, int]:
+def drawing_bbox(binary: np.ndarray, colour: np.ndarray | None = None, sheet: bool = False) -> tuple[int, int, int, int]:
     """Bbox (x0, y0, x1, y1) of the building: the largest ink component and the big blocks next to it. A paper
-    border (>= 90% of the page) and a sheet frame with its title block are skipped.
+    border (>= 90% of the page) is skipped. sheet: a CAD sheet (PDF page), where the sheet frame and its title block
+    are skipped and blocks of one building are joined; a plain image is a crop, its largest component is the plan.
 
     colour: mask of saturated pixels. CAD exports draw grid bubbles, leaders and dimension chains in colour, and
     on a low-resolution raster they touch the building outline; without them the building stands alone.
@@ -141,6 +143,10 @@ def drawing_bbox(binary: np.ndarray, colour: np.ndarray | None = None) -> tuple[
     ink = binary if colour is None else np.where(colour, 0, binary).astype(np.uint8)
     h, w = binary.shape
     stats = _components(ink)
+    if not sheet:
+        boxes = [(int(x), int(y), int(x + bw), int(y + bh), int(a)) for x, y, bw, bh, a in stats
+                 if bw * bh < 0.9 * w * h]
+        return max(boxes, key=lambda b: b[4])[:4] if boxes else (0, 0, w, h)
     # a plan cut by the sheet frame touches it: drop the frame lines and look again
     # ponytail: a frame is told from a building filling a tight crop (Gatsu, ink 0.096 of its bbox) by ink density
     # alone (Ancol p13 frame + building 0.048); a denser sheet needs a real rectangle test on the frame lines
@@ -202,7 +208,8 @@ def _is_frame(b, boxes, w: int, h: int) -> bool:
                b[0] <= o[0] and b[1] <= o[1] and b[2] >= o[2] and b[3] >= o[3] for o in boxes)
 
 
-def preprocess(raster_bgr: np.ndarray) -> PreprocessResult:
+def preprocess(raster_bgr: np.ndarray, sheet: bool = False) -> PreprocessResult:
+    """sheet: the raster is a CAD sheet (a PDF page), see drawing_bbox."""
     gray = cv2.cvtColor(raster_bgr, cv2.COLOR_BGR2GRAY) if raster_bgr.ndim == 3 else raster_bgr
     colour = (cv2.cvtColor(raster_bgr, cv2.COLOR_BGR2HSV)[:, :, 1] > COLOUR_SAT).astype(np.uint8) * 255 \
         if raster_bgr.ndim == 3 else np.zeros_like(gray)
@@ -226,7 +233,7 @@ def preprocess(raster_bgr: np.ndarray) -> PreprocessResult:
     a = rot[:, :2] * up  # rotation after upscale
     work_from_original = [a[0, 0], a[0, 1], rot[0, 2], a[1, 0], a[1, 1], rot[1, 2]]
     meta = {"deskew_deg": round(angle, 4), "upscale": up, "work_size": [gray.shape[1], gray.shape[0]],
-            "original_size": [ow, oh], "drawing_bbox": list(drawing_bbox(binary, colour > 0)),
+            "original_size": [ow, oh], "drawing_bbox": list(drawing_bbox(binary, colour > 0, sheet)),
             "work_from_original": [round(float(v), 6) for v in work_from_original]}
     return PreprocessResult(page=gray, binary=binary, meta=meta, status=status, message=message,
                             colour=np.where(colour > 0, 255, 0).astype(np.uint8))

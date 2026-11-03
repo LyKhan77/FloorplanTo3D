@@ -171,10 +171,11 @@ def _public(e: dict) -> dict:
     return {k: v for k, v in e.items() if not k.startswith("_")}
 
 
-def scale_mode(params: dict) -> tuple[str, float | None]:
-    """An explicit door width wins over everything (it is how the user corrects the scale), then a manual mm/px."""
-    if params.get("door_leaf_width"):
-        return "door", float(params["door_leaf_width"])
+def scale_mode(params: dict, explicit: dict) -> tuple[str, float | None]:
+    """A door width the user set (form or rerun override, in `explicit`) wins over everything: it is how the user
+    corrects the scale. One read from the prompt only sets the fallback's leaf. Then a manual mm/px."""
+    if explicit.get("door_leaf_width"):
+        return "door", float(explicit["door_leaf_width"])
     if params.get("mm_per_px"):
         return "manual", float(params["mm_per_px"])
     return "auto", None

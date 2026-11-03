@@ -118,15 +118,40 @@ def test_bbox_skips_sheet_frame_and_unions_blocks():
             cv2.line(b, (x, y0), (x, y1), 255, 3)
         for y in range(y0, y1 + 1, 20):
             cv2.line(b, (x0, y), (x1, y), 255, 3)
-    assert drawing_bbox(b) == pytest.approx((299, 199, 1202, 1302), abs=5)
+    assert drawing_bbox(b, sheet=True) == pytest.approx((299, 199, 1202, 1302), abs=5)
 
 
 @requires_ancol
 @pytest.mark.parametrize("dpi", [300, 600])
 def test_ancol_p13_bbox_is_the_building(dpi, monkeypatch):
     monkeypatch.setattr(pre, "PDF_DPI", dpi)
-    r = preprocess(load_raster(ANCOL, page=13))
+    r = preprocess(load_raster(ANCOL, page=13), sheet=True)
     k = dpi / 300
     x0, y0, x1, y1 = r.meta["drawing_bbox"]
     assert x0 <= (611 + 20) * k and y0 <= (238 + 20) * k and x1 >= (2261 - 20) * k and y1 >= (2295 - 20) * k  # building
     assert x1 < 0.8 * r.meta["work_size"][0]  # no title block
+
+
+def test_sparse_tight_crop_keeps_its_building():
+    b = np.zeros((2000, 3000), np.uint8)
+    cv2.rectangle(b, (200, 150), (2800, 1850), 255, 3)  # outline filling ~85% of the image, little ink
+    for x in (800, 1500, 2100):
+        cv2.line(b, (x, 150), (x, 1850), 255, 3)
+    assert drawing_bbox(b) == pytest.approx((199, 149, 2802, 1852), abs=5)
+
+
+def test_raster_underlay_survives_photo_removal(tmp_path):
+    import pymupdf as fitz
+
+    pdf = tmp_path / "plan.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=600, height=400)
+    for i in range(600):
+        page.draw_line((5 + (i % 60) * 9, 380 + i // 60), (9 + (i % 60) * 9, 380 + i // 60))
+    page.insert_image(fitz.Rect(0, 0, 500, 300), stream=_png(128), keep_proportion=False)  # underlay, 62% of page
+    page.insert_image(fitz.Rect(100, 100, 200, 200), stream=_png(0))  # photo on top
+    doc.save(pdf)
+    img = load_raster(pdf, page=1)
+    k = 300 / 72
+    assert 100 < img[int(250 * k), int(400 * k)].mean() < 160  # underlay kept outside the photo
+    assert img[int(150 * k), int(150 * k)].min() > 100  # photo gone

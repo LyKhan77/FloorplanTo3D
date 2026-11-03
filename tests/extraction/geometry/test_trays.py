@@ -66,3 +66,13 @@ def test_short_ladder_like_pattern_is_not_a_tray():
     img = np.zeros((800, 800), np.uint8)
     _ladder(img, TRAY_STYLES["ladder_wide"], 50, 100, 1200)
     assert tray_mask(img, S, STROKE).sum() == 0
+
+
+@pytest.mark.parametrize("s", [20.0, 30.0])
+@pytest.mark.parametrize("gap_mm", [290, 300, 310, 460])
+def test_double_line_wall_as_wide_as_a_tray_is_not_a_tray(s, gap_mm):
+    img = np.zeros((600, 1200), np.uint8)
+    y, gap = 200, round(gap_mm / s)
+    cv2.line(img, (50, y), (1150, y), 255, 2)
+    cv2.line(img, (50, y + gap), (1150, y + gap), 255, 2)
+    assert tray_mask(img, s, 2).sum() == 0

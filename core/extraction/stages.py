@@ -96,7 +96,7 @@ def stage_preprocess(project_dir: Path, work: Path) -> dict:
     raster = load_raster(original, page_no)
     if original.suffix == ".pdf":  # later stages, the editor and the report need a raster of the plan
         cv2.imwrite(str(project_dir / "input" / "raster.png"), raster)
-    r = preprocess(raster)
+    r = preprocess(raster, sheet=original.suffix == ".pdf")
     cv2.imwrite(str(work / "page.png"), r.page)
     cv2.imwrite(str(work / "bin.png"), r.binary)
     cv2.imwrite(str(work / "colour.png"), r.colour)
@@ -137,11 +137,11 @@ def stage_grid(project_dir: Path, work: Path, override: dict | None = None, prog
     # the form's manual scale is mm per *original* pixel; the solver works in working pixels
     a, b, _, d, e, _ = meta["work_from_original"]
     work_per_original = abs(a * e - b * d) ** 0.5
-    mode, value = scale_mode(params)
+    mode, value = scale_mode(params, {**(_upload(project_dir).get("params") or {}), **(override or {})})
     doc = scale_from(grid, dims, value / work_per_original if mode == "manual" else None, unit=work_per_original)
     doors = None
     if mode == "door" or (mode == "auto" and doc["status"] != "succeeded"):
-        leaf = value if mode == "door" else DEFAULT_DOOR_LEAF_MM
+        leaf = value if mode == "door" else params.get("door_leaf_width") or DEFAULT_DOOR_LEAF_MM
         doors = estimate_from_doors(binary, tuple(meta["drawing_bbox"]), leaf)
         if doors is None:
             doc = {**doc, "status": "needs_attention", "message": MSG_NO_SCALE}

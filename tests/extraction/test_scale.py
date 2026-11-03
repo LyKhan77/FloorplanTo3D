@@ -98,9 +98,10 @@ def test_gatsu_scale_within_half_percent():
 
 
 def test_scale_mode_precedence():
-    assert scale_mode({"door_leaf_width": 900, "mm_per_px": 25}) == ("door", 900)
-    assert scale_mode({"mm_per_px": 25}) == ("manual", 25)
-    assert scale_mode({}) == ("auto", None)
+    assert scale_mode({"door_leaf_width": 900, "mm_per_px": 25}, {"door_leaf_width": 900}) == ("door", 900)
+    assert scale_mode({"mm_per_px": 25}, {"mm_per_px": 25}) == ("manual", 25)
+    assert scale_mode({}, {}) == ("auto", None)
+    assert scale_mode({"door_leaf_width": 900}, {}) == ("auto", None)  # from the prompt: only the fallback's leaf
 
 
 def test_door_estimate_source_has_no_manual_warning():

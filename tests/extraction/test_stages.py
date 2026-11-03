@@ -123,3 +123,11 @@ def test_no_dimensions_no_doors_needs_attention(tmp_path):
     _, results = run_0_2(project)
     assert results[2]["status"] == "needs_attention"
     assert results[2]["message"] == "Skala tidak dapat ditentukan: tidak ada dimensi maupun pintu"
+
+
+def test_prompt_door_width_does_not_beat_grid(tmp_path):
+    project = make_project(tmp_path / "p", PLAN.read_bytes())
+    up = json.loads((project / "input" / "input.json").read_text())
+    (project / "input" / "input.json").write_text(json.dumps({**up, "prompt": "lebar pintu 900 mm"}))
+    _, results = run_0_2(project)
+    assert results[2]["metrics"]["scale_source"] == "grid_dimensions"
