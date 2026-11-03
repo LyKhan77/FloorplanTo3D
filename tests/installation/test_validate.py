@@ -45,3 +45,35 @@ def test_power_data_too_close_is_I004():
 
 def test_old_layout_version_is_I007():
     assert codes(check([], layout_head=4), "I007", "warning") and not codes(check([], layout_head=1), "I007")
+
+
+def devices(*objs):
+    from core.spec.models import PlacedObject
+
+    os_ = [PlacedObject(id=f"O{i + 1}", template_id=t, template_version="1.1.0", position=p, rotation=0, dims=d)
+           for i, (t, p, d) in enumerate(objs)]
+    inst = Installation(meta=InstallMeta(version=1, layout_version=1), objects=os_)
+    return validate_installation(inst, spec_with_rooms(), {})
+
+
+RACK = ((600, 1200, 2000))
+
+
+def test_device_in_a_wall_is_I009():
+    # W5 runs along x = 5000
+    assert codes(devices(("rack-42u-600x1200", (5000, 3000, 0), RACK)), "I009", "warning")
+
+
+def test_overlapping_devices_are_I010():
+    issues = devices(("rack-42u-600x1200", (2000, 3000, 0), RACK), ("rack-42u-600x1200", (2300, 3000, 0), RACK))
+    assert codes(issues, "I010", "warning")
+
+
+def test_a_roof_over_a_rack_is_no_overlap():
+    issues = devices(("rack-42u-600x1200", (2000, 3000, 0), RACK),
+                     ("containment-roof-600", (2000, 3000, 2000), (600, 1200, 60)))
+    assert not codes(issues, "I010") and not codes(issues, "I009")
+
+
+def test_a_clean_device_adds_nothing():
+    assert not [i for i in devices(("rack-42u-600x1200", (2000, 3000, 0), RACK)) if i.code in ("I009", "I010")]

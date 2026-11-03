@@ -95,6 +95,36 @@ def validate_installation(inst: Installation, layout: Spec, templates: dict[str,
         for cls in sorted(classes):  # only classes the installation has: no power trays, no "not connected to power"
             if (r.id, cls) not in reached:
                 issues.append(Issue("I006", "info", [r.id], f"{r.id} tidak terhubung ke tray {cls}"))
+    issues += _devices(inst, layout)
     if layout_head is not None and layout_head > meta.layout_version:
         issues.append(Issue("I007", "warning", [], f"instalasi memakai layout v{meta.layout_version}; layout terbaru v{layout_head}: rebase"))
     return issues
+
+
+OVERHEAD_MM = 2000  # from this height up (containment roofs) a device takes no floor space and stands on the racks
+
+
+def _devices(inst: Installation, layout: Spec) -> list[Issue]:
+    """I009: a device outside every room or in a wall/column; I010: devices overlapping (fit-out design §9)."""
+    from shapely.ops import unary_union
+
+    from core.interior.layout import Placement
+    from core.spec.derive import column_footprint, wall_footprint
+
+    out: list[Issue] = []
+    rooms = unary_union([Polygon(r.polygon, r.holes) for r in layout.rooms]).buffer(1) if layout.rooms else None
+    solids = [wall_footprint(w, layout) for w in layout.walls] + [column_footprint(c) for c in layout.columns]
+    fps = [(o, Placement(o.template_id, o.template_version, *o.position, o.rotation, tuple(o.dims)).footprint())
+           for o in inst.objects]
+    for o, fp in fps:
+        if o.position[2] >= OVERHEAD_MM:
+            continue
+        outside = rooms is not None and not rooms.covers(fp)
+        if outside or any(fp.intersection(s).area > 1 for s in solids):
+            out.append(Issue("I009", "warning", [o.id], f"{o.id} di luar ruang atau menabrak dinding/kolom"))
+    for i, (a, fa) in enumerate(fps):
+        for b, fb in fps[i + 1:]:
+            za, zb = (a.position[2], a.position[2] + a.dims[2]), (b.position[2], b.position[2] + b.dims[2])
+            if za[0] < zb[1] and zb[0] < za[1] and fa.intersection(fb).area > 1:
+                out.append(Issue("I010", "warning", [a.id, b.id], f"{a.id} dan {b.id} tumpang tindih"))
+    return out
