@@ -31,6 +31,10 @@ user.
 
 ## 3. Key Features
 
+- **PDF input:** page picker (thumbnails) for multi-page CAD sets; pasted photos, sheet frame and title block are
+  dropped (`core/extraction/preprocess.py`).
+- **Scale:** grid dimensions, else door swings with `door_leaf_width` (`core/extraction/door_scale.py`); cable-tray
+  ladders are masked before walls/columns (`core/extraction/geometry/trays.py`).
 - **Pipeline stages 0–10:**
   - input, preprocess, grid & scale, extraction, rooms, validation;
   - a pause for human review;

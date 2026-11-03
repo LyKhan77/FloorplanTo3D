@@ -4,6 +4,10 @@
 
 1. **New project:** upload the plan (image/PDF) and an optional prompt (heights). "Berhenti untuk review" is on by
    default.
+   - A multi-page PDF shows page thumbnails (`POST /api/pdf/pages`); the user picks the plan page. One page = one
+     project. Pasted site photos, the sheet frame and the title block are dropped.
+   - No dimensions on the plan → stage 2 estimates the scale from door swings (`door_leaf_width`, default 800 mm).
+     A door width the user sets always wins; it is the only scale correction in the UI.
 2. **Pipeline stages 0–5** (about 2 min on Gatsu):
    - input → preprocess → grid & scale → extraction → rooms → validation;
    - the run pauses at **Perlu review**.

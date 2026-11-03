@@ -55,6 +55,9 @@ Buka <http://localhost:5173>.
 ## Alur penggunaan (E2E)
 
 1. **Project baru.** Upload denah, isi prompt (opsional, mis. "tinggi dinding 4.5 m, pintu 2.4 m"), lalu "Mulai pipeline". Toggle "Berhenti untuk review sebelum build 3D" menyala secara default.
+   - **PDF multi-halaman** (set gambar CAD dari PM): thumbnail semua halaman tampil, klik halaman denahnya. Satu halaman = satu project. Foto lapangan yang ditempel di denah, bingkai lembar, dan title block dibuang otomatis.
+   - **Skala:** dihitung dari dimensi grid bila ada. Denah tanpa dimensi (`SCALE: NTS`) memakai busur pintu dengan **lebar pintu standar** 800 mm, dengan peringatan di tahap 2. Bila ukurannya meleset, ubah "Lebar pintu standar (mm)" (Parameter lanjutan, atau tombol **Ubah lebar pintu** di tahap 2). Lebar pintu yang diisi selalu dipakai, juga bila ada dimensi grid.
+   - Cable tray yang tergambar (pola tangga) tidak dibaca sebagai dinding atau kolom.
 2. **Tunggu tahap 0–5.** Gatsu butuh sekitar 2 menit. Status menjadi **Perlu review**. Bila skor validator terlalu rendah, statusnya **Perlu perhatian**; "Lanjutkan tetap" di tahap 5 melanjutkan tanpa kanvas review.
 3. **Buka review.** Di tab Pipeline, buka tahap 5, lalu klik "Buka review". Kanvas review 2D menampilkan hasil ekstraksi di atas gambar asli. Kerjakan daftar **Tugas review** di panel kiri:
    - **Celah terbuka:** klik tugas, lalu klik kedua titik kuning atau tombol "Tutup celah". Centang "Pasang pintu" bila celah itu pintu.
