@@ -10,13 +10,14 @@ from core.build_prep.assemble import build_input_for
 from core.cli import main as cli_main
 from core.report.data import report_data
 from core.spec.ops import apply
+from core.templates.make_placeholders import VERSION  # the generated library's version
 from core.verify.run import run_verify
 from tests.builder.helpers import BLENDER, build, skip_without_blender
 from tests.spec.fixtures import spec_with_rooms
 
 
 def _rack():
-    return {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.0.0",
+    return {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": VERSION,
             "position": (2000, 2000, 0), "dims": (600, 1200, 2000)}
 
 
@@ -36,11 +37,11 @@ def test_blend_contains_cameras(tmp_path):
 def test_corrupt_template_glb_is_skipped_with_warning(tmp_path, placeholder_root):
     root = tmp_path / "tpl"
     shutil.copytree(placeholder_root, root)
-    (root / "rack-42u-600x1200" / "1.0.0" / "asset.glb").write_bytes(b"not a glb at all")
+    (root / "rack-42u-600x1200" / VERSION / "asset.glb").write_bytes(b"not a glb at all")
     s = apply(spec_with_rooms(), [_rack()], "editor", 2)
     doc, warnings = build_input_for(s, root, None)
     assert doc["instances"] == []
-    assert len(warnings) == 1 and warnings[0].startswith("object O1: template rack-42u-600x1200@1.0.0 invalid")
+    assert len(warnings) == 1 and warnings[0].startswith(f"object O1: template rack-42u-600x1200@{VERSION} invalid")
 
 
 def test_build_warnings_reach_verify_json_and_report(tmp_path):

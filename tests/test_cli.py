@@ -8,6 +8,7 @@ from core.blender_run import parse_progress
 from core.cli import main as cli_main
 from core.spec.models import Spec
 from core.spec.ops import apply
+from core.templates.make_placeholders import VERSION  # the generated library's version
 from tests.builder.helpers import skip_without_blender
 from tests.spec.fixtures import spec_with_rooms
 
@@ -16,7 +17,7 @@ OUTPUTS = ("layout.blend", "shell.glb", "layout_full.glb", "layout.fbx", "layout
 
 
 def ten_racks_in_galery() -> list[dict]:
-    return [{"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.0.0",
+    return [{"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": VERSION,
              "position": (x, 2000, 0), "dims": (600, 1200, 2000)} for x in range(2000, 12000, 1000)]
 
 

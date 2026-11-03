@@ -5,6 +5,8 @@ import zipfile
 
 import pytest
 
+from core.templates.make_placeholders import VERSION  # the generated library's version
+
 
 def test_output_file_etag_and_304(client_with_outputs):
     client, pid = client_with_outputs
@@ -35,16 +37,16 @@ def test_bundle_zip_contains_files(client_with_outputs):
 @pytest.mark.blender
 def test_templates_listing_hides_invalid(app_factory, data_dir, placeholder_root):
     shutil.copytree(placeholder_root, data_dir / "templates")
-    (data_dir / "templates" / "pdu-floor-generic" / "1.0.0" / "asset.glb").write_bytes(b"broken")
+    (data_dir / "templates" / "pdu-floor-generic" / VERSION / "asset.glb").write_bytes(b"broken")
     with app_factory() as client:
         templates = client.get("/api/templates").json()
         ids = {t["id"] for t in templates}
         assert "rack-42u-600x1200" in ids and "pdu-floor-generic" not in ids
         assert {t["id"] for t in client.get("/api/templates?category=rack").json()} == {"rack-42u-600x1200",
                                                                                          "rack-48u-800x1200"}
-        assert client.get("/api/templates/rack-42u-600x1200/1.0.0/thumbnail.png").status_code == 200
-        assert client.get("/api/templates/rack-42u-600x1200/1.0.0/asset.glb").content[:4] == b"glTF"
-        assert client.get("/api/templates/rack-42u-600x1200/1.0.0").json()["dims"]["h"] == 2000
+        assert client.get(f"/api/templates/rack-42u-600x1200/{VERSION}/thumbnail.png").status_code == 200
+        assert client.get(f"/api/templates/rack-42u-600x1200/{VERSION}/asset.glb").content[:4] == b"glTF"
+        assert client.get(f"/api/templates/rack-42u-600x1200/{VERSION}").json()["dims"]["h"] == 2000
 
 
 def test_health_reports_strata_down(app_factory):

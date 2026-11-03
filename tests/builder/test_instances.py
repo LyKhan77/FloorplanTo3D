@@ -3,6 +3,7 @@ from pygltflib import GLTF2
 
 from core.build_prep.assemble import build_input_for
 from core.spec.ops import apply
+from core.templates.make_placeholders import VERSION  # the generated library's version
 from tests.builder.helpers import build, skip_without_blender
 from tests.spec.fixtures import spec_with_rooms
 
@@ -10,7 +11,7 @@ pytestmark = [pytest.mark.blender, skip_without_blender]
 
 
 def add_rack(x, y):
-    return {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.0.0",
+    return {"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": VERSION,
             "position": (x, y, 0), "dims": (600, 1200, 2000)}
 
 

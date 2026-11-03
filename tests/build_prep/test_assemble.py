@@ -2,6 +2,7 @@ import pytest
 
 from core.build_prep.assemble import build_input_for
 from core.spec.ops import apply
+from core.templates.make_placeholders import VERSION  # the generated library's version
 from tests.spec.fixtures import spec_with_rooms
 
 
@@ -39,9 +40,9 @@ def test_missing_template_skipped_with_warning(tmp_path):
 
 @pytest.mark.blender
 def test_instance_scale_from_dims(placeholder_root):
-    s = apply(spec_with_rooms(), [{"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": "1.0.0",
+    s = apply(spec_with_rooms(), [{"op": "add_object", "template_id": "rack-42u-600x1200", "template_version": VERSION,
                                    "position": (2000, 2000, 0), "dims": (600, 1000, 2200)}], "editor", 2)
     doc, _ = build_input_for(s, placeholder_root, None)
     inst = doc["instances"][0]
     assert inst["scale"] == pytest.approx([1.0, 1000 / 1200, 1.1]) and inst["name"] == "obj_O1"
-    assert inst["props"]["template_id"] == "rack-42u-600x1200" and inst["template_key"] == "rack-42u-600x1200@1.0.0"
+    assert inst["props"]["template_id"] == "rack-42u-600x1200" and inst["template_key"] == f"rack-42u-600x1200@{VERSION}"
