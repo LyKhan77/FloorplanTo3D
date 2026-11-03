@@ -58,7 +58,8 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
     strokes0 = extract_strokes(m["thin"], l_fix, s)  # treads are thin lines; thick stair walls and rails cut them
     stair_texts = [t for t in ocr_items if t.get("cls") == "stair_dir"]
     stairs, issues = detect_stairs(strokes0, stair_texts, m["clean"], s)
-    clean = np.where(stair_mask(find_flights(strokes0, s), m["clean"].shape, s) > 0, 0, m["clean"]).astype(np.uint8)
+    stairs_px = stair_mask(find_flights(strokes0, s), m["clean"].shape, s)
+    clean = np.where((stairs_px > 0) | (m["tray"] > 0), 0, m["clean"]).astype(np.uint8)
     strokes = extract_strokes(clean, l_fix, s)
     thickness = defaults.get("wall_thickness", DEFAULT_THICKNESS_MM)
     if params["strategy"] == "S1":
@@ -102,6 +103,6 @@ def extract_candidate(page_gray: np.ndarray, binary: np.ndarray, colour: np.ndar
         el_lifts.append([min(ax, bx), min(ay, by), max(ax, bx), max(ay, by)])
     return {"params": params, "walls": el_walls, "columns": el_cols, "openings": doors, "stairs": el_stairs,
             "lifts": el_lifts, "line_len_m": round(line_len / 1000, 2), "issues": el_issues,
-            "_masks": {"stair": stair_mask(find_flights(strokes0, s), clean.shape, s), "hatch": m["hatch"],
+            "_masks": {"stair": stairs_px, "hatch": m["hatch"], "tray": m["tray"],
                        "symbol": m["symbol"], "wall": wall_mask(raw, columns, clean.shape, meta["drawing_bbox"], s)},
             "_px": {"walls": walls, "columns": columns, "stairs": stairs}}

@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 from skimage.morphology import skeletonize
 
+from core.extraction.geometry.trays import tray_mask
+
 LEADER_CLASSES = ("annotation", "proposed", "dismantle")
 TEXT_DILATE_PX = 2
 LEADER_TOUCH_PX = 6
@@ -239,8 +241,9 @@ def build_masks(binary: np.ndarray, colour: np.ndarray, ocr_items: list[dict], d
     for x1_, y1_, x2_, y2_ in leader_segs:
         cv2.line(clean, (round(x1_), round(y1_)), (round(x2_), round(y2_)), 0, 3)
     w = stroke_width(clean)
+    tray = tray_mask(clean, s, w)  # applied by the caller once stairs are found (rungs look like treads)
     symbol, thick = _symbols(clean, w, s)
     clean[symbol > 0] = 0
     thin = np.where(thick > 0, 0, clean).astype(np.uint8)
-    return {"clean": clean, "thin": thin, "symbol": symbol, "hatch": _hatch(clean, s), "pointers": pointers,
+    return {"clean": clean, "thin": thin, "symbol": symbol, "hatch": _hatch(clean, s), "tray": tray, "pointers": pointers,
             "stroke_width": w, "erased_axes": erased_axes}
