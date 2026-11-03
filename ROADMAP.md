@@ -697,6 +697,12 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Tes Strata langsung (`tests/assist/test_area_strata.py -m strata`, GT Gatsu): duplikat, "hapus ini" dengan/tanpa pilihan, area tangga, pintu hilang: 5/5 dua kali berturut-turut.
 - Berikutnya: aksi instalasi (tray, rack) di branch yang sama, lalu generate interior.
 
+**Status generate interior v1 (2026-11-03)** (desain `docs/superpowers/specs/2026-11-03-generate-interior-design.md`, rencana `docs/superpowers/plans/2026-11-03-generate-interior.md`, branch `generate-interior` di atas `lowpoly-assets`).
+- Library 16 perangkat data center low-poly prosedural (`core/templates/lowpoly.py`, versi 1.1.0).
+- Mesin tata letak `core/interior/`: baris hot/cold aisle, line-up ruang listrik, CRAC, containment, perangkat dinding, tabung pemadam; aturan di `rules.yaml` (default TIA-942/ASHRAE); pemeriksaan O001–O003 khusus usulan.
+- Perangkat tergambar ditunjuk user (`K1`…) lalu dipetakan Strata ke template; deteksi otomatis semua perangkat tergambar ditunda ke v2 (spike: akurasi ±1/3 di Gatsu).
+- Tes Strata langsung: "isi ruang ini dengan rack" → bertanya → 14 rack + in-row + containment di R. MEETING (catatan kapasitas); "K1 itu panel MDB" di Battery Room. Semua kasus 12/12.
+
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.

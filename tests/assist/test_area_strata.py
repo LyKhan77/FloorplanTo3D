@@ -153,3 +153,41 @@ def test_delete_the_stair_of_a_room(strata, drawing, tmp_path):
     p = proposal(ask(strata, drawing, drawing[0], (-1400, 5600, 5700, 10100),
                      "hapus tangga di ruangan ini, dindingnya biarkan", tmp_path=tmp_path, answer="S1"))
     assert p["valid"] and "S1" in p["deleted"] and not any(o["op"] == "delete_wall" for o in p["ops"])
+
+
+def test_fill_a_room_asks_then_places(strata, drawing, tmp_path, library_dir):
+    """Generate interior: R. MEETING (10 x 7.4 m) as a test data hall."""
+    from core.interior.check import check
+    from core.interior.layout import Placement
+
+    gt, page, binary, t = drawing
+    s = Session(id="f", project_id="p", box=(5865, 6050, 15935, 13445), selection=[])
+    first = list(run_turn(strata, s, "isi ruang ini dengan rack", gt, [], page, binary, t, tmp_path,
+                          templates_dir=library_dir))
+    assert any(e["event"] == "question" for e in first), [e for e in first if e["event"] != "step"]
+    second = list(run_turn(strata, s, "16 rack 42U, pakai containment, pendingin in-row cooler", gt, [], page,
+                           binary, t, tmp_path, templates_dir=library_dir))
+    p = proposal(second)
+    ids = [o["template_id"] for o in p["objects"]]
+    n = ids.count("rack-42u-600x1200")  # R. MEETING holds 14 with in-row coolers, PDUs and containment
+    assert p["valid"] and 1 <= n <= 16 and (n == 16 or any(f"muat {n} dari 16" in x for x in p["notes"]))
+    assert "inrow-cooler-300x1200" in ids and "containment-roof-600" in ids
+    ps = [Placement(o["template_id"], o["template_version"], *o["position"], o["rotation"], tuple(o["dims"]))
+          for o in p["ops"] if o["op"] == "add_object"]
+    from core.interior.library import load_library
+    from core.interior.rules import load_rules
+    from core.interior.space import room_space
+
+    space = room_space(gt, "R22", s.box, 3000, load_library(library_dir), load_rules())
+    assert not [i for i in check(ps, space, load_library(library_dir), load_rules()) if i["code"] == "O001"]
+
+
+def test_a_pointed_box_becomes_the_named_equipment(strata, drawing, tmp_path, library_dir):
+    """Battery Room: K1 is the dark 'PANEL 3' cabinet (snap_box at its centre: 736 x 1058 mm)."""
+    gt, page, binary, t = drawing
+    k1 = {"id": "K1", "center": [21617, 1441], "size": [736, 1058], "rotation": 0}
+    s = Session(id="d", project_id="p", box=(19500, -500, 23700, 3400), selection=[])
+    p = proposal(list(run_turn(strata, s, "K1 itu panel MDB", gt, [], page, binary, t, tmp_path,
+                               templates_dir=library_dir, drawn=[k1])))
+    (op,) = [o for o in p["ops"] if o["op"] == "add_object"]
+    assert op["template_id"] == "panel-mdb-generic" and op["position"][:2] == [21617, 1441]
