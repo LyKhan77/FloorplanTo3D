@@ -1,0 +1,18 @@
+# Layout rules for generating a data-center interior (design §6.2). Defaults follow TIA-942 / ASHRAE practice;
+# calibrate per company or client by copying this file. Lengths in mm.
+cold_aisle_mm: 1200          # two raised-floor tiles between facing rack fronts
+hot_aisle_mm: 1000           # between rack backs
+grid_mm: 600                 # raised-floor tile: rack slots align to it
+row_end_clear_mm: 1200       # service / egress path at row ends and cross aisles
+wall_clear_mm: 1000          # working space between a wall and equipment (template clearance wins when larger)
+max_row_len: 12              # racks before a cross aisle
+door_clear_mm: 1200          # kept free inside a door
+inrow_per_racks: 4           # one in-row cooler after this many racks
+pdu_per_row: 1               # at the row end nearest the door
+crac_per_racks: 20           # CRAC count when not given: max(2, ceil(racks / this))
+electrical_front_mm: 1000    # working space in front of UPS / ATS / MDB (NEC 110.26)
+fm200_z_mm: 1400             # FM-200 control panel, beside the main door
+reader_z_mm: 1100            # access reader, latch side of the door
+cctv_below_ceiling_mm: 300   # camera top below the ceiling
+fire_cylinder_per_m2: 50     # one cylinder per this much floor
+wall_mounted: [fire-control-panel, cctv-camera-bullet, access-reader-generic]

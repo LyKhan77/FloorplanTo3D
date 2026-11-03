@@ -16,3 +16,8 @@ def load_template(root: Path, template_id: str, version: str) -> tuple[TemplateM
         return TemplateMeta.model_validate_json(meta_file.read_text()), glb
     except ValidationError:
         return None
+
+
+def semver(v: str) -> tuple[int, ...]:
+    """Sort key for template versions: "1.10.0" after "1.9.0"; a non-numeric version sorts first."""
+    return tuple(int(x) for x in v.split(".")) if all(x.isdigit() for x in v.split(".")) else (0,)

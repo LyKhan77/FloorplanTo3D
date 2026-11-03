@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core.extraction.profiles import ProfileConflict, ProfileNotFound, save_profile
-from core.templates.registry import load_template
+from core.templates.registry import load_template, semver
 from core.templates.validate import validate_template
 from server.errors import ApiError
 
@@ -24,10 +24,6 @@ def _problems(folder: str, mtime: float) -> tuple[str, ...]:
     return tuple(validate_template(Path(folder)))
 
 
-def _semver(v: str) -> tuple[int, ...]:
-    return tuple(int(x) for x in v.split(".")) if all(x.isdigit() for x in v.split(".")) else (0,)
-
-
 @router.get("/templates")
 def list_templates(request: Request, category: str | None = None):
     root = request.app.state.storage.templates_dir
@@ -35,7 +31,7 @@ def list_templates(request: Request, category: str | None = None):
     if not root.exists():
         return out
     for tdir in sorted(p for p in root.iterdir() if p.is_dir()):
-        for version in sorted((p.name for p in tdir.iterdir() if p.is_dir()), key=_semver, reverse=True):
+        for version in sorted((p.name for p in tdir.iterdir() if p.is_dir()), key=semver, reverse=True):
             found = load_template(root, tdir.name, version)
             folder = tdir / version
             problems = _problems(str(folder), max(f.stat().st_mtime for f in folder.iterdir())) if found else ("missing files",)
