@@ -2,21 +2,19 @@
 
 Overwritten at the start of every new task phase (AGENTS.md). History lives in CHANGELOG.md and git.
 
-## Phase: project documentation and repo hygiene (2026-11-03)
+## Phase: PDF input (2026-11-03)
 
-Goal: an agent can start a fresh session from the repo alone.
+Goal: create a project straight from a multi-page CAD PDF (test case: Ancol p13) and run to review without entering a
+scale. Spec: `docs/superpowers/specs/2026-11-03-pdf-input-design.md`.
 
-- [x] AGENTS.md (overview, stack, features, structure, commands, conventions, rules)
-- [x] WORKFLOW.md (app workflow + agent development workflow)
-- [x] CHANGELOG.md (concise history)
-- [x] todo.md (this file)
-- [x] `.gitignore`: inputs (`floorplan/`), outputs (`benchmarks/reports/`, generated crops), `temp/`, plans; untracked
-  what had been committed
-- [ ] User review of the docs
+- [x] Brainstorm: inspect the Ancol/Gatsu PDFs, spikes (door-based scale, photo removal, 600 dpi, tray masking),
+  baseline run of p13
+- [x] Design doc + builder check
+- [ ] User approval of the design doc
+- [ ] Branch `feat/pdf-input`, commit the spec
+- [ ] Implementation plan (writing-plans)
+- [ ] Execute: page picker, photo removal, `drawing_bbox`, door-based scale + `door_leaf_width`, tray mask, web
 
-## Next (new session)
+## Next
 
-Discuss PDF input and multi-floor projects:
-- PM delivered PDFs (`floorplan/*.pdf`, multi-page; the plan is on certain pages);
-- page selection at input;
-- several floors in one project.
+Debug phase: rooms do not close on Ancol p13 (wall ends stop short of junctions, V004 ~230).
