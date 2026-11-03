@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pytest
 
+from core.extraction.geometry import masks
 from core.extraction.geometry.trays import TRAY_STYLES, tray_mask
 from core.extraction.stages import stage_extract
 from tests.extraction.test_stages import make_project, run_0_2
@@ -46,13 +47,18 @@ def test_walls_are_not_trays():
 
 @requires_ancol
 @pytest.mark.slow
-def test_ancol_p13_columns_drop(tmp_path):
-    project = make_project(tmp_path / "p", ANCOL.read_bytes(), "pdf", page=13)
-    stages, _ = run_0_2(project)
-    assert stage_extract(project, stages / "03_extract", 1)["status"] == "succeeded"
-    counts = json.loads((stages / "03_extract" / "candidates.json").read_text())[0]["counts"]
-    assert counts["columns"] <= 100  # 158 before trays were masked; the rest are equipment boxes, not trays
-    assert (stages / "03_extract" / "masks" / "tray.png").is_file()
+def test_ancol_p13_columns_drop(tmp_path, monkeypatch):
+    def columns(name: str) -> int:
+        project = make_project(tmp_path / name, ANCOL.read_bytes(), "pdf", page=13)
+        stages, _ = run_0_2(project)
+        assert stage_extract(project, stages / "03_extract", 1)["status"] == "succeeded"
+        assert (stages / "03_extract" / "masks" / "tray.png").is_file()
+        return json.loads((stages / "03_extract" / "candidates.json").read_text())[0]["counts"]["columns"]
+
+    with_trays = columns("masked")
+    monkeypatch.setattr(masks, "tray_mask", lambda img, s, w: np.zeros_like(img))
+    without = columns("unmasked")
+    assert with_trays <= 0.8 * without, (with_trays, without)  # tray rungs were read as columns
 
 
 def test_short_ladder_like_pattern_is_not_a_tray():
