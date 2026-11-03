@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { ApiError } from '../../api/client'
 import { useEditorStore } from '../store'
-import { postDecision, streamAssist, type Proposal } from './stream'
+import { postDecision, streamAssist, type DrawnBox, type Proposal } from './stream'
 
 export type Box = [number, number, number, number]
 export type Msg =
@@ -10,6 +10,8 @@ export type Msg =
 
 interface AssistState {
   box: Box | null
+  drawn: DrawnBox[]  // boxes pointed at in the drawing this session: K1, K2, ...
+  addDrawn(b: Omit<DrawnBox, 'id'>): string
   sessionId: string | null
   messages: Msg[]
   pending: boolean
@@ -37,10 +39,15 @@ export const useAssistStore = create<AssistState>()((set, get) => {
     if (sid) postDecision(projectId, sid, accepted).catch(() => {})  // the log is best effort; the edit already happened
   }
   return {
-    box: null, sessionId: null, messages: [], pending: false, proposal: null, baseKey: null,
+    box: null, drawn: [], sessionId: null, messages: [], pending: false, proposal: null, baseKey: null,
+    addDrawn: (b) => {
+      const id = `K${get().drawn.length + 1}`
+      set((s) => ({ drawn: [...s.drawn, { ...b, id }] }))
+      return id
+    },
     // a new box keeps the conversation: "now this area too" is a follow-up
     open: (box) => set({ box, proposal: null }),
-    close: () => set({ box: null, sessionId: null, messages: [], pending: false, proposal: null, baseKey: null }),
+    close: () => set({ box: null, drawn: [], sessionId: null, messages: [], pending: false, proposal: null, baseKey: null }),
     send: async (projectId, text) => {
       const { box, sessionId, pending } = get()
       const ed = useEditorStore.getState()
@@ -53,7 +60,7 @@ export const useAssistStore = create<AssistState>()((set, get) => {
       try {
         await streamAssist(projectId, {
           ...(sessionId ? { session_id: sessionId } : {}), base_version: ed.baseVersion, ops: ed.ops, box,
-          selection: ed.selection, message: text,
+          selection: ed.selection, message: text, drawn: get().drawn,
         }, (e) => {
           if (e.event === 'session') set({ sessionId: e.session_id })
           else if (e.event === 'step' || e.event === 'question' || e.event === 'error') push({ role: e.event, text: e.text })

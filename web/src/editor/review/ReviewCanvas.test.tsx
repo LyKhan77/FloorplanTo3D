@@ -75,3 +75,17 @@ describe('ReviewCanvas pointer (M8 final review)', () => {
     expect(st().selection.every((id) => id.startsWith('W') || id.startsWith('O'))).toBe(true)
   })
 })
+
+describe('ReviewCanvas objects', () => {
+  it('draws placed objects as footprints', () => {
+    const withObj = { ...gt, objects: [{ id: 'O9', template_id: 'rack-42u-600x1200', template_version: '1.1.0',
+      position: [3000, 3000, 0], rotation: 90, dims: [600, 1200, 2000], room_id: null, label: null, locked: false }] } as unknown as Spec
+    st().load('p1', withObj)
+    const { container } = render(<ReviewCanvas rooms={[]} tasks={[]} backdrop={null} />)
+    const poly = container.querySelector('polygon[data-object="O9"]')
+    expect(poly).toBeTruthy()
+    // rotated 90°: 1200 along x, 600 along y (svg y is flipped)
+    const xs = poly!.getAttribute('points')!.split(' ').map((p) => Number(p.split(',')[0]))
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(1200, 0)
+  })
+})

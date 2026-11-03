@@ -14,6 +14,7 @@ function Seg({ a, b, color, width = 120, dash }: { a: Pt; b: Pt; color: string; 
 /** The marked box and the open proposal over the review canvas; nothing here is in the editor store until Terima. */
 export function ProposalLayer({ draft }: { draft: [Pt, Pt] | null }) {
   const box = useAssistStore((s) => s.box)
+  const drawn = useAssistStore((s) => s.drawn)
   const p = useAssistStore((s) => s.proposal)
   const view = useEditorStore((s) => s.view)
   const rect = draft ? [Math.min(draft[0][0], draft[1][0]), Math.min(draft[0][1], draft[1][1]),
@@ -38,6 +39,23 @@ export function ProposalLayer({ draft }: { draft: [Pt, Pt] | null }) {
       {p?.deleted.map((id) => view?.stairs?.find((x) => x.id === id)?.flights.map((f, j) => (
         <Seg key={`${id}-${j}`} a={f.start as Pt} b={f.end as Pt} color={RED} width={f.width} dash="300 180" />
       )))}
+      {drawn.map((k) => {
+        const [sx, sy] = k.rotation === 0 ? [k.size[0], k.size[1]] : [k.size[1], k.size[0]]
+        const [x, y] = svgPoint([k.center[0] - sx / 2, k.center[1] + sy / 2])
+        return <g key={k.id} style={{ pointerEvents: 'none' }}>
+          <rect x={x} y={y} width={sx} height={sy} fill="none" stroke={PURPLE} strokeWidth={40} />
+          <text x={x + 60} y={y + 260} fill={PURPLE} fontSize={240} fontWeight={600}>{k.id}</text>
+        </g>
+      })}
+      {p?.objects?.map((o, i) => {
+        const color = o.snapped ? GREEN : YELLOW
+        const [f0, f1] = [svgPoint(o.front[0]), svgPoint(o.front[1])]
+        return <g key={`o${i}`} style={{ pointerEvents: 'none' }} data-proposed={o.template_id}>
+          <polygon points={o.corners.map((q) => svgPoint(q).join(',')).join(' ')} fill={color} fillOpacity={o.z > 0 ? 0.08 : 0.3}
+            stroke={color} strokeWidth={30} strokeDasharray={o.z > 0 ? '120 80' : undefined} />
+          {o.z === 0 && <line x1={f0[0]} y1={f0[1]} x2={f1[0]} y2={f1[1]} stroke={color} strokeWidth={40} />}
+        </g>
+      })}
       {p?.moved.map((m) => <Seg key={m.id} a={m.a} b={m.b} color={GREEN} />)}
       {p?.added.map((w, i) => <Seg key={i} a={w.a} b={w.b} color={w.snapped ? GREEN : YELLOW} width={Math.max(w.thickness, 100)} />)}
       {p?.openings.map((o, i) => <Seg key={i} a={o.a} b={o.b} color={o.snapped ? GREEN : YELLOW} width={260} />)}

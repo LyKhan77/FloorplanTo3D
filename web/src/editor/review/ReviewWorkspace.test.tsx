@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../../types/spec'
 import { useEditorStore } from '../store'
@@ -74,5 +74,26 @@ describe('ReviewWorkspace "Perbaiki area" selection', () => {
     fireEvent.click(line)
     expect(st().selection.length).toBe(1)
     expect(useAssistStore.getState().box).toEqual([0, 0, 5000, 5000])
+  })
+})
+
+describe('ReviewWorkspace drawn boxes', () => {
+  beforeEach(() => st().load('p1', gt))
+
+  it('a click with tool A asks for the drawn box and adds K1', async () => {
+    const assist = await import('../assist/store')
+    const stream = await import('../assist/stream')
+    const spy = vi.spyOn(stream, 'drawnBox').mockResolvedValue({ center: [1000, 2000], size: [800, 1200], rotation: 0 })
+    assist.useAssistStore.getState().close()
+    assist.useAssistStore.getState().open([0, 0, 5000, 5000])
+    const { container, findByText } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    st().setTool('assist')
+    const svg = container.querySelector('svg')!
+    fireEvent.pointerDown(svg, { clientX: 1000, clientY: -2000, button: 0 })
+    fireEvent.pointerUp(svg, { clientX: 1000, clientY: -2000, button: 0 })
+    expect(spy).toHaveBeenCalledWith('p1', { at: [1000, 2000] })
+    expect(await findByText('K1')).toBeTruthy()
+    expect(assist.useAssistStore.getState().drawn).toEqual([{ id: 'K1', center: [1000, 2000], size: [800, 1200], rotation: 0 }])
+    spy.mockRestore()
   })
 })

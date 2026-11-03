@@ -20,7 +20,7 @@ vi.mock('./stream', () => ({
 const wall = gt.walls![5].id
 const proposal = (valid = true): AssistEvent => ({
   event: 'proposal', ops: [{ op: 'delete_wall', id: wall, reason: 'asisten: hapus' }], deleted: [wall], added: [], moved: [],
-  openings: [], stairs: [], explanation: 'Dinding nyasar.', notes: [], issues: [], valid,
+  openings: [], stairs: [], objects: [], explanation: 'Dinding nyasar.', notes: [], issues: [], valid,
 })
 
 async function send(text: string) {
@@ -84,6 +84,17 @@ describe('AssistPanel', () => {
     expect(screen.getByText(/direvisi/)).toBeTruthy()
     expect(screen.queryAllByText(/ditolak/).map((e) => e.textContent)).toEqual([])
     expect(decisions).toEqual([])
+  })
+
+  it('Terima adds every add_object of a filled room', async () => {
+    const add = (x: number) => ({ op: 'add_object', template_id: 'rack-42u-600x1200', template_version: '1.1.0',
+      position: [x, 3000, 0], rotation: 0, dims: [600, 1200, 2000] })
+    script = [{ event: 'session', session_id: 's1' }, { ...proposal(), ops: [add(2000), add(2600)] } as AssistEvent,
+      { event: 'done' }]
+    render(<AssistPanel projectId="p1" />)
+    await send('isi ruang')
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Terima' })) })
+    expect(st().ops.map((o) => o.op)).toEqual(['add_object', 'add_object'])
   })
 
   it('an invalid proposal keeps Terima disabled', async () => {

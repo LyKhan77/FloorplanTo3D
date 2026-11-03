@@ -131,6 +131,14 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
           fill={leak.has(r.id) ? '#fa4d56' : ROOM_FILLS[i % ROOM_FILLS.length]} fillOpacity={leak.has(r.id) ? 0.28 : sel.has(r.id) ? 0.3 : 0.1}
           stroke={sel.has(r.id) ? '#ffffff' : 'none'} strokeWidth={60} onClick={pick(r.id)} style={{ cursor: 'pointer' }} />
       ))}
+      {(view.objects ?? []).map((o) => {
+        // placed equipment (generate interior, Library): its footprint, rotated CCW about its centre
+        const [x, y] = o.position, [w, d] = o.dims, t = ((o.rotation ?? 0) * Math.PI) / 180
+        const corner = (u: number, v: number) => svgPoint([x + u * Math.cos(t) - v * Math.sin(t), y + u * Math.sin(t) + v * Math.cos(t)])
+        const ring = [corner(-w / 2, -d / 2), corner(w / 2, -d / 2), corner(w / 2, d / 2), corner(-w / 2, d / 2)]
+        return <polygon key={o.id} data-object={o.id} points={ring.map((q) => q.join(',')).join(' ')} fill="#8d8d8d"
+          fillOpacity={0.35} stroke="#c6c6c6" strokeWidth={20} style={{ pointerEvents: 'none' }} />
+      })}
       {(view.stairs ?? []).map((st) => (
         <g key={st.id}>
           {(st.landings ?? []).map((l, i) => <polygon key={i} points={pts(l as number[][])} fill="#d2a106" fillOpacity={0.15} style={{ pointerEvents: 'none' }} />)}

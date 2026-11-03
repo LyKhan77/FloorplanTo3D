@@ -9,6 +9,8 @@ import { ReviewCanvas } from './ReviewCanvas'
 import { closeGapOps, doorOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
 import { ProposalLayer } from '../assist/ProposalLayer'
 import { useAssistStore } from '../assist/store'
+import { drawnBox } from '../assist/stream'
+import { ApiError } from '../../api/client'
 
 type Pt = [number, number]
 
@@ -41,8 +43,20 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       else if (kind === 'up' && rough) {
         const [a, b] = [rough.a, mm]
         setRough(null)
-        if (Math.abs(b[0] - a[0]) > 300 && Math.abs(b[1] - a[1]) > 300) {
+        const dragged = Math.abs(b[0] - a[0]) > 300 && Math.abs(b[1] - a[1]) > 300
+        if (dragged && !e.shiftKey) {
           useAssistStore.getState().open([Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])].map(Math.round) as [number, number, number, number])
+        } else if (dragged || Math.hypot(b[0] - a[0], b[1] - a[1]) < 300) {
+          // a click points at drawn equipment (K1, K2, ...); Shift-drag fits a box to the drawn lines
+          const at = dragged ? { a: a.map(Math.round) as Pt, b: b.map(Math.round) as Pt } : { at: b.map(Math.round) as Pt }
+          drawnBox(projectId, at).then((found) => {
+            const s = useAssistStore.getState()
+            if (!s.box) s.open(boxAround(found.center, found.size))
+            s.addDrawn(found)
+          }).catch((err) => {
+            if (err instanceof ApiError && err.code === 'no_box') return  // a click on empty floor or a wall: just a selection
+            useEditorStore.getState().setNotice({ kind: 'warning', text: err instanceof Error ? err.message : String(err) })
+          })
         }
       }
       return true
@@ -114,6 +128,12 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
     </ReviewCanvas>
     </>
   )
+}
+
+/** An area around a pointed box when no area was marked yet: the chat needs one. */
+function boxAround(c: Pt, size: [number, number]): [number, number, number, number] {
+  const r = size[1] / 2 + 1500
+  return [c[0] - r, c[1] - r, c[0] + r, c[1] + r].map(Math.round) as [number, number, number, number]
 }
 
 const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D'], ['assist', 'Perbaiki area', 'A']]

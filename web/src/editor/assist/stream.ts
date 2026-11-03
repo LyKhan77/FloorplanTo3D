@@ -9,6 +9,7 @@ export interface Proposal {
   moved: { id: string; a: Pt; b: Pt }[]
   openings: { a: Pt; b: Pt; category: 'door' | 'window'; snapped: boolean }[]
   stairs: { flights: { start: Pt; end: Pt; width: number; risers: number }[]; landings: Pt[][]; snapped: boolean }[]
+  objects: { template_id: string; corners: Pt[]; front: [Pt, Pt]; zones: Pt[][]; z: number; snapped: boolean }[]
   explanation: string
   notes: string[]
   issues: { code: string; severity: string; message: string }[]
@@ -26,7 +27,10 @@ export interface AssistBody {
   box: [number, number, number, number]
   selection: string[]
   message: string
+  drawn?: DrawnBox[]
 }
+/** A box the user pointed at in the drawing (generate interior): centre, [short, long] mm, long side along y (0) or x (90). */
+export interface DrawnBox { id: string; center: Pt; size: [number, number]; rotation: 0 | 90 }
 
 /** POST /assist/area and hand each Server-Sent Event to `onEvent` as it arrives. */
 export async function streamAssist(pid: string, body: AssistBody, onEvent: (e: AssistEvent) => void): Promise<void> {
@@ -53,6 +57,9 @@ export async function streamAssist(pid: string, body: AssistBody, onEvent: (e: A
     if (done) return
   }
 }
+
+export const drawnBox = (pid: string, at: { at: Pt } | { a: Pt; b: Pt }) =>
+  api.post<Omit<DrawnBox, 'id'>>(`/api/projects/${pid}/assist/drawn-box`, at)
 
 export const postDecision = (pid: string, sid: string, accepted: boolean) =>
   api.post<void>(`/api/projects/${pid}/assist/area/${sid}/decision`, { accepted })
