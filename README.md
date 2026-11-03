@@ -62,7 +62,7 @@ Buka <http://localhost:5173>.
    - **Tangga:** digambar kuning bergaris per anak tangga. Klik untuk mengubah jumlah anak tangga, lebar, atau arah naik. Tangga baru ditambahkan lewat Perbaiki area (`A`).
    - **Tipe ruang:** klik ruang, lalu pilih tipe. Untuk banyak ruang sekaligus, pakai Shift-klik, lalu "Tipe semua ruang".
    - **Perbaiki area dengan prompt (`A`, perlu Strata):** tarik kotak di sekitar area yang salah, lalu tulis instruksi di panel kanan, misalnya "gabungkan dinding dobel", "hapus ini" (pilih dulu dindingnya dengan `V`), "tambah pintu di sini", "sambung sudut W12 ke W13", "ini ruang tangga", "tambah tangga di sini" (tangga yang tergambar dibaca dari gambar; di ruang kosong tangga dirancang muat di ruang, lurus atau U, kuning), "hapus tangga di ruangan ini". Progres tampil di chat (20–40 detik per usulan). Strata bertanya balik bila instruksinya ambigu. Usulan tampil di kanvas: merah dihapus, hijau baru dan menempel ke gambar, kuning baru tapi tidak menempel (periksa posisinya). **Terima** memasukkan usulan ke perubahan yang belum disimpan (satu langkah `Ctrl+Z`), **Tolak** membuangnya. Membalas usulan tanpa Terima/Tolak (misalnya "W901 jangan dihapus, sisanya benar") berarti revisi: Strata mengirim usulan lengkap yang baru.
-   - **Isi ruang (generate interior, alat `A`):**
+   - **Isi ruang (generate interior, alat `A` di mode Instalasi & Interior):**
      - **Ruang kosong:** tandai ruang dan tulis "isi ruang ini". Strata bertanya dulu: perangkat apa, berapa rack, containment, CRAC atau in-row cooler. Setelah dijawab, sistem menempatkannya menurut aturan TIA-942/ASHRAE di `core/interior/rules.yaml`:
        - hot/cold aisle 1200/1000 mm, grid 600 mm;
        - jarak ujung baris 1200 mm, jalur pintu dikosongkan;
@@ -76,17 +76,30 @@ Buka <http://localhost:5173>.
 5. **Hasil.** Tab Outputs berisi unduhan model, render, dan dokumen. Tab Versions menyimpan riwayat spec, dan versi mana pun bisa di-regenerate.
 6. **Edit lanjutan.** Tab Editor berisi editor 3D (Orbit/Top/Walk) dan editor 2D (Plan 2D). Setelah Save, klik Regenerate untuk membangun ulang.
 
-### Instalasi (opsional): cable tray dan rack
+### Instalasi & Interior: semua perangkat (rack, CRAC, UPS, panel, tray)
 
-Setelah layout punya output, klik **Mulai instalasi** di halaman project. Isi tinggi plafon (kosong: dari prompt, atau tinggi dinding), raised floor bila ada, dan pemasangan tray default. Editor lalu terbuka dalam mode **Instalasi** (toggle Layout | Instalasi di atas editor). Layout tampil, tapi terkunci.
+Mode **Layout** berisi arsitektur saja (dinding, bukaan, ruang, tangga, kolom). Semua perangkat ada di mode **Instalasi & Interior** (toggle di atas editor). Mode ini tersedia begitu layout punya spec, dan saat pertama dibuka:
+
+- dokumen instalasinya dibuat otomatis;
+- objek lama di layout dipindah ke sini sekali (posisi sama; yang sudah ada di instalasi tidak digandakan);
+- instalasi otomatis pindah ke versi layout terbaru.
+
+Tinggi plafon dan raised floor diatur di panel Instalasi, atau lewat **Mulai instalasi** di halaman project. Layout tampil, tapi terkunci.
+
+0. **Perangkat:**
+   - seret kartu dari **Library** (panel kiri) ke kanvas;
+   - klik untuk memilih, seret untuk menggeser, `R` untuk memutar 90°;
+   - posisi X/Y/Z, rotasi, dan ukuran diisi angka di panel kanan. Perangkat dinding (panel FM-200, VESDA, CCTV, reader) diberi Z.
+
+   **Isi ruang (`A`)**: tandai ruang atau klik kotak perangkat di gambar (`K1`…), lalu tulis instruksi (lihat Isi ruang di atas).
 
 1. **Rack (`K`):** klik di dalam kotak rack di denah: kotak bergaris maupun gelap/berarsir berisi teks. Ukuran dan arah diambil dari kotak, dan template dipilih otomatis. Kalau klik tidak menemukan kotak, **Shift-tarik** kotak rack sendiri: sisi-sisinya menempel ke garis gambar terdekat (±120 mm).
 2. **Tray (`T`):** pilih Data atau Power, klik titik-titik di sepanjang pita tray di denah, lalu Enter. Jalur menempel ke pita, dan lebarnya dibulatkan ke ukuran standar. Kalau tidak ada pita, jalur dipakai seperti digambar.
 3. **Drop:** drop ke rack terdekat (≤ 1.5 m) muncul otomatis.
-4. **Cek panel kanan:** Properti, Masalah (I001–I007), dan Panjang tray per kelas.
+4. **Cek panel kanan:** Properti, Masalah (I001–I010; I009 perangkat di luar ruang atau menabrak dinding, I010 perangkat tumpang tindih), dan Panjang tray per kelas.
 5. **Save** (`Ctrl+S`). Hapus tray atau rack wajib diberi alasan.
 
-Kalau layout diubah setelah instalasi dibuat, halaman project menampilkan "Layout berubah": klik **Rebase**.
+Kalau layout diubah, instalasi menyusul sendiri saat mode Instalasi & Interior dibuka atau saat Build 3D. Masalah baru, misalnya tray menembus dinding baru, tampil di panel Masalah. Tombol **Rebase** hanya muncul kalau ada perubahan instalasi yang belum disimpan: Save dulu.
 
 **Build 3D instalasi:** setelah Save, klik **Build 3D**. Run "Instalasi" (tahap 7–10, terlihat di tab Pipeline) membangun tray perforated, hanger atau pedestal, drop ke rack, plafon, raised floor, dan sleeve di dinding.
 - **Output** ada di `installation_outputs/v<M>/`: `installation.glb`, `layout_installation.glb`, render, dan laporan panjang tray. Output layout tidak berubah.

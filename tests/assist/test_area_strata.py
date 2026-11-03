@@ -163,10 +163,10 @@ def test_fill_a_room_asks_then_places(strata, drawing, tmp_path, library_dir):
     gt, page, binary, t = drawing
     s = Session(id="f", project_id="p", box=(5865, 6050, 15935, 13445), selection=[])
     first = list(run_turn(strata, s, "isi ruang ini dengan rack", gt, [], page, binary, t, tmp_path,
-                          templates_dir=library_dir))
+                          templates_dir=library_dir, layer="installation"))
     assert any(e["event"] == "question" for e in first), [e for e in first if e["event"] != "step"]
     second = list(run_turn(strata, s, "16 rack 42U, pakai containment, pendingin in-row cooler", gt, [], page,
-                           binary, t, tmp_path, templates_dir=library_dir))
+                           binary, t, tmp_path, templates_dir=library_dir, layer="installation"))
     p = proposal(second)
     ids = [o["template_id"] for o in p["objects"]]
     n = ids.count("rack-42u-600x1200")  # R. MEETING holds 14 with in-row coolers, PDUs and containment
@@ -188,6 +188,16 @@ def test_a_pointed_box_becomes_the_named_equipment(strata, drawing, tmp_path, li
     k1 = {"id": "K1", "center": [21617, 1441], "size": [736, 1058], "rotation": 0}
     s = Session(id="d", project_id="p", box=(19500, -500, 23700, 3400), selection=[])
     p = proposal(list(run_turn(strata, s, "K1 itu panel MDB", gt, [], page, binary, t, tmp_path,
-                               templates_dir=library_dir, drawn=[k1])))
+                               templates_dir=library_dir, drawn=[k1], layer="installation")))
     (op,) = [o for o in p["ops"] if o["op"] == "add_object"]
     assert op["template_id"] == "panel-mdb-generic" and op["position"][:2] == [21617, 1441]
+
+
+def test_layout_mode_sends_equipment_to_the_other_mode(strata, drawing, tmp_path, library_dir):
+    """In the Layout mode "isi ruang" is no layout change: Strata points to Instalasi & Interior, nothing is proposed."""
+    gt, page, binary, t = drawing
+    s = Session(id="m", project_id="p", box=(5865, 6050, 15935, 13445), selection=[])
+    ev = list(run_turn(strata, s, "isi ruang ini dengan 10 rack 42U", gt, [], page, binary, t, tmp_path,
+                       templates_dir=library_dir, layer="layout"))
+    assert not any(e["event"] == "proposal" for e in ev)
+    assert any("Instalasi" in e.get("text", "") for e in ev if e["event"] in ("question", "error"))

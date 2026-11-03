@@ -701,6 +701,11 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - Library 16 perangkat data center low-poly prosedural (`core/templates/lowpoly.py`, versi 1.1.0).
 - Mesin tata letak `core/interior/`: baris hot/cold aisle, line-up ruang listrik, CRAC, containment, perangkat dinding, tabung pemadam; aturan di `rules.yaml` (default TIA-942/ASHRAE); pemeriksaan O001–O003 khusus usulan.
 - Perangkat tergambar ditunjuk user (`K1`…) lalu dipetakan Strata ke template; deteksi otomatis semua perangkat tergambar ditunda ke v2 (spike: akurasi ±1/3 di Gatsu).
+- **Satu lapisan perangkat (2026-11-03):**
+  - layout = arsitektur; semua perangkat (rack, CRAC, UPS, panel, tray) di dokumen instalasi, mode "Instalasi & Interior";
+  - pemindahan objek layout sekali jalan (`/installations/ensure`), rebase otomatis (buka mode, Build 3D);
+  - peringatan I009/I010; jadwal perangkat di laporan;
+  - edit perangkat di kanvas 2D (drop Library, seret, `R`, angka di Properti).
 - Tes Strata langsung: "isi ruang ini dengan rack" → bertanya → 14 rack + in-row + containment di R. MEETING (catatan kapasitas); "K1 itu panel MDB" di Battery Room. Semua kasus 12/12.
 
 ### Tugas — Deploy
