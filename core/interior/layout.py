@@ -59,6 +59,11 @@ class Layout:
     meta: dict = field(default_factory=dict)  # rows: {"runs": [[Placement]], "rows": [...]} for containment / devices
 
 
+def rotation_for(front: tuple[float, float]) -> float:
+    """Rotation (degrees) whose front (-sin, cos) is `front`."""
+    return math.degrees(math.atan2(-front[0], front[1]))
+
+
 def clearance(tpl: Tpl, rules: Rules) -> tuple[float, float]:
     """(front, back) working space: the template's, and electrical gear's front working space (NEC 110.26)."""
     front = tpl.front_clear

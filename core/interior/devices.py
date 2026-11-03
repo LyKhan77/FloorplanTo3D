@@ -6,7 +6,7 @@ from dataclasses import replace
 from shapely import affinity
 from shapely.geometry import Point, Polygon
 
-from core.interior.layout import Layout, Placement
+from core.interior.layout import Layout, Placement, rotation_for
 from core.interior.library import Tpl
 from core.interior.lineup import _inward, layout_lineup
 from core.interior.rows import layout_rows
@@ -17,11 +17,6 @@ CRAC, ROOF, DOOR = "crac-unit-generic", "containment-roof-600", "containment-doo
 PANEL, READER, CCTV, CYL = "fire-control-panel", "access-reader-generic", "cctv-camera-bullet", "fire-cylinder-generic"
 BESIDE_DOOR_MM = 300  # panel / reader distance from the door jamb
 CCTV_FROM_CORNER_MM = 300
-
-
-def _rot_for(front: tuple[float, float]) -> float:
-    """Rotation (degrees) whose front (-sin, cos) is `front`."""
-    return math.degrees(math.atan2(-front[0], front[1]))
 
 
 def _taken(lay: Layout, lib: dict[str, Tpl], rules: Rules) -> list[Polygon]:
@@ -143,7 +138,7 @@ def _door_devices(lay: Layout, space: Space, lib, items, rules: Rules) -> None:
         off = dr.width / 2 + BESIDE_DOOR_MM + tpl.w / 2
         x = dr.center[0] + side * dr.along[0] * off + nx * (dr.half + tpl.d / 2 + 1)
         y = dr.center[1] + side * dr.along[1] * off + ny * (dr.half + tpl.d / 2 + 1)
-        lay.placements.append(Placement(tid, tpl.version, x, y, z, _rot_for((nx, ny)), (tpl.w, tpl.d, tpl.h)))
+        lay.placements.append(Placement(tid, tpl.version, x, y, z, rotation_for((nx, ny)), (tpl.w, tpl.d, tpl.h)))
 
 
 def _cameras(lay: Layout, space: Space, lib, n: int, rules: Rules) -> None:

@@ -13,7 +13,7 @@ from core.spec.store import SpecStore
 from server.errors import ApiError
 from server.projects import latest_stage_file
 
-router = APIRouter(prefix="/api/projects/{pid}/assist/area")
+router = APIRouter(prefix="/api/projects/{pid}/assist")
 
 
 class AreaBody(BaseModel):
@@ -65,7 +65,7 @@ def _session(request: Request, pid: str, sid: str) -> Session:
     return s
 
 
-@router.post("")
+@router.post("/area")
 def area(pid: str, body: AreaBody, request: Request):
     storage = request.app.state.storage
     store = SpecStore(storage.project_dir(pid) / "specs")
@@ -95,7 +95,35 @@ def area(pid: str, body: AreaBody, request: Request):
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
 
-@router.post("/{sid}/decision", status_code=204)
+class DrawnBoxBody(BaseModel):
+    at: tuple[float, float] | None = None
+    a: tuple[float, float] | None = None
+    b: tuple[float, float] | None = None
+
+
+DRAWN_MAX_MM = 20000  # a pointed box may be a whole row of racks; the Rack tool keeps 3000
+
+
+@router.post("/drawn-box")
+def drawn_box(pid: str, body: DrawnBoxBody, request: Request):
+    """A box the user points at in the drawing (click, or Shift-drag fitted to the drawn lines), for generate interior."""
+    from core.installation.snap import fit_box, snap_box
+
+    _, binary, px_to_mm = _drawing(request, pid)
+    if binary is None:
+        raise ApiError(404, "no_run", "belum ada gambar hasil ekstraksi untuk dibaca")
+    if body.at is not None:
+        found = snap_box(binary, px_to_mm, body.at, max_mm=DRAWN_MAX_MM)
+    elif body.a is not None and body.b is not None:
+        found = fit_box(binary, px_to_mm, body.a, body.b, max_mm=DRAWN_MAX_MM)
+    else:
+        raise ApiError(422, "bad_request", "kirim at, atau a dan b")
+    if found is None:
+        raise ApiError(422, "no_box", "tidak ada kotak di sini")
+    return found
+
+
+@router.post("/area/{sid}/decision", status_code=204)
 def decision(pid: str, sid: str, body: DecisionBody, request: Request):
     s = _session(request, pid, sid)
     s.decisions.append({"proposal": len(s.proposals) - 1, "accepted": body.accepted})

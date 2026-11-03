@@ -75,3 +75,8 @@ def test_decision_is_logged(setup_client, project_with_gt, fake, data_dir):
     assert r.status_code == 204
     log = next(data_dir.rglob(f"assist/{sid}.json"))
     assert json.loads(log.read_text())["decisions"][-1]["accepted"] is True
+
+
+def test_drawn_box_needs_a_run(setup_client, project_with_gt):
+    r = setup_client.post(f"/api/projects/{project_with_gt}/assist/drawn-box", json={"at": [1000, 1000]})
+    assert r.status_code == 404 and r.json()["error"]["code"] == "no_run"

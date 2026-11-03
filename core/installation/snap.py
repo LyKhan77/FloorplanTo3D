@@ -111,7 +111,7 @@ def snap_tray(binary: np.ndarray, px_to_mm: list[float], points: list) -> dict |
     return {"path": [[round(x), round(y)] for x, y in path], "width": width}
 
 
-def _box(stats_row, px_to_mm: list[float], w: int, h: int) -> dict | None:
+def _box(stats_row, px_to_mm: list[float], w: int, h: int, max_mm: float = BOX_MAX_MM) -> dict | None:
     """A closed paper region (connected-component stats) as a rack box in mm, or None when open or not rack-sized."""
     x, y, bw, bh, _ = (int(v) for v in stats_row)
     if x == 0 or y == 0 or x + bw >= w or y + bh >= h:  # open to the page edge: not a closed box
@@ -119,7 +119,7 @@ def _box(stats_row, px_to_mm: list[float], w: int, h: int) -> dict | None:
     a, b, c, d, e, f = px_to_mm
     sx, sy = math.hypot(a, d), math.hypot(b, e)
     size_x, size_y = (bw + 1) * sx, (bh + 1) * sy  # the inside plus half a line on each side
-    if not (BOX_MIN_MM <= min(size_x, size_y) and max(size_x, size_y) <= BOX_MAX_MM):
+    if not (BOX_MIN_MM <= min(size_x, size_y) and max(size_x, size_y) <= max_mm):
         return None
     cu, cv_ = x + (bw - 1) / 2, y + (bh - 1) / 2
     center = (a * cu + b * cv_ + c, d * cu + e * cv_ + f)
@@ -131,7 +131,7 @@ def _paper(binary: np.ndarray):
     return cv2.connectedComponentsWithStats((binary == 0).astype(np.uint8), connectivity=4)
 
 
-def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
+def snap_box(binary: np.ndarray, px_to_mm: list[float], at, max_mm: float = BOX_MAX_MM) -> dict | None:
     """{"center": [x, y], "size": [short, long] mm, "rotation": 0 | 90} of the closed region around `at`.
 
     Rotation 0: the long side runs along y, as a template's depth does; 90: along x."""
@@ -141,12 +141,12 @@ def snap_box(binary: np.ndarray, px_to_mm: list[float], at) -> dict | None:
         return None
     if binary[v, u] == 0:
         _, labels, stats, _ = _paper(binary)
-        if box := _box(stats[labels[v, u]], px_to_mm, w, h):
+        if box := _box(stats[labels[v, u]], px_to_mm, w, h, max_mm):
             return box
-    return _dark_box(binary, px_to_mm, u, v)
+    return _dark_box(binary, px_to_mm, u, v, max_mm)
 
 
-def _dark_box(binary: np.ndarray, px_to_mm: list[float], u: int, v: int) -> dict | None:
+def _dark_box(binary: np.ndarray, px_to_mm: list[float], u: int, v: int, max_mm: float = BOX_MAX_MM) -> dict | None:
     """A cabinet drawn dark (filled or hatched, text inside, Gatsu battery room): close the hatch into a solid blob,
     open away the thin lines touching it (door arcs, leaders), and take the blob under the click."""
     mm_px = math.hypot(px_to_mm[0], px_to_mm[3])
@@ -159,13 +159,13 @@ def _dark_box(binary: np.ndarray, px_to_mm: list[float], u: int, v: int) -> dict
     for x, y, bw, bh, area in (tuple(int(q) for q in stats[k]) for k in range(1, n)):
         if not (x <= u < x + bw and y <= v < y + bh) or area < DARK_FILL * bw * bh:
             continue
-        box = _box(np.array([x - 1, y - 1, bw + 1, bh + 1, 0]), px_to_mm, w, h)  # the blob's outline, as a paper region's
+        box = _box(np.array([x - 1, y - 1, bw + 1, bh + 1, 0]), px_to_mm, w, h, max_mm)  # the blob's outline, as a paper region's
         if box and (best is None or area < best[0]):
             best = (area, box)
     return best[1] if best else None
 
 
-def fit_box(binary: np.ndarray, px_to_mm: list[float], a, b) -> dict | None:
+def fit_box(binary: np.ndarray, px_to_mm: list[float], a, b, max_mm: float = BOX_MAX_MM) -> dict | None:
     """A rack dragged by hand (Shift-drag): each side moves onto the strongest drawn line within FIT_MM parallel to it,
     or stays where it was dragged. None when the result is not rack-sized."""
     to_px = px_from_mm(px_to_mm)
@@ -199,7 +199,7 @@ def fit_box(binary: np.ndarray, px_to_mm: list[float], a, b) -> dict | None:
     pa, pb, pc, pd, pe, pf = px_to_mm
     cu, cv_ = (nu0 + nu1) / 2, (nv0 + nv1) / 2
     size_x, size_y = (nu1 - nu0) * math.hypot(pa, pd), (nv1 - nv0) * math.hypot(pb, pe)
-    if min(size_x, size_y) < BOX_MIN_MM or max(size_x, size_y) > BOX_MAX_MM:
+    if min(size_x, size_y) < BOX_MIN_MM or max(size_x, size_y) > max_mm:
         return None
     return {"center": [round(pa * cu + pb * cv_ + pc), round(pd * cu + pe * cv_ + pf)],
             "size": sorted([round(size_x), round(size_y)]), "rotation": 0 if size_y >= size_x else 90}
