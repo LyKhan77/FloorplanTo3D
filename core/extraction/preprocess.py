@@ -81,6 +81,17 @@ def load_raster(path: Path, page: int = 1) -> np.ndarray:
     return img
 
 
+def pdf_thumbnails(data: bytes, width: int = 240) -> list[bytes]:
+    """PNG thumbnail of every page, in order, for the page picker (photos left in: the user recognises them)."""
+    if data[:5] != b"%PDF-":
+        raise ValueError("not a PDF")
+    import pymupdf as fitz
+
+    with fitz.open(stream=data, filetype="pdf") as doc:
+        return [pg.get_pixmap(matrix=fitz.Matrix(width / pg.rect.width, width / pg.rect.width), alpha=False)
+                .tobytes("png") for pg in doc]
+
+
 def estimate_skew(gray: np.ndarray) -> float:
     """Dominant angle (degrees, counter-clockwise positive) of long lines, folded into (-45, 45]."""
     edges = cv2.Canny(gray, 50, 150)

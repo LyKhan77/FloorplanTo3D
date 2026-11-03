@@ -20,6 +20,7 @@ from server.routes import (
     events,
     installations,
     outputs,
+    pdf,
     projects,
     runs,
     specs,
@@ -81,6 +82,7 @@ def create_app(settings: Settings | None = None, stage_impls: dict | None = None
     install_error_handlers(app)
     app.include_router(events.router)
     app.include_router(projects.router)
+    app.include_router(pdf.router)
     app.include_router(specs.router)
     app.include_router(assist.router)
     app.include_router(installations.router)
