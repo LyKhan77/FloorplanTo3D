@@ -364,3 +364,11 @@ def test_overlapping_drawn_boxes_are_a_problem(library_dir):
     tr = translate(plan({"type": "place_drawn", "boxes": ["K1", "K2"], "template": "ups-cabinet-generic"}), s, ctx,
                    ASK, None, None, interior=interior(library_dir, ks))
     assert any("tumpang tindih" in r for r in tr.rejected)
+
+
+def test_fill_room_outside_the_area_is_rejected_not_a_crash(library_dir):
+    s = spec_with_rooms()
+    ctx = area_context(s, (500, 500, 4500, 5500), [], None, None)  # only R1 is in the area
+    tr = translate(plan({"type": "fill_room", "room": "R2", "items": [{"template": "rack-42u-600x1200"}]}), s, ctx,
+                   ASK, None, None, interior=interior(library_dir))
+    assert all(o["position"][0] < 5000 for o in tr.ops if o["op"] == "add_object")

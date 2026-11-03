@@ -27,6 +27,10 @@ def check(placements: list[Placement], space: Space, lib: dict[str, Tpl], rules:
             if _z_overlap(placements[i], placements[j]) and fps[i].intersection(fps[j]).area > 1:
                 issues.append({"code": "O001", "severity": "error", "index": i,
                                "message": f"{name(i)} tumpang tindih dengan {name(j)}"})
+    for i, p in enumerate(placements):
+        if p.z < OVERHEAD_MM and any(fps[i].intersection(s).area > 1 for s in space.solid):
+            issues.append({"code": "O001", "severity": "error", "index": i,
+                           "message": f"{name(i)} menabrak kolom atau objek yang sudah ada"})
     floor = [i for i, p in enumerate(placements) if p.z < OVERHEAD_MM and p.template_id not in rules.wall_mounted]
     room = space.room.buffer(1)
     for i in floor:

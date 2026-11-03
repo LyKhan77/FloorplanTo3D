@@ -73,10 +73,13 @@ def place_drawn(boxes: list[DrawnBox], tpl: Tpl, space: Space | None, rules: Rul
         elif long_ >= ROW_MIN * tpl.w and _close(short, tpl.d):
             # a row: objects side by side along the long side, each facing across it
             n = max(1, round(long_ / tpl.w))
+            if n > 1 and n * tpl.w > long_ * 1.02:  # more than 2% short (a pixel-measured box): one fewer
+                n -= 1
             front_axis, w, d = short_axis, tpl.w, _size(tpl, "d", short)
-            step = long_ / n
-            centres = [(cx, cy - long_ / 2 + step * (k + 0.5)) if long_axis == "y" else
-                       (cx - long_ / 2 + step * (k + 0.5), cy) for k in range(n)]
+            # side by side at the template width, centred in the box (a box a few mm short overhangs, never overlaps)
+            start = -n * tpl.w / 2
+            centres = [(cx, cy + start + tpl.w * (k + 0.5)) if long_axis == "y" else
+                       (cx + start + tpl.w * (k + 0.5), cy) for k in range(n)]
         else:
             notes.append(f"{b['id']}: ukuran {round(short)}×{round(long_)} mm beda dari {tpl.id} "
                          f"{round(tpl.w)}×{round(tpl.d)} mm, dipakai ukuran template")

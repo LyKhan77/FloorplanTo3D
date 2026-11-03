@@ -41,6 +41,9 @@ export const useAssistStore = create<AssistState>()((set, get) => {
   return {
     box: null, drawn: [], sessionId: null, messages: [], pending: false, proposal: null, baseKey: null,
     addDrawn: (b) => {
+      // the same drawn box clicked again (within 50 mm): keep its K
+      const same = get().drawn.find((k) => Math.hypot(k.center[0] - b.center[0], k.center[1] - b.center[1]) < 50)
+      if (same) return same.id
       const id = `K${get().drawn.length + 1}`
       set((s) => ({ drawn: [...s.drawn, { ...b, id }] }))
       return id

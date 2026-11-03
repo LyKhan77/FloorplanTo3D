@@ -12,6 +12,8 @@ from core.interior.rules import Rules
 from core.spec.derive import column_footprint
 from core.spec.models import Spec
 
+WALL_NEAR_MM = 400  # a room edge this close to a wall axis is that wall's face (half a thick wall)
+
 
 @dataclass
 class Door:
@@ -29,6 +31,7 @@ class Space:
     doors: list[Door] = field(default_factory=list)
     walls: list[LineString] = field(default_factory=list)
     ceiling: float = 3000.0
+    solid: list[Polygon] = field(default_factory=list)  # columns and existing objects: a new object must not overlap
 
 
 def _largest(g) -> Polygon:
@@ -62,7 +65,8 @@ def room_space(spec: Spec, room_id: str, box: tuple | None, ceiling: float, lib:
             continue
         doors.append(Door((cx, cy), (ux, uy), o.width, _largest(zone), w.thickness / 2))
         blocked.append(_largest(zone))
-    blocked += [f for c in spec.columns if (f := column_footprint(c)).intersects(poly)]
+    solid = [f for c in spec.columns if (f := column_footprint(c)).intersects(poly)]
+    blocked += solid
     for o in spec.objects:
         p = Placement(o.template_id, o.template_version, o.position[0], o.position[1], o.position[2], o.rotation,
                       tuple(o.dims))
@@ -71,6 +75,10 @@ def room_space(spec: Spec, room_id: str, box: tuple | None, ceiling: float, lib:
             continue
         tpl = (lib or {}).get(o.template_id)
         blocked.append(unary_union([fp, *(p.zones(tpl, rules) if tpl else [])]))
+        solid.append(fp)
     ring = list(poly.exterior.coords)
     edges = [LineString([ring[i], ring[i + 1]]) for i in range(len(ring) - 1)]
-    return Space(poly, blocked, doors, edges, ceiling)
+    # an edge the marked box cut through the room is no wall: nothing hangs on it, rows need no end clearance from it
+    axes = [LineString([w.a, w.b]) for w in spec.walls]
+    edges = [e for e in edges if any(e.interpolate(0.5, normalized=True).distance(a) <= WALL_NEAR_MM for a in axes)]
+    return Space(poly, blocked, doors, edges, ceiling, solid)

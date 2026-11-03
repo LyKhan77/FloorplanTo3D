@@ -105,3 +105,14 @@ describe('AssistPanel', () => {
     expect(screen.getByText(/Terima nonaktif/)).toBeTruthy()
   })
 })
+
+describe('drawn boxes', () => {
+  it('pointing at the same box twice keeps one K', () => {
+    const s = useAssistStore.getState()
+    s.close()
+    const box = { center: [1000, 2000] as [number, number], size: [800, 1200] as [number, number], rotation: 0 as const }
+    expect(s.addDrawn(box)).toBe('K1')
+    expect(useAssistStore.getState().addDrawn({ ...box, center: [1010, 1995] })).toBe('K1')
+    expect(useAssistStore.getState().drawn).toHaveLength(1)
+  })
+})

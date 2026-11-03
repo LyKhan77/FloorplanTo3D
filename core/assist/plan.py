@@ -115,12 +115,18 @@ class FillItem(_A):
     count: int | None = None
 
 
+class FillOptions(_A):
+    containment: bool | None = None
+    cooling: Literal["crac", "inrow"] | None = None
+    rows: Literal["auto", "ns", "ew"] | None = None
+
+
 class FillRoom(_A):
     type: Literal["fill_room"]
     room: str | None = None
     layout: Literal["rows", "lineup"] | None = None
     items: list[FillItem] = Field(min_length=1)
-    options: dict = {}
+    options: FillOptions = FillOptions()
 
 
 class PlaceDrawn(_A):
@@ -700,7 +706,7 @@ def _objects(by_type: dict, spec: Spec, ctx: AreaContext, it: Interior, out: Tra
         if not items:
             continue
         space = room_space(spec, rid, ctx.box, it.ceiling, lib, rules)
-        lay = fill(space, lib, items, act.options, act.layout or layout_kind(list(items), lib), rules)
+        lay = fill(space, lib, items, act.options.model_dump(), act.layout or layout_kind(list(items), lib), rules)
         out.notes += lay.notes
         groups.append((lay.placements, space))
     boxes = {b["id"]: b for b in it.drawn}

@@ -105,23 +105,33 @@ def _containment(lay: Layout, space: Space, lib, rules: Rules) -> None:
         other = lines.get((ang, front_y + rules.cold_aisle_mm, -1))
         if not other:
             continue
-        ends = lambda ms: (min(x - p.dims[0] / 2 for x, p in ms), max(x + p.dims[0] / 2 for x, p in ms))
-        (a0, a1), (b0, b1) = ends(members), ends(other)
-        lo, hi = min(a0, b0), max(a1, b1)  # the aisle runs as far as the longer row
+        # contiguous spans of the aisle (both rows together): a column, an object or a cross aisle breaks a span,
+        # and each span gets its own roof run and doors
+        pieces = sorted((x - p.dims[0] / 2, x + p.dims[0] / 2) for x, p in [*members, *other])
+        spans: list[list[float]] = []
+        for a, b in pieces:
+            if spans and a <= spans[-1][1] + 1:
+                spans[-1][1] = max(spans[-1][1], b)
+            else:
+                spans.append([a, b])
         y = front_y + rules.cold_aisle_mm / 2
-        n = int((hi - lo) // roof.w)
-        start = lo + ((hi - lo) - n * roof.w) / 2
-        for k in range(n):
-            c = affinity.rotate(Point(start + (k + 0.5) * roof.w, y), ang, origin=(0, 0))
-            lay.placements.append(Placement(ROOF, roof.version, c.x, c.y, h, ang, (roof.w, rules.cold_aisle_mm, roof.h)))
-        for x in (lo - door.d / 2, hi + door.d / 2):
-            c = affinity.rotate(Point(x, y), ang, origin=(0, 0))
-            p = Placement(DOOR, door.version, c.x, c.y, 0.0, ang + 90, (rules.cold_aisle_mm, door.d, door.h))
-            if not space.room.buffer(1).covers(p.footprint()) or any(
-                    p.footprint().intersection(dr.zone).area > 1 for dr in space.doors):
-                lay.notes.append("pintu containment di ujung lorong dekat pintu ruang dilewati (jalur pintu)")
-                continue
-            lay.placements.append(p)
+        solid = [*space.solid, *[dr.zone for dr in space.doors]]
+        for lo, hi in spans:
+            n = int((hi - lo) // roof.w)
+            start = lo + ((hi - lo) - n * roof.w) / 2
+            for k in range(n):
+                c = affinity.rotate(Point(start + (k + 0.5) * roof.w, y), ang, origin=(0, 0))
+                p = Placement(ROOF, roof.version, c.x, c.y, h, ang, (roof.w, rules.cold_aisle_mm, roof.h))
+                if not any(p.footprint().intersection(g).area > 1 for g in solid):  # columns run to the ceiling
+                    lay.placements.append(p)
+            for x in (lo - door.d / 2, hi + door.d / 2):
+                c = affinity.rotate(Point(x, y), ang, origin=(0, 0))
+                p = Placement(DOOR, door.version, c.x, c.y, 0.0, ang + 90, (rules.cold_aisle_mm, door.d, door.h))
+                if not space.room.buffer(1).covers(p.footprint()) or any(
+                        p.footprint().intersection(g).area > 1 for g in [*solid, *space.blocked]):
+                    lay.notes.append("pintu containment di ujung lorong dilewati (jalur pintu atau rintangan)")
+                    continue
+                lay.placements.append(p)
 
 
 def _door_devices(lay: Layout, space: Space, lib, items, rules: Rules) -> None:
@@ -193,7 +203,9 @@ def fill(space: Space, lib: dict[str, Tpl], items: dict[str, int | None], option
          rules: Rules) -> Layout:
     """The whole room: rows or line-up, then CRACs, containment and devices. `items` maps template id -> count (None =
     as many as fit / the rule default)."""
-    options = {"containment": False, "cooling": None, "rows": "auto", **(options or {})}
+    options = dict(options or {})
+    options["rows"] = options.get("rows") if options.get("rows") in ("ew", "ns") else "auto"  # None / junk = auto
+    options["containment"] = bool(options.get("containment"))
     want_crac = options.get("cooling") == "crac" or CRAC in items
     # the panel and reader beside the door come first: floor equipment then keeps clear of them
     at_door = Layout()

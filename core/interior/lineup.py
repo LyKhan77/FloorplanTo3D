@@ -63,14 +63,15 @@ def layout_lineup(space: Space, lib: dict[str, Tpl], items: dict[str, int | None
                     break
                 placed.append(p)
                 pos += tpl.w
+            if best is None or len(placed) > len(best[1]):
+                best = (ang, placed)  # the whole line-up, or else the longest part that fits
             if ok:
-                best = (ang, placed)
                 break
-        if best:
+        if best and len(best[1]) == len(line_tpls):
             break
-    if best is None and line_tpls:
-        return Layout(notes=["line-up UPS/ATS/MDB tidak muat di dinding mana pun"])
     ang, placed = best if best else (0.0, [])
+    if line_tpls and len(placed) < len(line_tpls):
+        notes.append(f"line-up: muat {len(placed)} dari {len(line_tpls)} perangkat (UPS/ATS/MDB)")
     lay = Layout(list(placed), {}, notes, {"lineup_angle": ang})
     if bat:
         _battery_rows(space, lay, lib, bat, items[bat.id], ang, rules)
@@ -95,6 +96,7 @@ def _battery_rows(space: Space, lay: Layout, lib: dict[str, Tpl], bat: Tpl, targ
             x = a
             while x + bat.w <= b + 1e-6:
                 if target is not None and count >= target:
+                    lay.capacity[bat.id] = count
                     return
                 c = affinity.rotate(Point(x + bat.w / 2, cur + front + bat.d / 2), ang, origin=(0, 0))
                 lay.placements.append(Placement(bat.id, bat.version, c.x, c.y, 0.0, 180 + ang, (bat.w, bat.d, bat.h)))
@@ -102,4 +104,6 @@ def _battery_rows(space: Space, lay: Layout, lib: dict[str, Tpl], bat: Tpl, targ
                 x += bat.w
         cur = hi
     lay.capacity[bat.id] = count
+    if target is not None and count < target:
+        lay.notes.append(f"battery rack: muat {count} dari {target}")
 
