@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 import pytest
 
-from core.extraction.preprocess import load_raster, preprocess
+import core.extraction.preprocess as pre
+from core.extraction.preprocess import drawing_bbox, load_raster, preprocess
 from tests.inputs import ANCOL, requires_ancol
 
 PLAN = Path("floorplan/plan.jpeg")
@@ -106,3 +107,26 @@ def test_ancol_p13_has_no_photo_pixels():
     img = load_raster(ANCOL, page=13)
     sat = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 1]
     assert (sat > 60).mean() < 0.002  # site photos were the only large colourful areas
+
+
+def test_bbox_skips_sheet_frame_and_unions_blocks():
+    b = np.zeros((1500, 2000), np.uint8)
+    cv2.rectangle(b, (40, 40), (1960, 1460), 255, 3)  # sheet frame
+    cv2.rectangle(b, (1650, 40), (1960, 1460), 255, 3)  # title block attached to it
+    for x0, y0, x1, y1 in ((300, 200, 900, 600), (400, 650, 1200, 1300)):  # two blocks, 50 px apart
+        for x in range(x0, x1 + 1, 20):
+            cv2.line(b, (x, y0), (x, y1), 255, 3)
+        for y in range(y0, y1 + 1, 20):
+            cv2.line(b, (x0, y), (x1, y), 255, 3)
+    assert drawing_bbox(b) == pytest.approx((299, 199, 1202, 1302), abs=5)
+
+
+@requires_ancol
+@pytest.mark.parametrize("dpi", [300, 600])
+def test_ancol_p13_bbox_is_the_building(dpi, monkeypatch):
+    monkeypatch.setattr(pre, "PDF_DPI", dpi)
+    r = preprocess(load_raster(ANCOL, page=13))
+    k = dpi / 300
+    x0, y0, x1, y1 = r.meta["drawing_bbox"]
+    assert x0 <= (611 + 20) * k and y0 <= (238 + 20) * k and x1 >= (2261 - 20) * k and y1 >= (2295 - 20) * k  # building
+    assert x1 < 0.8 * r.meta["work_size"][0]  # no title block

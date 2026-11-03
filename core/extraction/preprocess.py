@@ -15,6 +15,11 @@ UPSCALE_BELOW_PX = 2000
 PDF_DPI = 300
 VECTOR_MIN_PATHS = 500  # a CAD export has thousands of paths; a scan or an image-only PDF has a handful
 PHOTO_MAX_PAGE_FRAC = 0.5  # a pasted photo is small; an image this big is the plan itself
+FRAME_FILL_MAX = 0.06  # ink share of its bbox below which an enclosing component is the sheet frame
+BLOCK_MIN_SHARE = 0.1  # a component this big against the largest is another block of the building
+BLOCK_GAP = 0.03  # share of the page size; a block further than this from the building is not part of it
+FRAME_SPAN = 0.8  # a component spanning this share of the page both ways carries the sheet frame
+FRAME_TOL = 0.02  # share of the page size: frame lines (with the grid band) run this close to its bbox edge
 SKEW_IGNORE_DEG = 0.2
 SKEW_MAX_DEG = 5.0
 MSG_TILTED = "Gambar miring > 5°; scan di luar cakupan"
@@ -116,20 +121,74 @@ def binarize(gray: np.ndarray, k: float = 0.2, window: int = 25) -> np.ndarray:
 
 
 def drawing_bbox(binary: np.ndarray, colour: np.ndarray | None = None) -> tuple[int, int, int, int]:
-    """Bbox (x0, y0, x1, y1) of the largest ink component; a paper border (>= 90% of the page) is skipped.
+    """Bbox (x0, y0, x1, y1) of the building: the largest ink component and the big blocks next to it. A paper
+    border (>= 90% of the page) and a sheet frame with its title block are skipped.
 
     colour: mask of saturated pixels. CAD exports draw grid bubbles, leaders and dimension chains in colour, and
     on a low-resolution raster they touch the building outline; without them the building stands alone.
     """
     ink = binary if colour is None else np.where(colour, 0, binary).astype(np.uint8)
-    closed = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
-    n, _, stats, _ = cv2.connectedComponentsWithStats(closed, connectivity=8)
     h, w = binary.shape
-    for i in sorted(range(1, n), key=lambda i: -stats[i, cv2.CC_STAT_AREA]):
-        x, y, bw, bh = stats[i, :4]
-        if bw * bh < 0.9 * w * h:
-            return int(x), int(y), int(x + bw), int(y + bh)
-    return 0, 0, w, h
+    stats = _components(ink)
+    # a plan cut by the sheet frame touches it: drop the frame lines and look again
+    # ponytail: a frame is told from a building filling a tight crop (Gatsu, ink 0.096 of its bbox) by ink density
+    # alone (Ancol p13 frame + building 0.048); a denser sheet needs a real rectangle test on the frame lines
+    frames = [(x, y, x + bw, y + bh) for x, y, bw, bh, a in stats
+              if bw >= FRAME_SPAN * w and bh >= FRAME_SPAN * h and bw * bh < 0.9 * w * h
+              and a < FRAME_FILL_MAX * bw * bh]
+    for box in frames:
+        ink = _erase_frame_lines(ink, box)
+    if frames:
+        stats = _components(ink)
+    boxes = [(int(x), int(y), int(x + bw), int(y + bh), int(a)) for x, y, bw, bh, a in stats
+             if bw * bh < 0.9 * w * h]
+    # a sheet frame (with its title block) encloses the building and is mostly empty paper
+    boxes = sorted((b for b in boxes if not _is_frame(b, boxes, w, h)), key=lambda b: -b[4])
+    if not boxes:
+        return 0, 0, w, h
+    # blocks of one building joined only by thin links (hatched bridges) come apart: grow over big neighbours
+    big = [b for b in boxes[1:] if b[4] >= BLOCK_MIN_SHARE * boxes[0][4]]
+    x0, y0, x1, y1 = boxes[0][:4]
+    gap = BLOCK_GAP * max(h, w)
+    grown = True
+    while grown:
+        grown = False
+        for b in list(big):
+            if b[0] - x1 <= gap and x0 - b[2] <= gap and b[1] - y1 <= gap and y0 - b[3] <= gap:
+                x0, y0, x1, y1 = min(x0, b[0]), min(y0, b[1]), max(x1, b[2]), max(y1, b[3])
+                big.remove(b)
+                grown = True
+    return x0, y0, x1, y1
+
+
+def _components(ink: np.ndarray) -> np.ndarray:
+    closed = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+    return cv2.connectedComponentsWithStats(closed, connectivity=8)[2][1:]
+
+
+def _erase_frame_lines(ink: np.ndarray, box) -> np.ndarray:
+    """Long straight lines running along the edges of the frame's bbox."""
+    h, w = ink.shape
+    tol = max(2, round(FRAME_TOL * max(h, w)))
+    x0, y0, x1, y1 = box
+    out = ink.copy()
+    long_h = cv2.morphologyEx(ink, cv2.MORPH_OPEN, np.ones((1, int(0.6 * w)), np.uint8))
+    long_v = cv2.morphologyEx(ink, cv2.MORPH_OPEN, np.ones((int(0.6 * h), 1), np.uint8))
+    edges = np.zeros_like(ink)
+    for y in (y0, y1):
+        edges[max(0, y - tol):y + tol] |= long_h[max(0, y - tol):y + tol]
+    for x in (x0, x1):
+        edges[:, max(0, x - tol):x + tol] |= long_v[:, max(0, x - tol):x + tol]
+    out[cv2.dilate(edges, np.ones((3, 3), np.uint8)) > 0] = 0
+    return out
+
+
+def _is_frame(b, boxes, w: int, h: int) -> bool:
+    if b[2] - b[0] < FRAME_SPAN * w or b[3] - b[1] < FRAME_SPAN * h or \
+            b[4] >= FRAME_FILL_MAX * (b[2] - b[0]) * (b[3] - b[1]):
+        return False
+    return any(o is not b and o[4] >= BLOCK_MIN_SHARE * b[4] and
+               b[0] <= o[0] and b[1] <= o[1] and b[2] >= o[2] and b[3] >= o[3] for o in boxes)
 
 
 def preprocess(raster_bgr: np.ndarray) -> PreprocessResult:
