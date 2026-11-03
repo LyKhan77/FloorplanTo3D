@@ -23,6 +23,7 @@ class AreaBody(BaseModel):
     box: tuple[float, float, float, float]
     selection: list[str] = []
     message: str
+    drawn: list[dict] = []  # boxes the user pointed at in the drawing (K1, K2, ...), for generate interior
 
 
 class DecisionBody(BaseModel):
@@ -58,6 +59,18 @@ def _drawing(request: Request, pid: str):
             json.loads(grid.read_text())["px_to_mm"])
 
 
+def _ceiling(storage, pid: str) -> float | None:
+    """The installation's ceiling height when one exists (cameras hang below it), else None (wall height)."""
+    from core.installation.store import InstallationStore
+
+    try:
+        store = InstallationStore(storage.project_dir(pid) / "installations")
+        head = store.head()
+        return store.load(head).meta.ceiling_height if head is not None else None
+    except (OSError, ValueError):
+        return None
+
+
 def _session(request: Request, pid: str, sid: str) -> Session:
     s = _sessions(request).get(sid)
     if s is None or s.project_id != pid:
@@ -86,7 +99,8 @@ def area(pid: str, body: AreaBody, request: Request):
     log_dir = storage.project_dir(pid) / "assist"
 
     def stream():
-        events = run_turn(client, s, body.message, base, body.ops, page, binary, px_to_mm, log_dir)
+        events = run_turn(client, s, body.message, base, body.ops, page, binary, px_to_mm, log_dir,
+                          storage.templates_dir, body.drawn, _ceiling(storage, pid))
         for ev in itertools.chain(first, events):
             name = ev.pop("event")
             yield f"event: {name}\ndata: {json.dumps(ev)}\n\n"

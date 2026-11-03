@@ -110,6 +110,25 @@ class AddStair(_A):
     width: float | None = None
 
 
+class FillItem(_A):
+    template: str
+    count: int | None = None
+
+
+class FillRoom(_A):
+    type: Literal["fill_room"]
+    room: str | None = None
+    layout: Literal["rows", "lineup"] | None = None
+    items: list[FillItem] = Field(min_length=1)
+    options: dict = {}
+
+
+class PlaceDrawn(_A):
+    type: Literal["place_drawn"]
+    boxes: list[str] = Field(min_length=1)
+    template: str
+
+
 class SetRoomType(_A):
     type: Literal["set_room_type"]
     room: str
@@ -126,7 +145,7 @@ class RenameRoom(_A):
 
 Action = Annotated[
     DeleteWall | MergeWalls | AddWall | ExtendWall | SplitWall | AddOpening | SetDoor | DeleteOpening | AddStair
-    | DeleteStair | SetRoomType | RenameRoom,
+    | DeleteStair | FillRoom | PlaceDrawn | SetRoomType | RenameRoom,
     Field(discriminator="type"),
 ]
 
@@ -146,8 +165,18 @@ class Translation:
     moved: list[dict] = field(default_factory=list)  # {id, a, b}
     openings: list[dict] = field(default_factory=list)  # {a, b, category, snapped}
     stairs: list[dict] = field(default_factory=list)  # {flights, landings, snapped}
+    objects: list[dict] = field(default_factory=list)  # {template_id, corners, front, zones, z, snapped}
     notes: list[str] = field(default_factory=list)
     rejected: list[str] = field(default_factory=list)
+
+
+@dataclass
+class Interior:
+    """What generate interior needs beside the spec: the template library, the rules, the boxes the user pointed at."""
+    library: dict
+    rules: object
+    drawn: list[dict] = field(default_factory=list)
+    ceiling: float = 3000.0
 
 
 def _unit(a, b) -> tuple[float, float, float]:
@@ -205,7 +234,7 @@ def _gap(binary, px_to_mm, a, ux, uy, length: float, t: float, half: float,
 
 
 def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, binary: np.ndarray | None,
-              px_to_mm: list | None) -> Translation:
+              px_to_mm: list | None, interior: Interior | None = None) -> Translation:
     out = Translation()
     reason = "asisten: " + (instruction.strip()[:60] or "perbaiki area")
     walls = {w.id: w for w in spec.walls if w.id in ctx.wall_ids}
@@ -214,7 +243,8 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
     geo = {wid: (tuple(w.a), tuple(w.b)) for wid, w in walls.items()}  # wall axes as the ops so far leave them
     default_t = round(spec.meta.defaults.wall_thickness)
     box = sbox(*ctx.box)
-    buckets: dict[str, list[dict]] = {k: [] for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "room")}
+    buckets: dict[str, list[dict]] = {
+        k: [] for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "object", "room")}
 
     def known(eid: str, pool: dict, what: str) -> bool:
         if eid in pool:
@@ -419,7 +449,14 @@ def translate(plan: AreaPlan, spec: Spec, ctx: AreaContext, instruction: str, bi
         buckets["stair"].append({"op": "add_stair", "flights": stair["flights"], "landings": stair["landings"]})
         out.stairs.append(stair)
 
-    out.ops = [op for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "room") for op in buckets[k]]
+    if by_type.get("fill_room") or by_type.get("place_drawn"):
+        if interior is None:
+            out.rejected.append("isi ruang tidak tersedia: library template tidak terbaca")
+        else:
+            buckets["object"] = _objects(by_type, spec, ctx, interior, out)
+
+    out.ops = [op for k in ("del", "merge", "split", "extend", "add", "opening", "stair", "object", "room")
+               for op in buckets[k]]
     return out
 
 
@@ -615,3 +652,87 @@ def _fill_box(box, floor_to_floor: float, act: AddStair) -> tuple[dict | None, s
                 + (" (lebar di bawah 800 mm)" if w < STAIR_WIDTH[0] else ""))
         return stair, note
     return None, None
+
+
+def _room_at(spec: Spec, ctx: AreaContext, x: float, y: float) -> str | None:
+    pt = SPoint(x, y)
+    hit = next((r.id for r in spec.rooms if SPolygon(r.polygon, r.holes).covers(pt)), None)
+    if hit:
+        return hit
+    box = sbox(*ctx.box)
+    near = [(SPolygon(r.polygon, r.holes).intersection(box).area, r.id) for r in spec.rooms if r.id in ctx.room_ids]
+    return max(near)[1] if near and max(near)[0] > 0 else None
+
+
+def _preview(p) -> dict:
+    fp = list(p.footprint().exterior.coords)[:4]
+    f = p.front()
+    reach = p.dims[1] / 2 + 400
+    return {"template_id": p.template_id, "corners": [[round(x), round(y)] for x, y in fp],
+            "front": [[round(p.x), round(p.y)], [round(p.x + f[0] * reach), round(p.y + f[1] * reach)]],
+            "zones": [], "z": round(p.z), "snapped": p.source == "drawing"}
+
+
+def _objects(by_type: dict, spec: Spec, ctx: AreaContext, it: Interior, out: Translation) -> list[dict]:
+    """fill_room / place_drawn through the interior engine; O001 is a problem for the revision round."""
+    from core.interior.check import check
+    from core.interior.devices import fill
+    from core.interior.drawn import place_drawn
+    from core.interior.library import layout_kind
+    from core.interior.space import Space, room_space
+
+    lib, rules = it.library, it.rules
+    groups = []  # (placements, space)
+    for act in by_type.get("fill_room", []):
+        rid = act.room if act.room in {r.id for r in spec.rooms} else None
+        if rid is None:
+            c = sbox(*ctx.box).centroid
+            rid = _room_at(spec, ctx, c.x, c.y)
+        if rid is None:
+            out.rejected.append("tidak ada ruang di area untuk diisi")
+            continue
+        items = {}
+        for item in act.items:
+            if item.template not in lib:
+                out.rejected.append(f"template {item.template} tidak ada di library")
+            else:
+                items[item.template] = item.count
+        if not items:
+            continue
+        space = room_space(spec, rid, ctx.box, it.ceiling, lib, rules)
+        lay = fill(space, lib, items, act.options, act.layout or layout_kind(list(items), lib), rules)
+        out.notes += lay.notes
+        groups.append((lay.placements, space))
+    boxes = {b["id"]: b for b in it.drawn}
+    for act in by_type.get("place_drawn", []):
+        if act.template not in lib:
+            out.rejected.append(f"template {act.template} tidak ada di library")
+            continue
+        chosen = []
+        for kid in act.boxes:
+            if kid in boxes:
+                chosen.append(boxes[kid])
+            else:
+                out.rejected.append(f"kotak {kid} tidak ada (kotak yang ditunjuk: {', '.join(boxes) or 'belum ada'})")
+        if not chosen:
+            continue
+        rid = _room_at(spec, ctx, *chosen[0]["center"])
+        space = room_space(spec, rid, None, it.ceiling, lib, rules) if rid else None
+        ps, notes = place_drawn(chosen, lib[act.template], space, rules)
+        out.notes += notes
+        groups.append((ps, space))
+    placements = [p for ps, _ in groups for p in ps]
+    issues = []
+    for ps, space in groups:
+        if space is not None:
+            issues += check(ps, space, lib, rules)
+    whole = Space(sbox(*ctx.box).buffer(1e6))  # cross-group overlaps (and drawn boxes outside any room)
+    issues += [i for i in check(placements, whole, lib, rules) if i["code"] == "O001"]
+    seen = set()
+    for i in issues:
+        if i["message"] in seen:
+            continue
+        seen.add(i["message"])
+        (out.rejected if i["severity"] == "error" else out.notes).append(i["message"])
+    out.objects = [_preview(p) for p in placements]
+    return [p.op() for p in placements]

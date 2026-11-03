@@ -311,3 +311,56 @@ def test_a_stair_replaced_in_one_plan_is_read_again_from_the_drawing(gatsu):
     tr = translate(plan({"type": "delete_stair", "id": "S1"}, {"type": "add_stair", "at": [3000, 8000]}), gt,
                    area_context(gt, STAIR_BOX, [], None, None), ASK, binary, t)
     assert [o["op"] for o in tr.ops] == ["delete_stair", "add_stair"] and tr.stairs[0]["snapped"] is True
+
+
+def interior(library_dir, drawn=()):
+    from core.assist.plan import Interior
+    from core.interior.library import load_library
+    from core.interior.rules import load_rules
+
+    return Interior(load_library(library_dir), load_rules(), list(drawn), 3000)
+
+
+def test_fill_room_emits_add_objects(library_dir):
+    s = spec_with_rooms()
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None)
+    # R1 is 4.85 x 5.8 m with two doors' keep-clear zones: 2 racks fit
+    tr = translate(plan({"type": "fill_room", "room": "R1", "items": [{"template": "rack-42u-600x1200", "count": 2}]}),
+                   s, ctx, ASK, None, None, interior=interior(library_dir))
+    adds = [o for o in tr.ops if o["op"] == "add_object"]
+    assert len(adds) == 2 and all(o["template_version"] == "1.1.0" for o in adds)
+    assert len(tr.objects) == 2 and all(o["snapped"] is False for o in tr.objects)
+    assert all(100 <= o["position"][0] <= 4950 for o in adds)  # inside R1
+
+
+def test_unknown_template_rejected(library_dir):
+    s = spec_with_rooms()
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None)
+    tr = translate(plan({"type": "fill_room", "room": "R1", "items": [{"template": "rack-99u", "count": 1}]}), s, ctx,
+                   ASK, None, None, interior=interior(library_dir))
+    assert not tr.ops and any("rack-99u" in r for r in tr.rejected)
+
+
+def test_place_drawn_uses_the_box(library_dir):
+    s = spec_with_rooms()
+    k1 = {"id": "K1", "center": [2500, 3000], "size": [800, 1200], "rotation": 90}
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None, drawn=[k1])
+    assert "K1" in ctx.text
+    tr = translate(plan({"type": "place_drawn", "boxes": ["K1"], "template": "ups-cabinet-generic"}), s, ctx, ASK,
+                   None, None, interior=interior(library_dir, [k1]))
+    (op,) = [o for o in tr.ops if o["op"] == "add_object"]
+    assert op["template_id"] == "ups-cabinet-generic" and op["position"][:2] == [2500, 3000]
+    assert tr.objects[0]["snapped"] is True
+    tr = translate(plan({"type": "place_drawn", "boxes": ["K7"], "template": "ups-cabinet-generic"}), s, ctx, ASK,
+                   None, None, interior=interior(library_dir, [k1]))
+    assert any("K7" in r for r in tr.rejected)
+
+
+def test_overlapping_drawn_boxes_are_a_problem(library_dir):
+    s = spec_with_rooms()
+    ks = [{"id": "K1", "center": [2500, 3000], "size": [800, 1200], "rotation": 90},
+          {"id": "K2", "center": [2700, 3000], "size": [800, 1200], "rotation": 90}]
+    ctx = area_context(s, (0, 0, 10000, 6000), [], None, None, drawn=ks)
+    tr = translate(plan({"type": "place_drawn", "boxes": ["K1", "K2"], "template": "ups-cabinet-generic"}), s, ctx,
+                   ASK, None, None, interior=interior(library_dir, ks))
+    assert any("tumpang tindih" in r for r in tr.rejected)

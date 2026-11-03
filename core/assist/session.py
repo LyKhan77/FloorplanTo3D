@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from core.assist.context import area_context
-from core.assist.plan import AreaPlan, translate
+from core.assist.plan import AreaPlan, Interior, translate
 from core.llm_review.tasks import load_prompt, png_part
 from core.spec.models import Spec
 from core.spec.ops import OpError, apply
@@ -49,9 +49,17 @@ def _check(base: Spec, ops: list[dict], tr, before: set) -> tuple[list[str], lis
 
 
 def run_turn(client, session: Session, message: str, base: Spec, ops: list[dict], page: np.ndarray | None,
-             binary: np.ndarray | None, px_to_mm: list | None, log_dir: Path) -> Iterator[dict]:
+             binary: np.ndarray | None, px_to_mm: list | None, log_dir: Path, templates_dir: Path | None = None,
+             drawn: list[dict] | None = None, ceiling: float | None = None) -> Iterator[dict]:
     try:
-        yield from _turn(client, session, message, base, ops, page, binary, px_to_mm)
+        interior = None
+        if templates_dir is not None:
+            from core.interior.library import load_library
+            from core.interior.rules import load_rules
+
+            interior = Interior(load_library(templates_dir), load_rules(), list(drawn or []),
+                                ceiling or base.meta.defaults.wall_height)
+        yield from _turn(client, session, message, base, ops, page, binary, px_to_mm, interior)
     except Exception as e:  # noqa: BLE001 - a bug must still end the chat turn with a message, not a cut-off stream
         yield {"event": "error", "text": f"Kesalahan di asisten ({type(e).__name__}: {e}); coba lagi atau perbaiki manual"}
     finally:
@@ -74,6 +82,10 @@ def _summary(tr, problems: list[str]) -> str:
     parts += [f"{o['category']} {o['a']}->{o['b']}" + ("" if o["snapped"] else " (not on a drawn gap)") for o in tr.openings]
     parts += [f"stair {[(f['start'], f['end'], f['width'], f['risers']) for f in st['flights']]}"
               + ("" if st["snapped"] else " (designed, not from the drawing)") for st in tr.stairs]
+    counts: dict[str, int] = {}
+    for o in tr.objects:
+        counts[o["template_id"]] = counts.get(o["template_id"], 0) + 1
+    parts += [f"{n} x {tid}" for tid, n in counts.items()]
     parts += [f"room {op['op'].removesuffix('_at')} at {op['at']}: {op.get('type') or op.get('name')}"
               for op in tr.ops if op["op"] in ("set_room_type_at", "rename_room_at")]
     parts += [f"problem: {p}" for p in problems]
@@ -88,13 +100,15 @@ def _ask(client, messages: list[dict]):
     return AreaPlan.model_validate(r.parsed), None
 
 
-def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, binary, px_to_mm) -> Iterator[dict]:
+def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, binary, px_to_mm,
+          interior: Interior | None = None) -> Iterator[dict]:
     try:
         work = apply(base, ops, "editor", base.meta.version + 1)
     except OpError as e:
         yield {"event": "error", "text": f"Perubahan lokal tidak bisa diterapkan ({e.message}); simpan atau undo dulu"}
         return
-    ctx = area_context(work, s.box, s.selection, page, px_to_mm)
+    ctx = area_context(work, s.box, s.selection, page, px_to_mm, interior.library if interior else None,
+                       interior.drawn if interior else None)
     yield {"event": "step", "text": f"Membaca {len(ctx.wall_ids)} dinding, {len(ctx.opening_ids)} bukaan dan "
                                     f"{len(ctx.room_ids)} ruang di area…"}
     if ctx.image is None:
@@ -137,7 +151,7 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
             yield {"event": "error", "text": plan.explanation or "Strata tidak mengusulkan perubahan"}
             return
         yield {"event": "step", "text": f"Menerjemahkan {len(plan.actions)} aksi ke op…"}
-        tr = translate(plan, work, ctx, message, binary, px_to_mm)
+        tr = translate(plan, work, ctx, message, binary, px_to_mm, interior)
         problems, issues = _check(base, ops, tr, before)
         if not problems or attempt == 1:
             break
@@ -154,7 +168,7 @@ def _turn(client, s: Session, message: str, base: Spec, ops: list[dict], page, b
         return
     yield {"event": "step", "text": "Validasi: 0 error baru" if not problems else f"Masih ada {len(problems)} masalah"}
     proposal = {"ops": tr.ops, "deleted": tr.deleted, "added": tr.added, "moved": tr.moved, "openings": tr.openings,
-                "stairs": tr.stairs,
+                "stairs": tr.stairs, "objects": tr.objects,
                 "explanation": plan.explanation, "notes": tr.notes + problems, "issues": issues,
                 "valid": not problems and bool(tr.ops)}
     s.proposals.append({**proposal, "instruction": message, "summary": _summary(tr, problems)})

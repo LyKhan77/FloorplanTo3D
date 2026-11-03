@@ -80,3 +80,10 @@ def test_decision_is_logged(setup_client, project_with_gt, fake, data_dir):
 def test_drawn_box_needs_a_run(setup_client, project_with_gt):
     r = setup_client.post(f"/api/projects/{project_with_gt}/assist/drawn-box", json={"at": [1000, 1000]})
     assert r.status_code == 404 and r.json()["error"]["code"] == "no_run"
+
+
+def test_drawn_boxes_reach_the_context(setup_client, project_with_gt, fake):
+    fake.answers.append({"question": "UPS atau baterai?", "actions": [], "explanation": ""})
+    k1 = {"id": "K1", "center": [6000, 8000], "size": [800, 1200], "rotation": 0}
+    events(post(setup_client, project_with_gt, drawn=[k1], message="K1 itu apa"))
+    assert "K1" in json.dumps(fake.calls[0])

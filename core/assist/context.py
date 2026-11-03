@@ -36,7 +36,8 @@ def rep_point(room) -> tuple[int, int]:
 
 
 def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
-                 px_to_mm: list[float] | None) -> AreaContext:
+                 px_to_mm: list[float] | None, library: dict | None = None,
+                 drawn: list[dict] | None = None) -> AreaContext:
     x0, y0, x1, y1 = min(box[0], box[2]), min(box[1], box[3]), max(box[0], box[2]), max(box[1], box[3])
     area = sbox(x0, y0, x1, y1)
     selection = list(selection)
@@ -67,15 +68,22 @@ def area_context(spec: Spec, box, selection: list[str], page: np.ndarray | None,
                                             for f in st.flights) for st in stairs]
     if columns:
         lines.append("Columns (context only): " + ", ".join(f"{c.id} at={list(c.center)}" for c in columns))
+    if drawn:
+        lines.append("Drawn boxes the user pointed at (id, centre, size short x long mm, long side along):")
+        lines += [f"- {b['id']} at={[round(v) for v in b['center']]} {round(b['size'][0])}x{round(b['size'][1])} "
+                  f"{'y' if b['rotation'] == 0 else 'x'}" for b in drawn]
+    if library:
+        lines.append("Template library (id, category, w x d x h mm), the only templates you may use:")
+        lines += [f"- {t.id} {t.category} {t.w:.0f}x{t.d:.0f}x{t.h:.0f}" for t in library.values()]
 
     image = None
     if page is not None and px_to_mm is not None:
-        image = _crop(page, px_to_mm, (x0, y0, x1, y1), walls, set(selection))
+        image = _crop(page, px_to_mm, (x0, y0, x1, y1), walls, set(selection), drawn or [])
     return AreaContext(box=(x0, y0, x1, y1), wall_ids=[w.id for w in walls], opening_ids=[o.id for o in openings],
                        room_ids=[r.id for r in rooms], stair_ids=[st.id for st in stairs], selection=selection, text="\n".join(lines), image=image)
 
 
-def _crop(page: np.ndarray, px_to_mm: list[float], box, walls, selected: set[str]) -> np.ndarray | None:
+def _crop(page: np.ndarray, px_to_mm: list[float], box, walls, selected: set[str], drawn=()) -> np.ndarray | None:
     x0, y0, x1, y1 = box
     mx, my = (x1 - x0) * MARGIN, (y1 - y0) * MARGIN
     to_px = px_from_mm(px_to_mm)
@@ -101,4 +109,10 @@ def _crop(page: np.ndarray, px_to_mm: list[float], box, walls, selected: set[str
         mid = ((a[0] + b[0]) // 2 + 4, (a[1] + b[1]) // 2 - 4)
         cv2.putText(crop, wall.id, mid, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 3, cv2.LINE_AA)
         cv2.putText(crop, wall.id, mid, cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 1, cv2.LINE_AA)
+    for b in drawn:  # the boxes the user pointed at, in purple with their K labels
+        (cx, cy), (short, long_) = b["center"], b["size"]
+        sx, sy = (short, long_) if b["rotation"] == 0 else (long_, short)
+        p0, p1 = at((cx - sx / 2, cy + sy / 2)), at((cx + sx / 2, cy - sy / 2))
+        cv2.rectangle(crop, p0, p1, (200, 0, 160), 2)
+        cv2.putText(crop, b["id"], (p0[0] + 3, p0[1] + 16), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 0, 160), 2, cv2.LINE_AA)
     return crop

@@ -145,3 +145,23 @@ def test_after_a_decision_a_message_is_a_new_request(tmp_path):
     s.decisions.append({"proposal": 0, "accepted": False})
     turn(c, s, "sekarang ruang kiri jadi kantor", tmp_path)
     assert "NOT applied" not in text(c.calls[1][-1:])
+
+
+def test_fill_question_first(tmp_path, library_dir):
+    c = FakeClient(ask("Ruang ini data hall 4,8 x 5,8 m. Usul: rack 42U berbaris dengan containment. Berapa rack?"))
+    ev = list(run_turn(c, new(), "isi ruang ini", spec_with_rooms(), [], None, None, None, tmp_path,
+                       templates_dir=library_dir))
+    assert kinds(ev)[-2] == "question"
+    assert "rack-42u-600x1200" in text(c.calls[0])  # the library reaches Strata
+
+
+def test_o001_triggers_revision(tmp_path, library_dir):
+    ks = [{"id": "K1", "center": [2500, 3000], "size": [800, 1200], "rotation": 90},
+          {"id": "K2", "center": [2700, 3000], "size": [800, 1200], "rotation": 90}]
+    bad = act({"type": "place_drawn", "boxes": ["K1", "K2"], "template": "ups-cabinet-generic"})
+    good = act({"type": "place_drawn", "boxes": ["K1"], "template": "ups-cabinet-generic"})
+    c = FakeClient(bad, good)
+    ev = list(run_turn(c, new(), "K1 K2 itu UPS", spec_with_rooms(), [], None, None, None, tmp_path,
+                       templates_dir=library_dir, drawn=ks))
+    p = next(e for e in ev if e["event"] == "proposal")
+    assert len(c.calls) == 2 and p["valid"] and len(p["objects"]) == 1
