@@ -13,7 +13,7 @@ def _h(y, x0=0, x1=5000):
 
 
 def _pl(lines, short=(), dark=()):
-    return PageLines(list(lines), list(short), list(dark), [])
+    return PageLines(list(lines), list(short), list(dark))
 
 
 def _long(walls):

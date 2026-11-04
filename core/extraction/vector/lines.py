@@ -1,13 +1,11 @@
-"""PDF paths -> long lines, short strokes, dark bars and curve chains, in mm.
+"""PDF paths -> long lines, short strokes and dark bars, in mm.
 
-CAD exports draw a wall as many collinear pieces and flatten arcs into tiny segments, with one stroke width and no
-layers, so geometry is all there is to go on.
+CAD exports draw a wall as many collinear pieces, with one stroke width and no layers, so geometry is all there is
+to go on. Arcs come out as loose ~50 mm pieces that do not chain end to end: doors come from the raster detector.
 """
 
 import math
-from collections import defaultdict
 from dataclasses import dataclass
-from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -21,11 +19,6 @@ MIN_LINE_MM = 350
 SHORT_MM = (80, 700)  # strokes that can be tray rungs
 DARK_MAX = 0.3  # fill brightness of a solid wall bar
 BBOX_MARGIN_MM = 300
-CHAIN_SEG_MM = 150  # pieces this short may be part of a flattened arc
-CHAIN_JOIN_MM = 3
-CURVE_MIN_MM = 400
-CURVE_MAX_STRAIGHT = 0.98  # chord / length: above this a chain is a straight line in pieces
-BEZIER_STEPS = 8
 
 Point = tuple[float, float]
 
@@ -41,7 +34,6 @@ class PageLines:
     lines: list[Line]  # long merged lines
     short: list[Line]  # short merged strokes (rung candidates)
     dark: list[tuple[Line, float]]  # filled bars: centre line and width
-    curves: list[list[Point]]  # chains of tiny pieces (flattened arcs)
 
 
 def angle_of(s: Line) -> float:
@@ -98,40 +90,6 @@ def _merge(segs: list[Line], angle: float) -> list[Line]:
     return out
 
 
-def _chains(tiny: list[Line]) -> list[list[Point]]:
-    """Tiny pieces joined end to end; a junction ends a chain."""
-    key = lambda p: (round(p[0] / CHAIN_JOIN_MM), round(p[1] / CHAIN_JOIN_MM))
-    nbr: dict[tuple, list[tuple]] = defaultdict(list)
-    pos: dict[tuple, Point] = {}
-    for s in tiny:
-        ka, kb = key(s.a), key(s.b)
-        if ka != kb:
-            nbr[ka].append(kb)
-            nbr[kb].append(ka)
-            pos.setdefault(ka, s.a)
-            pos.setdefault(kb, s.b)
-    seen: set[frozenset] = set()
-    out = []
-    for start in sorted(nbr, key=lambda k: (len(nbr[k]) != 1, k)):
-        for first in sorted(nbr[start]):
-            if frozenset((start, first)) in seen:
-                continue
-            path, prev, cur = [start, first], start, first
-            seen.add(frozenset((start, first)))
-            while len(nbr[cur]) == 2:
-                nxt = next((k for k in nbr[cur] if k != prev), None)
-                if nxt is None or frozenset((cur, nxt)) in seen:
-                    break
-                seen.add(frozenset((cur, nxt)))
-                path.append(nxt)
-                prev, cur = cur, nxt
-            pts = [pos[k] for k in path]
-            length = sum(math.dist(u, v) for u, v in pairwise(pts))
-            if length >= CURVE_MIN_MM and math.dist(pts[0], pts[-1]) / length <= CURVE_MAX_STRAIGHT:
-                out.append(pts)
-    return out
-
-
 def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, int, int, int], dpi: int) -> PageLines:
     """px_to_mm maps original raster px (the page at `dpi`); only paths inside bbox_px are kept."""
     import pymupdf as fitz
@@ -142,7 +100,6 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
     corners = np.array([A @ (x, y, 1.0) for x, y in ((x0, y0), (x1, y1))])
     lo, hi = corners.min(0) - BBOX_MARGIN_MM, corners.max(0) + BBOX_MARGIN_MM
     pieces: list[Line] = []
-    tiny: list[Line] = []
     dark: list[tuple[Line, float]] = []
     with fitz.open(pdf) as doc:
         pg = doc[page - 1]
@@ -156,10 +113,7 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
         def add(a: Point, b: Point) -> None:
             if not (lo[0] <= (a[0] + b[0]) / 2 <= hi[0] and lo[1] <= (a[1] + b[1]) / 2 <= hi[1]):
                 return
-            s = Line(a, b)
-            pieces.append(s)
-            if math.dist(a, b) < CHAIN_SEG_MM:
-                tiny.append(s)
+            pieces.append(Line(a, b))
 
         for path in pg.get_drawings():
             fill = path.get("fill")
@@ -167,14 +121,6 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
             for it in path["items"]:
                 if it[0] == "l":
                     add(mm(it[1]), mm(it[2]))
-                elif it[0] == "c":
-                    pts = [fitz.Point(p) for p in it[1:5]]
-                    ts = np.linspace(0, 1, BEZIER_STEPS + 1)
-                    curve = [mm(pts[0] * (1 - t) ** 3 + pts[1] * 3 * t * (1 - t) ** 2 + pts[2] * 3 * t * t * (1 - t)
-                                 + pts[3] * t ** 3) for t in ts]
-                    for u, v in pairwise(curve):
-                        s = Line(u, v)
-                        tiny.append(s)
                 elif it[0] in ("re", "qu"):
                     q = it[1].quad if it[0] == "re" else it[1]
                     c = [mm(q.ul), mm(q.ur), mm(q.lr), mm(q.ll)]
@@ -193,7 +139,7 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
         merged += _merge(group, angle)
     size = lambda s: math.dist(s.a, s.b)
     return PageLines([s for s in merged if size(s) >= MIN_LINE_MM],
-                     [s for s in merged if SHORT_MM[0] <= size(s) <= SHORT_MM[1]], dark, _chains(tiny))
+                     [s for s in merged if SHORT_MM[0] <= size(s) <= SHORT_MM[1]], dark)
 
 
 def _bar(c: list[Point]) -> tuple[Line, float]:

@@ -18,8 +18,8 @@ RADIUS_FRAC = (1 / 250, 1 / 8)
 LEAF_INK = 0.7  # share of the hinge-to-arc-end line that is ink: a door draws its leaf, lettering has none
 
 
-def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], leaf_mm: float) -> dict | None:
-    """{"mm_per_px", "doors_used", "door_radius_px"} in working pixels, or None when fewer than MIN_DOORS doors."""
+def door_arcs(binary: np.ndarray, bbox: tuple[int, int, int, int]) -> list[dict]:
+    """Swing arcs with a drawn leaf, in the full image's px."""
     x0, y0, x1, y1 = bbox
     crop = binary[y0:y1, x0:x1] > 0
     sk = (skeletonize(crop) * 255).astype(np.uint8)
@@ -31,6 +31,13 @@ def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], lea
     arcs = find_arcs(curves, 1.0, radius_px=(max(4.0, RADIUS_FRAC[0] * width), RADIUS_FRAC[1] * width))
     ink = cv2.dilate(crop.astype(np.uint8), np.ones((3, 3), np.uint8))
     doors = [a for a in arcs if any(_leaf_share(ink, a["center"], end) >= LEAF_INK for end in a["ends"])]
+    return [{**a, "center": [a["center"][0] + x0, a["center"][1] + y0],
+             "ends": [(e[0] + x0, e[1] + y0) for e in a["ends"]]} for a in doors]
+
+
+def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], leaf_mm: float) -> dict | None:
+    """{"mm_per_px", "doors_used", "door_radius_px"} in working pixels, or None when fewer than MIN_DOORS doors."""
+    doors = door_arcs(binary, bbox)
     if len(doors) < MIN_DOORS:
         return None
     r = float(np.median([a["radius_px"] for a in doors]))

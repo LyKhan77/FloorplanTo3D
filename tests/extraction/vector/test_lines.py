@@ -1,8 +1,6 @@
 import math
-from itertools import pairwise
 
 import cv2
-import numpy as np
 import pymupdf as fitz
 import pytest
 
@@ -67,13 +65,3 @@ def test_dark_rect_is_kept_with_its_width(tmp_path):
         p.draw_rect(fitz.Rect(50, 50, 450, 50 + 40 / K), color=(0, 0, 0), fill=(0, 0, 0))
     pl = _read(_pdf(tmp_path, draw))
     assert len(pl.dark) == 1 and pl.dark[0][1] == pytest.approx(40, abs=2)
-
-
-def test_tiny_pieces_chain_into_a_curve(tmp_path):
-    def draw(p):
-        pts = [(100 + 80 * math.cos(math.radians(a)), 100 + 80 * math.sin(math.radians(a))) for a in range(0, 91, 3)]
-        for u, v in pairwise(pts):
-            p.draw_line(u, v)
-    pl = _read(_pdf(tmp_path, draw))
-    assert len(pl.curves) == 1 and len(pl.curves[0]) >= 20
-    assert np.linalg.norm(np.array(pl.curves[0][0]) - np.array(pl.curves[0][-1])) > 300
