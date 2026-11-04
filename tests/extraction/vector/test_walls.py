@@ -90,3 +90,12 @@ def test_rails_of_a_tray_are_not_single_walls():
 
 def test_skewed_single_line_is_not_a_wall():
     assert not pair_walls(_pl([Line((0, 0), (3000, 2000))]))
+
+
+def test_short_filled_bar_is_a_rung_not_a_wall():
+    assert not pair_walls(_pl([], dark=[(_h(0, 0, 460), 105.0)]))
+
+
+def test_rail_with_rungs_on_one_side_is_not_a_single_wall():
+    rungs = [Line((x, 0), (x, 460)) for x in range(0, 5000, 292)]  # the other rail is too far to pair
+    assert not pair_walls(_pl([_h(0)], short=rungs))

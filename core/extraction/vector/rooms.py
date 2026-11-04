@@ -5,6 +5,7 @@ door, door-wide gap, column, sheet cut. Only closers on an accepted room's bound
 wall or opening, because stage 4 rebuilds rooms from wall footprints. A room that cannot close is not forced.
 """
 
+import itertools
 import math
 from dataclasses import dataclass, field
 
@@ -23,6 +24,8 @@ JOIN_GAP_MM = 50
 SNAP_MM = 300  # a wall end this short of another wall reaches it: wall lines stop at faces, not centre lines
 TOUCH_MM = 20
 DOOR_GAP_MM = 1400  # widest doorway bridged without evidence of a door
+DOUBLE_DOOR_MM = 2600  # with door arcs beside it
+MIN_ROOM_HALF_MM = 500  # a face narrower than twice this is a tray or a rack, not a room
 LATERAL_MM = 200  # the two ends of a doorway may sit this far off one axis
 DOOR_NEAR_MM = 300
 CUT_REACH_MM = 3000
@@ -31,7 +34,9 @@ JAMB_MM = 60  # V008 wants >= 50 mm of wall either side of an opening
 DOOR_ATTACH_MM = 200
 MIN_ROOM_M2 = 1
 OVERLAP_MAX = 0.05
-ON_BOUNDARY = 0.5
+POCKET_SHARE = 0.7  # of a single line's run: a rack against a long partition does not make it a rack
+CLOSER_ON_ROOM_MM = 40  # a closer may run past the room it closes
+ON_ROOM_MM = 300  # a long line may bound a room along only part of its run
 CLOSER_ORDER = ("door", "gap", "column", "corner", "cap", "sheet_cut")
 
 
@@ -79,6 +84,8 @@ def _collapse(walls) -> list[WallCand]:
             k.a, k.b = tuple(float(v) for v in ka + lo * kd), tuple(float(v) for v in ka + hi * kd)
             if _length(k) >= MIN_WALL_MM:
                 k.evidence.pop("short", None)
+            if "closer" in w.evidence:
+                k.evidence.setdefault("closer", w.evidence["closer"])
             break
         else:
             kept.append(WallCand(w.a, w.b, w.thickness, dict(w.evidence)))
@@ -154,7 +161,7 @@ def _closer(a: Point, b: Point, thickness: float, kind: str) -> WallCand:
 
 
 def _column_hit(end: Point, d: np.ndarray, columns: list[dict]) -> Point | None:
-    ray = LineString([end, tuple(np.array(end) + DOOR_GAP_MM * d)])
+    ray = LineString([end, tuple(np.array(end) + DOOR_GAP_MM * d)])  # a column in a doorway's reach
     best = None
     for c in columns:
         (cx, cy), (sx, sy) = c["center"], c["size"]
@@ -165,16 +172,21 @@ def _column_hit(end: Point, d: np.ndarray, columns: list[dict]) -> Point | None:
     return best[1] if best else None
 
 
-def _end_ahead(i: int, end: Point, d: np.ndarray, ends: list) -> Point | None:
+def _end_ahead(i: int, end: Point, d: np.ndarray, ends: list, reach: float) -> Point | None:
     """The facing end of another wall across a doorway."""
     best = None
     for j, other, other_d in ends:
         v = np.array(other, float) - np.array(end, float)
         along = float(np.dot(v, d))
-        if j != i and 0 < along <= DOOR_GAP_MM and abs(_cross(d, v)) <= LATERAL_MM and float(np.dot(d, other_d)) < 0 \
+        if j != i and 0 < along <= reach and abs(_cross(d, v)) <= LATERAL_MM and float(np.dot(d, other_d)) < 0 \
                 and (best is None or along < best[0]):
             best = (along, other)
     return best[1] if best else None
+
+
+def _door_at(a: Point, b: Point, doors: list[Door]) -> bool:
+    seg = LineString([a, b])
+    return any(seg.distance(SPoint(p)) <= DOOR_NEAR_MM for d in doors for p in (d.hinge, *d.ends))
 
 
 def _gap_closers(walls: list[WallCand], ends: list, doors: list[Door], columns: list[dict]) -> list[WallCand]:
@@ -184,13 +196,15 @@ def _gap_closers(walls: list[WallCand], ends: list, doors: list[Door], columns: 
     for i, end, d in ends:
         t = walls[i].thickness
         col = _column_hit(end, d, columns)
-        target = _end_ahead(i, end, d, ends) or _hit(end, d, DOOR_GAP_MM, lines, tree, i)
+        target = _end_ahead(i, end, d, ends, DOOR_GAP_MM) or _hit(end, d, DOOR_GAP_MM, lines, tree, i)
+        if target is None:  # a double door: wider, but only with its arcs there
+            wide = _end_ahead(i, end, d, ends, DOUBLE_DOOR_MM) or _hit(end, d, DOUBLE_DOOR_MM, lines, tree, i)
+            if wide and _door_at(end, wide, doors):
+                target = wide
         if col and (target is None or math.dist(end, col) <= math.dist(end, target)):
             c = _closer(end, col, t, "column")
         elif target:
-            seg = LineString([end, target])
-            door = any(seg.distance(SPoint(p)) <= DOOR_NEAR_MM for dr in doors for p in (dr.hinge, *dr.ends))
-            c = _closer(end, target, t, "door" if door else "gap")
+            c = _closer(end, target, t, "door" if _door_at(end, target, doors) else "gap")
         else:
             continue
         found.setdefault((tuple(round(v) for v in c.a), tuple(round(v) for v in c.b)), c)
@@ -242,13 +256,13 @@ def _cut_closers(ends: list, walls: list[WallCand], cut: tuple[float, float, flo
         for _, p, i, end in hits:
             if math.dist(p, end) > TOUCH_MM:
                 out.append(_closer(end, p, walls[i].thickness, "sheet_cut"))
-        for u, v in zip(hits, hits[1:], strict=False):
+        for u, v in itertools.pairwise(hits):
             if v[0] - u[0] > 1:
                 out.append(_closer(u[1], v[1], walls[u[2]].thickness, "sheet_cut"))
     return out
 
 
-def _accept(walls: list[WallCand], closers: list[WallCand], seeds: list[Point]) -> tuple[list, list[WallCand], list[Point], list]:
+def _accept(walls: list[WallCand], closers: list[WallCand], seeds: list[Point]) -> tuple[list[Polygon], list[WallCand], list[Point], list[Polygon]]:
     """Stage by stage, surest closers first; closers stay only if an accepted room needs them."""
     active = [_line(w) for w in walls]
     rooms: list[Polygon] = []
@@ -269,26 +283,37 @@ def _accept(walls: list[WallCand], closers: list[WallCand], seeds: list[Point]) 
             edge = f.boundary.buffer(5)
             for c in cand:
                 line = _line(c)
-                if c not in used and line.intersection(edge).length >= 0.9 * line.length:
+                if c not in used and line.intersection(edge).length >= min(0.9 * line.length, CLOSER_ON_ROOM_MM):
                     used.append(c)
         active = [_line(w) for w in walls] + [_line(c) for c in used]
     for f in polygonize(unary_union(active)):  # closed faces no label asked for
-        if f.area >= MIN_ROOM_M2 * 1e6 and not any(f.intersection(r).area > OVERLAP_MAX * f.area for r in rooms) \
+        if f.area >= MIN_ROOM_M2 * 1e6 and not f.buffer(-MIN_ROOM_HALF_MM).is_empty \
+                and not any(f.intersection(r).area > OVERLAP_MAX * f.area for r in rooms) \
                 and not any(f.contains(points[s]) for s in pending):
             rooms.append(f)
-    return rooms, used, pending, list(polygonize(unary_union(active)))
+    pockets = [f for f in polygonize(unary_union(active))
+               if not any(f.equals(r) for r in rooms) and not any(f.contains(points[s]) for s in pending)]
+    return rooms, used, pending, pockets
 
 
-def _keep(walls: list[WallCand], faces: list[Polygon]) -> list[WallCand]:
-    """Walls on a closed face stay. Off one, only long walls joined to another wall: an open room keeps its sides, but
+def _bounds_a_pocket(w: WallCand, pockets: list[Polygon]) -> bool:
+    """A closed face too small to be a room is equipment, and a single line around it is the equipment's outline."""
+    line = _line(w)
+    return any(line.intersection(f.boundary.buffer(5)).length >= POCKET_SHARE * line.length for f in pockets)
+
+
+def _keep(walls: list[WallCand], rooms: list[Polygon], pockets: list[Polygon]) -> list[WallCand]:
+    """Walls on a room stay. Off one, only long walls joined to another wall: an open room keeps its sides, but
     equipment floating in a room goes."""
-    ring = unary_union([f.boundary for f in faces if f.area >= MIN_ROOM_M2 * 1e6]) if faces else None
+    ring = unary_union([r.boundary for r in rooms]) if rooms else None
     lines = [_line(w) for w in walls]
     tree = STRtree(lines)
     out = []
     for i, (w, line) in enumerate(zip(walls, lines, strict=True)):
-        on = ring is not None and line.intersection(ring.buffer(w.thickness / 2 + TOUCH_MM)).length >= ON_BOUNDARY * line.length
+        on = ring is not None and line.intersection(ring.buffer(w.thickness / 2 + TOUCH_MM)).length >= ON_ROOM_MM
         joined = any(int(j) != i and lines[int(j)].distance(line) <= TOUCH_MM for j in tree.query(line.buffer(TOUCH_MM)))
+        if w.evidence.get("source") == "single" and _bounds_a_pocket(w, pockets):
+            continue
         if on or ("short" not in w.evidence and joined):
             out.append(w)
     return out
@@ -345,25 +370,20 @@ def trace_rooms(walls: list[WallCand], doors: list[Door], columns: list[dict], s
     closers = _gap_closers(base, ends, doors, columns) + _corner_closers(base, ends) + _cap_closers(base, ends) \
         + _cut_closers(ends, base, cut)
     seeds = sorted(seeds)
-    rooms, used, pending, faces = _accept(base, closers, seeds)
-    kept = sorted(_keep(base, faces), key=lambda w: (w.a, w.b))
+    rooms, used, pending, pockets = _accept(base, closers, seeds)
+    bridges = [c for c in used if c.evidence["closer"] in ("door", "gap")]
+    solid = [c for c in used if c.evidence["closer"] not in ("door", "gap")]
+    out = sorted(_collapse(_keep(base, rooms, pockets) + solid), key=lambda w: (w.a, w.b))
     openings: list[dict] = []
     taken: list[Door] = []
-    out = list(kept)
-    for c in sorted(used, key=lambda w: (-_length(w), w.a, w.b)):
+    for c in sorted(bridges, key=lambda w: (-_length(w), w.a, w.b)):
         line = _line(c)
-        if any(line.intersection(_line(w).buffer(DUP_MM)).length >= 0.8 * line.length for w in out):
+        if any(line.intersection(_line(w).buffer(DUP_MM)).length >= 0.95 * line.length for w in out):
             continue  # a second closer along the same edge, or along a wall
-        kind = c.evidence["closer"]
-        length = _length(c)
-        if kind in ("door", "gap"):  # the wall reaches into its neighbours so the opening has jambs
-            d = _dir(c.a, c.b)
-            wall = WallCand(tuple(float(v) for v in np.array(c.a) - JAMB_MM * d),
-                            tuple(float(v) for v in np.array(c.b) + JAMB_MM * d), c.thickness, c.evidence)
-            out.append(wall)
-            openings.append(_opening(len(out) - 1, c, length, doors))
-            taken += [dr for dr in doors if _line(c).distance(SPoint(dr.hinge)) <= DOOR_NEAR_MM]
-        else:
-            out.append(c)
+        d = _dir(c.a, c.b)  # the wall reaches into its neighbours so the opening has jambs
+        out.append(WallCand(tuple(float(v) for v in np.array(c.a) - JAMB_MM * d),
+                            tuple(float(v) for v in np.array(c.b) + JAMB_MM * d), c.thickness, c.evidence))
+        openings.append(_opening(len(out) - 1, c, _length(c), doors))
+        taken += [dr for dr in doors if line.distance(SPoint(dr.hinge)) <= DOOR_NEAR_MM]
     _attach_doors(out, openings, doors, taken)
     return Trace(out, openings, sorted(rooms, key=lambda r: (r.centroid.x, r.centroid.y)), pending)

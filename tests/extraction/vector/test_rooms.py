@@ -128,3 +128,31 @@ def test_recess_cap_closes():
              _w((0, 4000), (0, 2500)), _w((0, 1500), (0, 0)), _w((0, 2500), (-800, 2500)), _w((0, 1500), (-800, 1500))]
     t = trace_rooms(walls, [], [], [(3000, 2000)], CUT)
     assert len(t.rooms) == 1 and "cap" in _closers(t) and not t.openings
+
+
+def test_double_door_gap_closes_only_with_arcs():
+    gap = _gapped_box(2000)
+    doors = [Door((2000, 0), 1000, ((3000, 0), (2000, 1000))), Door((4000, 0), 1000, ((3000, 0), (4000, 1000)))]
+    t = trace_rooms(gap, doors, [], [(3000, 2000)], CUT)
+    assert len(t.rooms) == 1 and t.openings[0]["door_type"] == "double_swing"
+    assert not trace_rooms(gap, [], [], [(3000, 2000)], CUT).rooms
+
+
+def test_single_lines_of_a_narrow_strip_are_dropped():
+    strip = [_w((1000, 1500), (5000, 1500), 100, source="single", short=True),
+             _w((1000, 2000), (5000, 2000), 100, source="single", short=True),
+             _w((1000, 1500), (0, 1500), 100, source="single", short=True),
+             _w((1000, 2000), (0, 2000), 100, source="single", short=True),
+             _w((5000, 1500), (5000, 2000), 100, source="single", short=True),
+             _w((1000, 1500), (1000, 2000), 100, source="single", short=True)]
+    t = trace_rooms([*_box(), *strip], [], [], [(3000, 3000)], CUT)
+    assert not [w for w in t.walls if w.evidence.get("source") == "single"]
+
+
+def test_long_single_wall_with_a_rack_against_it_stays():
+    partition = _w((3000, 0), (3000, 4000), 100, source="single", short=True)
+    rack = [_w((3000, 1000), (3400, 1000), 100, source="single", short=True),
+            _w((3400, 1000), (3400, 1600), 100, source="single", short=True),
+            _w((3400, 1600), (3000, 1600), 100, source="single", short=True)]
+    t = trace_rooms([*_box(), partition, *rack], [], [], [(1500, 2000), (4500, 3000)], CUT)
+    assert any(w.a[0] == w.b[0] == 3000 for w in t.walls) and len(t.rooms) == 2

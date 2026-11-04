@@ -40,6 +40,14 @@ def _is_hatch(rows: list, c: float, c2: float, o0: float, o1: float) -> bool:
     return len(near) >= HATCH_MIN_LINES
 
 
+def _is_rail(c: float, a: float, b: float, ct: np.ndarray, cp: np.ndarray, cq: np.ndarray) -> bool:
+    """Rungs leave a tray rail at a regular pitch, also when the other rail is too far to pair with."""
+    if not len(ct):
+        return False
+    rungs = ((ct >= a) & (ct <= b) & ((np.abs(cp - c) <= RUNG_REACH_MM) | (np.abs(cq - c) <= RUNG_REACH_MM))).sum()
+    return rungs / max((b - a) / 1000, 0.3) > RUNGS_PER_M
+
+
 def _pairs(angle: float, group: list[Line], short: list[Line]) -> list[WallCand]:
     d, n = frame(angle)
     rows = sorted((float((np.dot(s.a, n) + np.dot(s.b, n)) / 2),
@@ -76,14 +84,15 @@ def _pairs(angle: float, group: list[Line], short: list[Line]) -> list[WallCand]
             out.append(_wall(tuple(float(v) for v in o0 * d + m * n), tuple(float(v) for v in o1 * d + m * n), gap,
                              source="pair"))
     for i, (c, a, b) in enumerate(rows):  # a thin partition is one line; it counts only if it bounds a room
-        if angle % 90 == 0 and i not in paired and b - a >= MIN_SINGLE_MM:
+        if angle % 90 == 0 and i not in paired and b - a >= MIN_SINGLE_MM and not _is_rail(c, a, b, ct, cp, cq):
             out.append(WallCand(tuple(float(v) for v in a * d + c * n), tuple(float(v) for v in b * d + c * n),
                                 SINGLE_THICKNESS_MM, {"source": "single", "short": True}))
     return out
 
 
 def pair_walls(pl: PageLines) -> list[WallCand]:
-    walls = [_wall(s.a, s.b, w, source="bar") for s, w in pl.dark if PAIR_MM[0] <= w <= PAIR_MM[1]]
+    walls = [_wall(s.a, s.b, w, source="bar") for s, w in pl.dark
+             if PAIR_MM[0] <= w <= PAIR_MM[1] and float(np.hypot(s.a[0] - s.b[0], s.a[1] - s.b[1])) >= MIN_WALL_MM]
     for angle, group in by_direction(pl.lines):
         walls += _pairs(angle, group, pl.short)
     return walls
