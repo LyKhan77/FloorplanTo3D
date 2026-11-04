@@ -1,6 +1,6 @@
 """M8: the located task list of the review step (gaps, leaks, loose walls, room types)."""
 
-from core.spec.models import Wall
+from core.spec.models import Provenance, Wall
 from core.spec.review_tasks import review_tasks
 from core.spec.rooms import RoomLabel, rebuild_rooms
 from tests.spec.fixtures import spec_with_rooms
@@ -109,9 +109,10 @@ def test_one_sided_gap_stays_on_the_wall_line_and_its_door_saves():
 
 def _open_room():
     """A room whose east wall is gone: the label sits in no room, and two wall ends hang open."""
-    walls = [Wall(id="W1", a=(0, 0), b=(5000, 0), thickness=150, kind="interior"),
-             Wall(id="W2", a=(5000, 4000), b=(0, 4000), thickness=150, kind="interior"),
-             Wall(id="W3", a=(0, 4000), b=(0, 0), thickness=150, kind="interior")]
+    traced = Provenance(source="cv", evidence={"source": "pair"})
+    walls = [Wall(id="W1", a=(0, 0), b=(5000, 0), thickness=150, kind="interior", provenance=traced),
+             Wall(id="W2", a=(5000, 4000), b=(0, 4000), thickness=150, kind="interior", provenance=traced),
+             Wall(id="W3", a=(0, 4000), b=(0, 0), thickness=150, kind="interior", provenance=traced)]
     s = spec_with_rooms().model_copy(update={"walls": walls, "openings": [], "columns": []})
     return rebuild_rooms(s.model_copy(update={"rooms": []})), [RoomLabel((2500, 2000), "GUDANG", "other")]
 
@@ -139,3 +140,15 @@ def test_repeated_equipment_label_is_not_a_room():
     s, _ = _open_room()
     labels = [RoomLabel((1000 + i * 900, 2000), "PAC", "other") for i in range(3)]
     assert "room_open" not in _kinds(review_tasks(s, labels))
+
+
+def test_room_open_id_follows_the_label():
+    s, labels = _open_room()
+    (t,) = [t for t in review_tasks(s, labels) if t["kind"] == "room_open"]
+    assert t["id"] == "room_open:2500:2000"
+
+
+def test_raster_spec_gets_no_room_open():
+    s, labels = _open_room()
+    plain = s.model_copy(update={"walls": [w.model_copy(update={"provenance": Provenance()}) for w in s.walls]})
+    assert "room_open" not in _kinds(review_tasks(plain, labels))

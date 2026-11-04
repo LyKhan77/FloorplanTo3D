@@ -48,12 +48,13 @@ def test_skewed_lines_merge(tmp_path):
     assert len(_read(_pdf(tmp_path, draw)).lines) == 1
 
 
-def test_rotated_page_maps_like_the_raster(tmp_path):
+@pytest.mark.parametrize("rotate", [90, 180, 270])
+def test_rotated_page_maps_like_the_raster(tmp_path, rotate):
     def draw(p):
         for i in range(600):  # stays vector-heavy; nothing to strip, only to map
             p.draw_line((5, 5), (6, 5))
         p.draw_line((100, 50), (500, 50), width=3)
-    path = _pdf(tmp_path, draw, rotate=90)
+    path = _pdf(tmp_path, draw, rotate=rotate)
     long = max(_read(path).lines, key=lambda s: math.dist(s.a, s.b))
     img = cv2.cvtColor(load_raster(path, 1), cv2.COLOR_BGR2GRAY)
     mid = [round((long.a[i] + long.b[i]) / 2) for i in (0, 1)]

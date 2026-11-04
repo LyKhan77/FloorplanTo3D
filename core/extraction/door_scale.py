@@ -4,6 +4,8 @@ A door's swing radius is its leaf width; the median radius over the doors, set a
 (`door_leaf_width`, 800 mm by default), gives mm per working pixel.
 """
 
+import math
+
 import cv2
 import numpy as np
 from skimage.morphology import skeletonize
@@ -15,7 +17,8 @@ STRAIGHT_RUN_FRAC = 1 / 200  # straight runs this long (share of the building's 
 # swing radius bounds as a share of the building's width (drawing bbox): scale-free, and a big sheet with a small
 # plan keeps its doors (a building 6-200 m wide has doors 1/8-1/250 of it)
 RADIUS_FRAC = (1 / 250, 1 / 8)
-FIXTURE_SHARE = 0.6  # of the widest doors: an arc below this is a sanitary fixture (Gatsu p4: 15 px against 53 px)
+CLUSTER_RATIO = 1.25  # arcs within this factor are one door width (Gatsu p4: fixtures 15 px, doors 53 px)
+MIN_GROUP_SHARE = 0.15
 LEAF_INK = 0.7  # share of the hinge-to-arc-end line that is ink: a door draws its leaf, lettering has none
 
 
@@ -36,15 +39,27 @@ def door_arcs(binary: np.ndarray, bbox: tuple[int, int, int, int]) -> list[dict]
              "ends": [(e[0] + x0, e[1] + y0) for e in a["ends"]]} for a in doors]
 
 
+def door_radius(radii: list[float]) -> float:
+    """Median of the widest group of similar arcs big enough to trust: basins and toilets draw small arcs too, and
+    one stray big arc is no door width. Without such a group, the plain median."""
+    xs = sorted(radii)
+    need = max(MIN_DOORS, math.ceil(MIN_GROUP_SHARE * len(xs)))
+    for r in reversed(xs):
+        group = [x for x in xs if r / CLUSTER_RATIO <= x <= r]
+        if len(group) >= need:
+            return float(np.median(group))
+    return float(np.median(xs))
+
+
 def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], leaf_mm: float) -> dict | None:
     """{"mm_per_px", "doors_used", "door_radius_px"} in working pixels, or None when fewer than MIN_DOORS doors."""
     doors = door_arcs(binary, bbox)
     if len(doors) < MIN_DOORS:
         return None
-    radii = np.array([a["radius_px"] for a in doors])
-    leaves = radii[radii >= FIXTURE_SHARE * np.percentile(radii, 90)]  # basins and toilets also draw small arcs
-    r = float(np.median(leaves))
-    return {"mm_per_px": leaf_mm / r, "doors_used": len(leaves), "door_radius_px": r}
+    radii = [a["radius_px"] for a in doors]
+    r = door_radius(radii)
+    used = sum(r / CLUSTER_RATIO <= x <= r * CLUSTER_RATIO for x in radii)
+    return {"mm_per_px": leaf_mm / r, "doors_used": used, "door_radius_px": r}
 
 
 def _leaf_share(ink: np.ndarray, centre, end) -> float:

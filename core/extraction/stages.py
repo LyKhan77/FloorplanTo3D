@@ -199,10 +199,13 @@ def _vector_candidate(project_dir: Path, work: Path, inputs: dict, params: dict)
         return None
     page = json.loads((work.parent / "00_input" / "input.json").read_text())["page"] or 1
     labels = labels_from_ocr(inputs["ocr"], inputs["grid"]["px_to_mm"])
-    el = vector_elements(original, page, inputs["grid"], inputs["meta"], labels, json.loads(first.read_text()),
-                         inputs["binary"])
-    if el is None:
-        return None
+    try:
+        el = vector_elements(original, page, inputs["grid"], inputs["meta"], labels, json.loads(first.read_text()),
+                             inputs["binary"])
+    except Exception as e:  # noqa: BLE001 - the raster candidates still stand
+        return {"warning": f"Jalur vektor tidak dipakai: {type(e).__name__}: {e}"}
+    if el is None or not el["walls"]:
+        return {"warning": "Jalur vektor tidak dipakai: halaman ini tidak memuat dinding vektor"}
     out = work / "candidates" / str(VECTOR_INDEX)
     out.mkdir(parents=True, exist_ok=True)
     write_json(out / "elements.json", el)
@@ -249,8 +252,8 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
     summary = [r if r.get("index") is not None else {"index": i, "params": p, "error": r.get("error"),
                                                       "counts": None, "wall_len_m": 0, "line_len_m": 0, "low_conf": 0}
                for i, (r, p) in enumerate(zip(results, params, strict=True))]
-    row = _vector_candidate(project_dir, work, inputs, params_final)
-    if row:
+    row = _vector_candidate(project_dir, work, inputs, params_final) or {}
+    if "index" in row:
         summary.append(row)
     write_json(work / "candidates.json", summary)
     best = max((r["wall_len_m"] for r in summary if not r["error"]), default=0)
@@ -258,7 +261,7 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
     if not any(r["counts"] and r["counts"]["walls"] for r in summary):
         return {"status": "failed", "message": "semua kandidat kosong", "metrics": metrics}
     errors = [f"kandidat {r['index']}: {r['error']}" for r in summary if r["error"]]
-    return {"status": "succeeded", "metrics": metrics, "warnings": errors}
+    return {"status": "succeeded", "metrics": metrics, "warnings": errors + ([row["warning"]] if "warning" in row else [])}
 
 
 def meta_info(project_dir: Path, override: dict | None = None, stages: Path | None = None) -> dict:

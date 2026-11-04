@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 import core.extraction.preprocess as pre
-from core.extraction.door_scale import estimate_from_doors
+from core.extraction.door_scale import door_radius, estimate_from_doors
 from core.extraction.preprocess import load_raster, preprocess
 from tests.inputs import ANCOL, GATSU_PDF, requires_ancol, requires_gatsu_pdf
 
@@ -82,3 +82,11 @@ def test_gatsu_pdf_door_scale(page):
     r = preprocess(load_raster(GATSU_PDF, page), sheet=True)
     est = estimate_from_doors(r.binary, tuple(r.meta["drawing_bbox"]), 800)
     assert est["mm_per_px"] == pytest.approx(15.63, rel=0.08)
+
+
+def test_one_big_arc_does_not_set_the_scale():
+    assert door_radius([13, 13.4, 15.2, 24.3, 67.6]) == pytest.approx(13.4, rel=0.15)
+
+
+def test_doors_beat_fixtures_when_both_are_many():
+    assert door_radius([15] * 12 + [53] * 12 + [33, 90]) == pytest.approx(53, rel=0.02)

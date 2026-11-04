@@ -53,7 +53,7 @@ def test_wide_gap_stays_open():
 def test_column_closes_between_wall_ends():
     col = {"center": [3000, 0], "size": [400, 400], "shape": "rect"}
     t = trace_rooms(_gapped_box(1800), [], [col], [(3000, 2000)], CUT)
-    assert set(_closers(t)) == {"column"} and len(t.rooms) == 1
+    assert len(t.rooms) == 1 and {w.evidence.get("extended_by") for w in t.walls} >= {"column"}
 
 
 def test_sheet_cut_only_on_the_open_side():
@@ -113,7 +113,7 @@ def test_corner_gap_closes():
     # walls stop short of the corner on both sides, as they do against a corner column the raster missed
     walls = [_w((0, 0), (5400, 0)), _w((6000, 600), (6000, 4000)), _w((6000, 4000), (0, 4000)), _w((0, 4000), (0, 0))]
     t = trace_rooms(walls, [], [], [(3000, 2000)], CUT)
-    assert len(t.rooms) == 1 and set(_closers(t)) == {"corner"} and not t.openings
+    assert len(t.rooms) == 1 and {w.evidence.get("extended_by") for w in t.walls} >= {"corner"} and not t.openings
 
 
 def test_ends_past_the_cut_still_reach_it():
@@ -156,3 +156,12 @@ def test_long_single_wall_with_a_rack_against_it_stays():
             _w((3400, 1600), (3000, 1600), 100, source="single", short=True)]
     t = trace_rooms([*_box(), partition, *rack], [], [], [(1500, 2000), (4500, 3000)], CUT)
     assert any(w.a[0] == w.b[0] == 3000 for w in t.walls) and len(t.rooms) == 2
+
+
+def test_drawn_wall_extended_to_the_cut_is_not_tagged_as_cut():
+    walls = [_w((0, 900), (0, 4000), source="pair"), _w((0, 4000), (6000, 4000), source="pair"),
+             _w((6000, 4000), (6000, 900), source="pair")]
+    t = trace_rooms(walls, [], [], [(3000, 2000)], (-5000, 0, 25000, 15000))
+    tagged = [w for w in t.walls if w.evidence.get("closer") == "sheet_cut"]
+    assert len(t.rooms) == 1 and len(tagged) == 1 and tagged[0].a[1] == tagged[0].b[1] == 0
+    assert all(w.evidence.get("source") == "pair" for w in t.walls if w not in tagged)

@@ -65,6 +65,15 @@ def _length(w: WallCand) -> float:
     return math.dist(w.a, w.b)
 
 
+def _merge_evidence(k: WallCand, w: WallCand) -> None:
+    """A closer that runs a drawn wall on is part of that wall: only a closer with no drawn wall stays tagged, so a
+    tag such as `sheet_cut` marks what can be deleted."""
+    if "closer" in k.evidence and "closer" not in w.evidence:
+        k.evidence = {**w.evidence, "extended_by": k.evidence["closer"]}
+    elif "closer" in w.evidence and "closer" not in k.evidence:
+        k.evidence["extended_by"] = w.evidence["closer"]
+
+
 def _collapse(walls) -> list[WallCand]:
     """Parallel walls on one line become one: a pair shared by three lines, or a wall read in two pieces."""
     kept: list[WallCand] = []
@@ -84,8 +93,7 @@ def _collapse(walls) -> list[WallCand]:
             k.a, k.b = tuple(float(v) for v in ka + lo * kd), tuple(float(v) for v in ka + hi * kd)
             if _length(k) >= MIN_WALL_MM:
                 k.evidence.pop("short", None)
-            if "closer" in w.evidence:
-                k.evidence.setdefault("closer", w.evidence["closer"])
+            _merge_evidence(k, w)
             break
         else:
             kept.append(WallCand(w.a, w.b, w.thickness, dict(w.evidence)))

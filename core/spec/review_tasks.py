@@ -127,6 +127,8 @@ def _leaks(spec: Spec, labels: list[RoomLabel] | None) -> list[dict]:
 
 def _room_open(spec: Spec, labels: list[RoomLabel] | None) -> list[dict]:
     """A room label with no room around it, located at the nearest wall end that hangs open."""
+    if not any("source" in w.provenance.evidence for w in spec.walls):
+        return []  # raster walls carry no trace: labels there are mostly annotations nobody can close
     names = Counter(lb.name for lb in labels or [])
     shapes = [SPolygon(r.polygon, r.holes) for r in spec.rooms]
     ends = [(p, w) for w in spec.walls for e, p in (("a", w.a), ("b", w.b)) if not endpoint_connected(spec, w, e)]
@@ -139,7 +141,7 @@ def _room_open(spec: Spec, labels: list[RoomLabel] | None) -> list[dict]:
         near = [(math.dist(lb.at, p), p, w) for p, w in ends if math.dist(lb.at, p) <= OPEN_REACH_MM]
         if near:
             _, p, w = min(near, key=lambda t: (t[0], t[1]))
-            out.append({"id": f"room_open:{len(out) + 1}", "kind": "room_open", "message": f"Ruang {lb.name} belum tertutup",
+            out.append({"id": f"room_open:{round(lb.at[0])}:{round(lb.at[1])}", "kind": "room_open", "message": f"Ruang {lb.name} belum tertutup",
                         "at": [round(p[0]), round(p[1])], "element_ids": [w.id], "fix": {}})
     return out
 

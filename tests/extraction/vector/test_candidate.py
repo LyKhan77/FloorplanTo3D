@@ -1,11 +1,13 @@
+import dataclasses
 import json
 
 import numpy as np
 import pymupdf as fitz
 import pytest
 
+import core.extraction.stages as st
 from core.extraction.rooms.assemble import assemble_spec
-from core.extraction.stages import stage_extract, stage_rooms, stage_validate
+from core.extraction.stages import stage_extract, stage_grid, stage_rooms, stage_validate
 from core.extraction.vector.candidate import VECTOR_INDEX, pick_seeds, vector_elements
 from core.spec.rooms import RoomLabel
 from tests.extraction.test_stages import make_project, run_0_2
@@ -65,3 +67,63 @@ def test_vector_is_opt_in(tmp_path):
     stages, _ = run_0_2(project)
     stage_extract(project, stages / "03_extract", 1)
     assert not (stages / "03_extract" / "candidates" / str(VECTOR_INDEX)).exists()
+
+
+def _run_vector(tmp_path, monkeypatch=None):
+    project = make_project(tmp_path / "p", ANCOL.read_bytes(), "pdf", params={"extract_source": "vector"}, page=13)
+    stages, _ = run_0_2(project)
+    return project, stages
+
+
+@requires_ancol
+@pytest.mark.slow
+def test_empty_vector_candidate_is_no_candidate(tmp_path, monkeypatch):
+    monkeypatch.setattr(st, "vector_elements", lambda *a: {"walls": [], "openings": [], "columns": [], "stairs": [],
+                                                           "lifts": [], "line_len_m": 0, "closed": True})
+    project, stages = _run_vector(tmp_path)
+    res = stage_extract(project, stages / "03_extract", 1)
+    assert not (stages / "03_extract" / "candidates" / str(VECTOR_INDEX)).exists()
+    assert any(w.startswith("Jalur vektor tidak dipakai") for w in res["warnings"])
+
+
+@requires_ancol
+@pytest.mark.slow
+def test_crash_in_the_vector_path_leaves_raster_running(tmp_path, monkeypatch):
+    def boom(*a):
+        raise ValueError("bad page")
+    monkeypatch.setattr(st, "vector_elements", boom)
+    project, stages = _run_vector(tmp_path)
+    res = stage_extract(project, stages / "03_extract", 1)
+    assert res["status"] == "succeeded" and any("bad page" in w for w in res["warnings"])
+
+
+@requires_ancol
+@pytest.mark.slow
+def test_refused_vector_candidate_falls_back_with_a_warning(tmp_path, monkeypatch):
+    real = st.validate
+
+    def strict(spec, ctx):
+        res = real(spec, ctx)
+        if any(w.provenance.evidence.get("source") for w in spec.walls):
+            return dataclasses.replace(res, passed=False)
+        return res
+    monkeypatch.setattr(st, "validate", strict)
+    project, stages = _run_vector(tmp_path)
+    stage_extract(project, stages / "03_extract", 1)
+    stage_rooms(project, stages / "04_rooms")
+    res = stage_validate(project, stages / "05_validate", "r1")
+    assert res["metrics"]["candidate"] != VECTOR_INDEX
+    assert any(w.startswith("Jalur vektor tidak dipakai") for w in res["warnings"])
+
+
+@requires_ancol
+@pytest.mark.slow
+def test_vector_candidate_follows_the_door_width(tmp_path):
+    project, stages = _run_vector(tmp_path)
+    stage_extract(project, stages / "03_extract", 1)
+    first = json.loads((stages / "03_extract" / "candidates.json").read_text())[-1]["wall_len_m"]
+    wide = {"door_leaf_width": 1000}
+    stage_grid(project, stages / "02_grid", wide)
+    stage_extract(project, stages / "03_extract", 1, None, wide)
+    second = json.loads((stages / "03_extract" / "candidates.json").read_text())[-1]["wall_len_m"]
+    assert second / first == pytest.approx(1.25, rel=0.15)
