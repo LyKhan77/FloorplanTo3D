@@ -48,7 +48,7 @@ def test_tray_is_not_a_wall():
 
 
 def test_rack_row_is_not_a_wall():
-    assert not pair_walls(_pl([_h(0), _h(800)]))
+    assert not _long(pair_walls(_pl([_h(0), _h(800)])))
 
 
 def test_short_pair_is_flagged():
@@ -71,4 +71,22 @@ def test_ancol_bottom_walls_match_the_spike():
 
 def test_diagonal_hatch_is_not_a_wall():
     hatch = [Line((i * 200, 0), (i * 200 + 3000, 3000)) for i in range(8)]  # spacing ~141 mm across
-    assert not pair_walls(_pl(hatch))
+    assert not _long(pair_walls(_pl(hatch)))
+
+
+def test_single_line_is_a_conditional_wall():
+    w = pair_walls(_pl([_h(0)]))
+    assert len(w) == 1 and w[0].evidence["source"] == "single" and w[0].evidence["short"]
+
+
+def test_line_of_a_pair_is_not_also_single():
+    assert all(w.evidence["source"] == "pair" for w in pair_walls(_pl([_h(0), _h(150)])))
+
+
+def test_rails_of_a_tray_are_not_single_walls():
+    rungs = [Line((x, -10), (x, 317)) for x in range(0, 5000, 353)]
+    assert not pair_walls(_pl([_h(0), _h(307)], short=rungs))
+
+
+def test_skewed_single_line_is_not_a_wall():
+    assert not pair_walls(_pl([Line((0, 0), (3000, 2000))]))

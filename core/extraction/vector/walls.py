@@ -9,6 +9,8 @@ from core.extraction.vector.lines import Line, PageLines, Point, angle_of, by_di
 PAIR_MM = (70, 420)  # plausible wall thickness; rack rows sit wider
 MIN_OVERLAP_MM = 300
 MIN_WALL_MM = 900  # shorter pairs are mostly tray rungs and equipment; they stay only if a room needs them
+MIN_SINGLE_MM = 1500
+SINGLE_THICKNESS_MM = 100
 RUNG_REACH_MM = 15  # a rung meets both rails within this
 RUNG_OVERSHOOT_MM = 60
 RUNGS_PER_M = 1.5
@@ -47,6 +49,7 @@ def _pairs(angle: float, group: list[Line], short: list[Line]) -> list[WallCand]
     cp = np.array([min(np.dot(s.a, n), np.dot(s.b, n)) for s in cross])
     cq = np.array([max(np.dot(s.a, n), np.dot(s.b, n)) for s in cross])
     out = []
+    paired: set[int] = set()
     for i, (c, a, b) in enumerate(rows):
         for j in range(i + 1, len(rows)):
             c2, a2, b2 = rows[j]
@@ -64,12 +67,18 @@ def _pairs(angle: float, group: list[Line], short: list[Line]) -> list[WallCand]
                 rungs = ((ct >= o0) & (ct <= o1) & (cp <= c + RUNG_REACH_MM) & (cq >= c2 - RUNG_REACH_MM)
                          & (cq - cp <= gap + RUNG_OVERSHOOT_MM)).sum()
                 if rungs / max((o1 - o0) / 1000, 0.3) > RUNGS_PER_M:
+                    paired.update((i, j))  # rails stay out of the single-line walls too
                     continue
             if angle % 90 and _is_hatch(rows, c, c2, o0, o1):
                 continue
             m = (c + c2) / 2
+            paired.update((i, j))
             out.append(_wall(tuple(float(v) for v in o0 * d + m * n), tuple(float(v) for v in o1 * d + m * n), gap,
                              source="pair"))
+    for i, (c, a, b) in enumerate(rows):  # a thin partition is one line; it counts only if it bounds a room
+        if angle % 90 == 0 and i not in paired and b - a >= MIN_SINGLE_MM:
+            out.append(WallCand(tuple(float(v) for v in a * d + c * n), tuple(float(v) for v in b * d + c * n),
+                                SINGLE_THICKNESS_MM, {"source": "single", "short": True}))
     return out
 
 

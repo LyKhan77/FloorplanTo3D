@@ -17,6 +17,7 @@ SKEW_MIN_MM = 80  # shorter pieces have no reliable angle
 ANGLE_BIN_DEG = 1.0
 MIN_LINE_MM = 350
 SHORT_MM = (80, 700)  # strokes that can be tray rungs
+COLOUR_SPREAD = 0.3
 DARK_MAX = 0.3  # fill brightness of a solid wall bar
 BBOX_MARGIN_MM = 300
 
@@ -116,6 +117,9 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
             pieces.append(Line(a, b))
 
         for path in pg.get_drawings():
+            stroke = path.get("color")
+            if stroke and max(stroke) - min(stroke) > COLOUR_SPREAD:  # leaders and dimensions are drawn in colour
+                continue
             fill = path.get("fill")
             solid = fill is not None and max(fill) < DARK_MAX
             for it in path["items"]:

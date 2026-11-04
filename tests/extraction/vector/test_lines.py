@@ -65,3 +65,11 @@ def test_dark_rect_is_kept_with_its_width(tmp_path):
         p.draw_rect(fitz.Rect(50, 50, 450, 50 + 40 / K), color=(0, 0, 0), fill=(0, 0, 0))
     pl = _read(_pdf(tmp_path, draw))
     assert len(pl.dark) == 1 and pl.dark[0][1] == pytest.approx(40, abs=2)
+
+
+def test_coloured_annotation_lines_are_skipped(tmp_path):
+    def draw(p):
+        p.draw_line((50, 50), (500, 50), color=(1, 0, 1))  # magenta leader
+        p.draw_line((50, 100), (500, 100), color=(0, 0, 0))
+    pl = _read(_pdf(tmp_path, draw))
+    assert len(pl.lines) == 1
