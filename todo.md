@@ -2,23 +2,20 @@
 
 Overwritten at the start of every new task phase (AGENTS.md). History lives in CHANGELOG.md and git.
 
-## Phase: PDF input (2026-11-03)
+## Phase: room-by-room extraction from PDF vectors (2026-11-04)
 
-Goal: create a project straight from a multi-page CAD PDF (test case: Ancol p13) and run to review without entering a
-scale. Spec: `docs/superpowers/specs/2026-11-03-pdf-input-design.md`. Branch: `feat/pdf-input`.
+Branch `feat/room-tracing`, based on `feat/pdf-input` (not merged yet). Merge only after the user approves the
+improvement.
 
-- [x] Brainstorm, design doc, builder check, plan
-- [x] Photos removed from vector PDF pages
-- [x] `drawing_bbox` skips the sheet frame, spans every building block
-- [x] Scale from door swings; `door_leaf_width` (default 800 mm) always wins when set
-- [x] Cable-tray ladders masked in stage 3
-- [x] PDF resolution: stays 300 dpi (`benchmarks/DECISIONS.md`)
-- [x] `POST /api/pdf/pages` + page picker; "Lebar pintu standar (mm)" replaces mm/px in the UI
-- [x] End-to-end on the API: Ancol p13 reaches review (door estimate 31.7 mm/px); Gatsu keeps grid dimensions
-- [ ] Final branch review
-- [ ] User approval to merge; CHANGELOG entry after the user confirms
+Goal: the reviewer fixes about 20% of a plan, not most of it.
 
-## Next
+- [x] Measure the review of Ancol Lt. 2 (v1 vs v8) and the vector spike (wall recall 81%, precision 79%, rooms 2/12)
+- [ ] Decide the role of an LLM on unresolved gaps
+- [ ] Design doc, user approval
+- [ ] Plan and implementation
 
-Debug phase: rooms do not close on Ancol p13 (wall ends stop short of junctions, V004 ~230; 1 room at review).
-Equipment boxes (racks) still read as columns on p13 (~115 in the chosen candidate at 300 dpi).
+## Queued
+
+- Page picker in a modal (bigger thumbnails, page names)
+- Guide line (L) slowness: measure in the browser
+- Merge decision for `feat/pdf-input`
