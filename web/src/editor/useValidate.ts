@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, ApiError } from '../api/client'
 import type { ReviewTask } from '../api/types'
 import type { Room } from '../types/spec'
@@ -25,21 +25,33 @@ export function useValidate(projectId: string, baseVersion: number | null, ops: 
     return () => { live = false }
   }, [url, baseVersion])
 
+  // a dry run costs the server seconds on a big plan; piled up, they starve every other request (the guide line's
+  // snap among them). One in flight per editor; while it runs only the newest ops wait, the rest are not worth sending.
+  const flight = useRef({ busy: false, next: null as EditorOp[] | null, latest: ops })
+  flight.current.latest = ops
   useEffect(() => {
     if (baseVersion === null || !ops.length) return
-    let live = true
-    const t = setTimeout(() => {
-      api.post<Result>(url, { base_version: baseVersion, ops })
-        .then((r) => { if (live) setDone({ ops, issues: r.issues, error: null, rooms: r.rooms ?? null, tasks: r.tasks ?? [] }) })
+    const f = flight.current
+    const send = (sent: EditorOp[]) => {
+      f.busy = true
+      api.post<Result>(url, { base_version: baseVersion, ops: sent })
+        .then((r) => { if (f.latest === sent) setDone({ ops: sent, issues: r.issues, error: null, rooms: r.rooms ?? null, tasks: r.tasks ?? [] }) })
         .catch((e: unknown) => {
-          if (!live) return
+          if (f.latest !== sent) return
           const msg = e instanceof ApiError && e.code === 'bad_op'
             ? `Op #${Number(e.details.index ?? 0) + 1}: ${e.message}` : e instanceof Error ? e.message : String(e)
           // keep the last rooms and tasks: an error must not look like every review task got done
-          setDone((prev) => ({ ops, issues: [], error: msg, rooms: prev.rooms, tasks: prev.ops ? prev.tasks : null }))
+          setDone((prev) => ({ ops: sent, issues: [], error: msg, rooms: prev.rooms, tasks: prev.ops ? prev.tasks : null }))
         })
-    }, 500)
-    return () => { live = false; clearTimeout(t) }
+        .finally(() => {
+          f.busy = false
+          const next = f.next
+          f.next = null
+          if (next) send(next)
+        })
+    }
+    const t = setTimeout(() => { if (f.busy) f.next = ops; else send(ops) }, 500)
+    return () => clearTimeout(t)
   }, [url, baseVersion, ops])
 
   return useMemo(() => {

@@ -27,10 +27,18 @@ def column_footprint(col: Column) -> SPolygon:
     return affinity.rotate(box, col.rotation, origin=(x, y)) if col.rotation else box
 
 
+def _segment_distance(p, a, b) -> float:
+    """Plain arithmetic: this runs for every wall end against every wall, on each edit's live validation."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    d2 = dx * dx + dy * dy
+    t = max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / d2)) if d2 else 0.0
+    return math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)
+
+
 def _host_walls(spec: Spec, wall: Wall, end: Literal["a", "b"]) -> list[Wall]:
-    p = Point(wall.a if end == "a" else wall.b)
+    p = wall.a if end == "a" else wall.b
     tol = wall.thickness / 2
-    return [o for o in spec.walls if o.id != wall.id and LineString([o.a, o.b]).distance(p) <= tol]
+    return [o for o in spec.walls if o.id != wall.id and _segment_distance(p, o.a, o.b) <= tol]
 
 
 def endpoint_connected(spec: Spec, wall: Wall, end: Literal["a", "b"]) -> bool:

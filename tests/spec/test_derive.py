@@ -55,3 +55,14 @@ def test_stair_metrics_two_flights():
     m = stair_metrics(st, Defaults())
     assert m[0].riser_mm == pytest.approx(4000 / 24) and m[0].tread_mm == pytest.approx(275)
     assert (m[1].start_z, m[1].end_z) == pytest.approx((2000, 4000))
+
+
+def test_host_walls_measures_like_shapely():
+    from shapely.geometry import LineString, Point
+
+    from core.spec.derive import _segment_distance
+
+    for p, a, b in (((5, 5), (0, 0), (10, 0)), ((-3, 4), (0, 0), (10, 0)), ((13, 4), (0, 0), (10, 0)),
+                    ((2, 7), (0, 0), (0, 0)), ((4, 4), (0, 0), (10, 10)), ((1, 9), (3, 2), (8, 11))):
+        want = Point(p).distance(LineString([a, b])) if a != b else Point(p).distance(Point(a))
+        assert _segment_distance(p, a, b) == pytest.approx(want)

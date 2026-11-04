@@ -59,4 +59,22 @@ describe('useValidate', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(600) })
     expect(result.current.tasks).toEqual([task])
   })
+
+  it('keeps one dry run in flight and sends only the newest ops after it', async () => {
+    const { rerender } = renderHook(({ ops }) => useValidate('p1', 4, ops), { initialProps: { ops: [] as EditorOp[] } })
+    await act(async () => { await vi.advanceTimersByTimeAsync(10) })
+    post.mockClear()
+    let finish: (v: never) => void = () => {}
+    post.mockImplementationOnce(() => new Promise((r) => { finish = r as never }) as never)
+    rerender({ ops: [op(4000)] })
+    await act(async () => { await vi.advanceTimersByTimeAsync(600) })
+    for (const h of [4100, 4200]) {
+      rerender({ ops: [op(h)] })
+      await act(async () => { await vi.advanceTimersByTimeAsync(600) })
+    }
+    expect(post).toHaveBeenCalledTimes(1)  // the server is still busy with the first
+    await act(async () => { finish({ score: 1, passed: true, issues: [] } as never); await vi.advanceTimersByTimeAsync(10) })
+    expect(post).toHaveBeenCalledTimes(2)
+    expect((post.mock.calls[1][1] as { ops: EditorOp[] }).ops).toEqual([op(4200)])
+  })
 })
