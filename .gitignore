@@ -18,6 +18,7 @@ benchmarks/.cache/
 floorplan/
 temp/
 benchmarks/reports/
+benchmarks/ancol/
 benchmarks/gatsu/gt_overlay.png
 benchmarks/gatsu/fewshot/**/*.png
 .impeccable/
