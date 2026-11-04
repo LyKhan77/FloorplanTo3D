@@ -3,7 +3,7 @@
 import re
 
 KNOWN = ("wall_height", "door_height", "wall_thickness", "floor_name", "site_type", "mm_per_px", "use_strata",
-         "review_pause", "ceiling_height", "raised_floor_height", "door_leaf_width")
+         "review_pause", "ceiling_height", "raised_floor_height", "door_leaf_width", "extract_source")
 _NUM = r"(\d+(?:[.,]\d+)?)"
 _UNIT = r"\s*(mm|cm|m)\b"
 _TO_MM = {"mm": 1, "cm": 10, "m": 1000}

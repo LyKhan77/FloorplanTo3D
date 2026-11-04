@@ -4,6 +4,7 @@ Each stage reads the previous stages' folders next to its own work folder (runs/
 """
 
 import json
+import math
 from collections.abc import Callable
 from pathlib import Path
 
@@ -32,6 +33,7 @@ from core.extraction.scale import (
 )
 from core.extraction.select import choose, crop_labels, ocr_dimensions_from
 from core.extraction.textclass import classify_text, ocr_page
+from core.extraction.vector.candidate import VECTOR_INDEX, vector_elements
 from core.spec.carryover import carry_over
 from core.spec.models import Spec
 from core.spec.rooms import rebuild_rooms
@@ -187,6 +189,37 @@ def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
             "low_conf": sum(w["confidence"] < 0.6 for w in el["walls"])}
 
 
+def _vector_candidate(project_dir: Path, work: Path, inputs: dict, params: dict) -> dict | None:
+    """The PDF-vector candidate, on request (`extract_source: vector`): it does not reach the gates yet."""
+    original = _original(project_dir)
+    first = work / "candidates" / "0" / "elements.json"
+    if params.get("extract_source") != "vector" or original.suffix != ".pdf" or not first.exists():
+        return None
+    page = json.loads((work.parent / "00_input" / "input.json").read_text())["page"] or 1
+    labels = labels_from_ocr(inputs["ocr"], inputs["grid"]["px_to_mm"])
+    el = vector_elements(original, page, inputs["grid"], inputs["meta"], labels, json.loads(first.read_text()),
+                         inputs["binary"])
+    if el is None:
+        return None
+    out = work / "candidates" / str(VECTOR_INDEX)
+    out.mkdir(parents=True, exist_ok=True)
+    write_json(out / "elements.json", el)
+    to_px = px_from_mm(inputs["grid"]["px_to_mm"])
+    overlay = cv2.cvtColor(inputs["page"], cv2.COLOR_GRAY2BGR)
+    mask = np.zeros_like(inputs["page"])
+    for w in el["walls"]:
+        a, b = (tuple(round(v) for v in to_px(*w[k])) for k in ("a", "b"))
+        cv2.line(overlay, a, b, (0, 0, 255), 2)
+        cv2.line(mask, a, b, 255, max(1, round(w["thickness"] / inputs["grid"]["mm_per_px_work"])))
+    cv2.imwrite(str(out / "overlay.png"), overlay)
+    cv2.imwrite(str(out / "wall_mask.png"), mask)
+    length = sum(math.dist(w["a"], w["b"]) for w in el["walls"]) / 1000
+    return {"index": VECTOR_INDEX, "error": None, "wall_len_m": round(length, 2), "line_len_m": el["line_len_m"],
+            "params": {"strategy": "vector", "sauvola_k": 0, "t_min": 0, "t_max": 0, "l_fix": 0},
+            "counts": {"walls": len(el["walls"]), "doors": len(el["openings"]), "columns": len(el["columns"]),
+                       "stairs": len(el["stairs"])}, "low_conf": 0}
+
+
 def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progress: Progress = None,
                   override: dict | None = None, profile: dict | None = None) -> dict:
     """Stage 3 (PRD/04 §3): K candidates -> candidates/<k>/{elements.json,overlay.png}, candidates.json, masks/."""
@@ -214,6 +247,9 @@ def stage_extract(project_dir: Path, work: Path, max_candidates: int = 12, progr
     summary = [r if r.get("index") is not None else {"index": i, "params": p, "error": r.get("error"),
                                                       "counts": None, "wall_len_m": 0, "line_len_m": 0, "low_conf": 0}
                for i, (r, p) in enumerate(zip(results, params, strict=True))]
+    row = _vector_candidate(project_dir, work, inputs, params_final)
+    if row:
+        summary.append(row)
     write_json(work / "candidates.json", summary)
     best = max((r["wall_len_m"] for r in summary if not r["error"]), default=0)
     metrics = {"candidates": len(summary), "best_wall_len_m": best, "seconds": round(time.monotonic() - t0, 1)}
@@ -317,7 +353,10 @@ def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progres
                        "errors": sorted({i.code for i in res.issues if i.severity == "error"}),
                        "coverage": round(_wall_len(spec) / line_mm, 4) if line_mm else 0.0})
     write_json(work / "scores.json", scored)
-    chosen = choose(scored)
+    # a requested vector candidate wins unless the validator refuses it; the sweep's score does not value rooms
+    vector = next((c for c in scored if c["index"] == VECTOR_INDEX), None)
+    chosen = vector if vector and vector["passed"] else choose([c for c in scored if c is not vector])
+    vector_lost = vector is not None and chosen is not vector
     if chosen is None:
         codes = sorted({c for s in scored for c in s["errors"]})
         return {"status": "needs_attention", "metrics": {"candidates": len(scored)},
@@ -359,6 +398,8 @@ def stage_validate(project_dir: Path, work: Path, run_id: str, progress: Progres
     w0, h0 = meta["original_size"]
     cv2.imwrite(str(work / "wall_mask.png"), cv2.warpAffine(mask, to_original, (w0, h0), flags=cv2.INTER_NEAREST))
     warnings = [f"edit tidak bisa dipindahkan: {e['id']} {e['field']} = {e['value']}" for e in (report or {}).get("lost_edits", [])]
+    if vector_lost:
+        warnings.append("Jalur vektor tidak dipakai: " + (", ".join(vector["errors"]) or "gagal validasi"))
     metrics = {"version": saved.meta.version, "candidate": k, "score": round(final.score, 3), "rooms": len(saved.rooms),
                "issues": len(issues)}
     if final.score < SCORE_MIN:

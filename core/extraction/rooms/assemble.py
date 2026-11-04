@@ -150,7 +150,9 @@ def leak_issues(spec: Spec, labels: list[RoomLabel]) -> list[dict]:
 
 
 def assemble_spec(elements: dict, grid_doc: dict, labels: list[RoomLabel], meta_info: dict) -> tuple[Spec, list[dict]]:
-    spec = assign_ids(close_ends(_with_meta(elements_to_spec(elements, grid_doc), meta_info)))
+    spec = _with_meta(elements_to_spec(elements, grid_doc), meta_info)
+    # the vector tracer left a gap open on purpose; closing it here would hide its room_open task
+    spec = assign_ids(spec if elements.get("closed") else close_ends(spec))
     spec = rebuild_rooms(spec, labels, pick=best_label, source="cv")
     spec = derive(Spec.model_validate(_type_rooms(spec, labels, elements.get("lifts", [])).model_dump()))
     return spec, leak_issues(spec, labels)
