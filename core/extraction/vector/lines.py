@@ -7,6 +7,7 @@ layers, so geometry is all there is to go on.
 import math
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -99,7 +100,7 @@ def _merge(segs: list[Line], angle: float) -> list[Line]:
 
 def _chains(tiny: list[Line]) -> list[list[Point]]:
     """Tiny pieces joined end to end; a junction ends a chain."""
-    key = lambda p: (round(p[0] / CHAIN_JOIN_MM), round(p[1] / CHAIN_JOIN_MM))  # noqa: E731
+    key = lambda p: (round(p[0] / CHAIN_JOIN_MM), round(p[1] / CHAIN_JOIN_MM))
     nbr: dict[tuple, list[tuple]] = defaultdict(list)
     pos: dict[tuple, Point] = {}
     for s in tiny:
@@ -125,7 +126,7 @@ def _chains(tiny: list[Line]) -> list[list[Point]]:
                 path.append(nxt)
                 prev, cur = cur, nxt
             pts = [pos[k] for k in path]
-            length = sum(math.dist(u, v) for u, v in zip(pts, pts[1:], strict=False))
+            length = sum(math.dist(u, v) for u, v in pairwise(pts))
             if length >= CURVE_MIN_MM and math.dist(pts[0], pts[-1]) / length <= CURVE_MAX_STRAIGHT:
                 out.append(pts)
     return out
@@ -171,7 +172,7 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
                     ts = np.linspace(0, 1, BEZIER_STEPS + 1)
                     curve = [mm(pts[0] * (1 - t) ** 3 + pts[1] * 3 * t * (1 - t) ** 2 + pts[2] * 3 * t * t * (1 - t)
                                  + pts[3] * t ** 3) for t in ts]
-                    for u, v in zip(curve, curve[1:], strict=False):
+                    for u, v in pairwise(curve):
                         s = Line(u, v)
                         tiny.append(s)
                 elif it[0] in ("re", "qu"):
@@ -190,14 +191,14 @@ def read_lines(pdf: Path, page: int, px_to_mm: list[float], bbox_px: tuple[int, 
     merged += _merge(plumb, 90) if plumb else []
     for angle, group in by_direction(skew):
         merged += _merge(group, angle)
-    size = lambda s: math.dist(s.a, s.b)  # noqa: E731
+    size = lambda s: math.dist(s.a, s.b)
     return PageLines([s for s in merged if size(s) >= MIN_LINE_MM],
                      [s for s in merged if SHORT_MM[0] <= size(s) <= SHORT_MM[1]], dark, _chains(tiny))
 
 
 def _bar(c: list[Point]) -> tuple[Line, float]:
     """A filled quad as its centre line and width."""
-    mid = lambda u, v: ((u[0] + v[0]) / 2, (u[1] + v[1]) / 2)  # noqa: E731
+    mid = lambda u, v: ((u[0] + v[0]) / 2, (u[1] + v[1]) / 2)
     w, h = math.dist(c[0], c[1]), math.dist(c[1], c[2])
     if w >= h:
         return Line(mid(c[0], c[3]), mid(c[1], c[2])), h

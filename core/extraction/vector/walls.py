@@ -40,8 +40,8 @@ def _is_hatch(rows: list, c: float, c2: float, o0: float, o1: float) -> bool:
 
 def _pairs(angle: float, group: list[Line], short: list[Line]) -> list[WallCand]:
     d, n = frame(angle)
-    rows = sorted(((float((np.dot(s.a, n) + np.dot(s.b, n)) / 2),
-                    *sorted((float(np.dot(s.a, d)), float(np.dot(s.b, d))))) for s in group))
+    rows = sorted((float((np.dot(s.a, n) + np.dot(s.b, n)) / 2),
+                    *sorted((float(np.dot(s.a, d)), float(np.dot(s.b, d))))) for s in group)
     cross = [s for s in short if abs((angle_of(s) - angle) % 180 - 90) < 10]
     ct = np.array([(np.dot(s.a, d) + np.dot(s.b, d)) / 2 for s in cross])
     cp = np.array([min(np.dot(s.a, n), np.dot(s.b, n)) for s in cross])
