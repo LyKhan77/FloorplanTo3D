@@ -49,6 +49,13 @@ describe('NewProjectPage', () => {
     expect((upload.mock.calls[0][1] as FormData).get('page')).toBeNull()
   })
 
+  it('offers the vector path for a PDF only', async () => {
+    show()
+    expect(screen.queryByLabelText(/Jalur vektor/)).toBeNull()
+    pickFile(new File(['%PDF-'], 'ancol.pdf', { type: 'application/pdf' }))
+    expect(await screen.findByText(/Jalur vektor/)).toBeInTheDocument()
+  })
+
   it('advanced params offer the door width instead of mm/px', () => {
     show()
     expect(screen.queryByLabelText(/mm per px/)).toBeNull()

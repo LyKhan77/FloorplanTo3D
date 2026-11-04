@@ -105,3 +105,37 @@ def test_one_sided_gap_stays_on_the_wall_line_and_its_door_saves():
             "door_type": "single_swing", "hinge": "start", "swing": "left"}]
     out = apply(s, ops, "editor", s.meta.version + 1)
     assert [i.code for i in validate(out).issues if i.severity == "error"] == []
+
+
+def _open_room():
+    """A room whose east wall is gone: the label sits in no room, and two wall ends hang open."""
+    walls = [Wall(id="W1", a=(0, 0), b=(5000, 0), thickness=150, kind="interior"),
+             Wall(id="W2", a=(5000, 4000), b=(0, 4000), thickness=150, kind="interior"),
+             Wall(id="W3", a=(0, 4000), b=(0, 0), thickness=150, kind="interior")]
+    s = spec_with_rooms().model_copy(update={"walls": walls, "openings": [], "columns": []})
+    return rebuild_rooms(s.model_copy(update={"rooms": []})), [RoomLabel((2500, 2000), "GUDANG", "other")]
+
+
+def test_label_without_room_is_room_open():
+    s, labels = _open_room()
+    (t,) = [t for t in review_tasks(s, labels) if t["kind"] == "room_open"]
+    assert t["message"] == "Ruang GUDANG belum tertutup"
+    assert t["at"] in ([5000, 0], [5000, 4000])
+
+
+def test_closed_room_has_no_room_open_task():
+    s = spec_with_rooms()
+    label = RoomLabel((2500, 3000), "GUDANG", "other")
+    assert "room_open" not in _kinds(review_tasks(s, [label]))
+
+
+def test_room_open_disappears_after_closing():
+    s, labels = _open_room()
+    s.walls.append(Wall(id="W4", a=(5000, 0), b=(5000, 4000), thickness=150, kind="interior"))
+    assert "room_open" not in _kinds(review_tasks(rebuild_rooms(s.model_copy(update={"rooms": []})), labels))
+
+
+def test_repeated_equipment_label_is_not_a_room():
+    s, _ = _open_room()
+    labels = [RoomLabel((1000 + i * 900, 2000), "PAC", "other") for i in range(3)]
+    assert "room_open" not in _kinds(review_tasks(s, labels))

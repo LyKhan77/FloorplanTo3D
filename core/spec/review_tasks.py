@@ -7,6 +7,7 @@ type  a room still typed "other"
 """
 
 import math
+from collections import Counter
 
 from shapely.geometry import LineString, Point
 from shapely.geometry import Polygon as SPolygon
@@ -19,6 +20,9 @@ GAP_MIN_MM, GAP_MAX_MM = 600, 1300  # door widths
 GAP_LATERAL_SLACK_MM = 50
 PARALLEL_DEG = 3
 LOOSE_MAX_MM = 3000
+LABEL_REPEATS = 3  # a text this frequent labels equipment (PAC), not a room
+LABEL_JOIN_MM = 2500  # lines of one room label sit this close
+OPEN_REACH_MM = 10000
 TYPE_MIN_M2 = 4
 
 
@@ -121,6 +125,25 @@ def _leaks(spec: Spec, labels: list[RoomLabel] | None) -> list[dict]:
     return out
 
 
+def _room_open(spec: Spec, labels: list[RoomLabel] | None) -> list[dict]:
+    """A room label with no room around it, located at the nearest wall end that hangs open."""
+    names = Counter(lb.name for lb in labels or [])
+    shapes = [SPolygon(r.polygon, r.holes) for r in spec.rooms]
+    ends = [(p, w) for w in spec.walls for e, p in (("a", w.a), ("b", w.b)) if not endpoint_connected(spec, w, e)]
+    out, seen = [], []
+    for lb in labels or []:
+        if names[lb.name] >= LABEL_REPEATS or any(math.dist(lb.at, q) <= LABEL_JOIN_MM for q in seen) \
+                or any(sh.covers(Point(lb.at)) for sh in shapes):
+            continue
+        seen.append(lb.at)
+        near = [(math.dist(lb.at, p), p, w) for p, w in ends if math.dist(lb.at, p) <= OPEN_REACH_MM]
+        if near:
+            _, p, w = min(near, key=lambda t: (t[0], t[1]))
+            out.append({"id": f"room_open:{len(out) + 1}", "kind": "room_open", "message": f"Ruang {lb.name} belum tertutup",
+                        "at": [round(p[0]), round(p[1])], "element_ids": [w.id], "fix": {}})
+    return out
+
+
 def _loose(spec: Spec) -> list[dict]:
     out = []
     for w in spec.walls:
@@ -147,4 +170,4 @@ def _types(spec: Spec) -> list[dict]:
 
 def review_tasks(spec: Spec, labels: list[RoomLabel] | None = None) -> list[dict]:
     """Tasks in correction order: gaps and leaks shape the rooms, so they come before loose walls and types."""
-    return _gaps(spec) + _leaks(spec, labels) + _loose(spec) + _types(spec)
+    return _gaps(spec) + _leaks(spec, labels) + _room_open(spec, labels) + _loose(spec) + _types(spec)

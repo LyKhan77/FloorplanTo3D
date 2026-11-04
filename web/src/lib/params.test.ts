@@ -29,6 +29,12 @@ describe('buildProjectForm', () => {
     expect(buildProjectForm(new File(['x'], 'a.png'), { start: true }).get('page')).toBeNull()
   })
 
+  it('asks for the vector path only when it is turned on', () => {
+    const f = new File(['x'], 'a.pdf')
+    expect(JSON.parse(buildProjectForm(f, { vectorPath: true, start: true }).get('params') as string)).toEqual({ extract_source: 'vector' })
+    expect(buildProjectForm(f, { vectorPath: false, start: true }).get('params')).toBeNull()
+  })
+
   it('rejects non-positive numbers', () => {
     expect(() => buildProjectForm(new File(['x'], 'a.png'), { wallHeight: -1, start: false })).toThrow(/wall_height/)
   })

@@ -4,7 +4,7 @@ import type { ReviewTask } from '../../api/types'
 import { useEditorStore } from '../store'
 import { closeGapOps, DOOR_SKIPPED_TEXT } from './tools'
 
-const GROUPS: [ReviewTask['kind'], string][] = [['gap', 'Celah terbuka'], ['leak', 'Ruang bocor'], ['loose', 'Dinding lepas'], ['type', 'Tipe ruang']]
+const GROUPS: [ReviewTask['kind'], string][] = [['gap', 'Celah terbuka'], ['leak', 'Ruang bocor'], ['room_open', 'Ruang terbuka'], ['loose', 'Dinding lepas'], ['type', 'Tipe ruang']]
 
 /** M8 review: the located tasks of the paused spec; a task the latest dry run no longer reports is done. */
 export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: ReviewTask[] }) {
@@ -27,7 +27,7 @@ export function TasksPanel({ projectId, tasks }: { projectId: string; tasks: Rev
     s.setActiveTask(t.id)
     s.setFocus(t.at)
     if (t.kind === 'gap') { s.setTool('close-gap'); s.select([]) }
-    else if (t.kind === 'leak') { s.setTool('guide-line'); s.select([]) }
+    else if (t.kind === 'leak' || t.kind === 'room_open') { s.setTool('guide-line'); s.select([]) }
     else { s.setTool('select'); s.select(t.element_ids) }
   }
   const close = (t: ReviewTask) => {

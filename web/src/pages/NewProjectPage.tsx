@@ -27,6 +27,7 @@ export function NewProjectPage() {
   const [doorLeafWidth, setDoorLeafWidth] = useState<number | null>(null)
   const [page, setPage] = useState(1)
   const pdfPages = usePdfPages()
+  const [vectorPath, setVectorPath] = useState(false)
   const [useStrata, setUseStrata] = useState(true)
   const [reviewPause, setReviewPause] = useState(true)
   const [profileId, setProfileId] = useState<string | null>(null)
@@ -51,7 +52,7 @@ export function NewProjectPage() {
     try {
       const form = buildProjectForm(file, {
         name, prompt, wallHeight, doorHeight, wallThickness, floorName, siteType,
-        doorLeafWidth, page: isPdf(file) ? page : null, useStrata, reviewPause, profileId, start,
+        doorLeafWidth, page: isPdf(file) ? page : null, vectorPath: isPdf(file) && vectorPath, useStrata, reviewPause, profileId, start,
       })
       create.mutate(form, {
         onSuccess: (r) => navigate(`/projects/${r.project_id}?tab=pipeline`),
@@ -75,6 +76,9 @@ export function NewProjectPage() {
               onAddFiles={(_e, { addedFiles }) => pick(addedFiles)} />
             {file && <FileUploaderItem name={file.name} status="edit" onDelete={() => { setFile(null); setPreview(null); pdfPages.reset() }} />}
             {preview && <img src={preview} alt="Pratinjau denah" className="upload-preview" />}
+            {file && isPdf(file) && (
+              <Toggle id="vector-path" labelText="Jalur vektor (eksperimen)" toggled={vectorPath} onToggle={setVectorPath} />
+            )}
             {pdfPages.isPending && <p className="helper">Memuat halaman…</p>}
             {pdfPages.data && (
               <fieldset className="pdf-pages">

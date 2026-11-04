@@ -182,7 +182,7 @@ export interface TranscriptLine {
 /** M8 review step: a located task from POST /specs/validate (core/spec/review_tasks.py). */
 export interface ReviewTask {
   id: string
-  kind: 'gap' | 'leak' | 'loose' | 'type'
+  kind: 'gap' | 'leak' | 'room_open' | 'loose' | 'type'
   message: string
   at: [number, number]
   element_ids: string[]

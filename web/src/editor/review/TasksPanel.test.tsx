@@ -29,6 +29,14 @@ describe('TasksPanel', () => {
     expect(st().activeTask).toBe(gap.id)
   })
 
+  it('an open room is listed apart and opens the guide line', () => {
+    const open: ReviewTask = { id: 'room_open:1', kind: 'room_open', message: 'Ruang GUDANG belum tertutup', at: [0, 0], element_ids: ['W1'], fix: {} }
+    render(<TasksPanel projectId="p1" tasks={[open]} />)
+    expect(screen.getByText('Ruang terbuka')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Ruang GUDANG belum tertutup'))
+    expect(useEditorStore.getState().tool).toBe('guide-line')
+  })
+
   it('clicking a room-type task selects the room', () => {
     render(<TasksPanel projectId="p1" tasks={[gap, room]} />)
     act(() => { fireEvent.click(screen.getByText(room.message)) })

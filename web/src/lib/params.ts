@@ -8,6 +8,7 @@ export interface ProjectFields {
   siteType?: string
   doorLeafWidth?: number | null
   page?: number | null
+  vectorPath?: boolean
   useStrata?: boolean
   reviewPause?: boolean
   profileId?: string | null
@@ -28,6 +29,7 @@ export function buildProjectForm(file: File, f: ProjectFields): FormData {
   if (f.floorName) params.floor_name = f.floorName
   if (f.siteType) params.site_type = f.siteType
   num('door_leaf_width', f.doorLeafWidth)
+  if (f.vectorPath) params.extract_source = 'vector'
   if (f.useStrata !== undefined) params.use_strata = f.useStrata
   if (f.reviewPause !== undefined) params.review_pause = f.reviewPause
 
