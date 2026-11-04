@@ -9,10 +9,11 @@ improvement.
 
 Goal: the reviewer fixes about 20% of a plan, not most of it.
 
-- [x] Measure the review of Ancol Lt. 2 (v1 vs v8) and the vector spike (wall recall 81%, precision 79%, rooms 2/12)
-- [ ] Decide the role of an LLM on unresolved gaps
-- [ ] Design doc, user approval
-- [ ] Plan and implementation
+- [x] Measure the review of Ancol Lt. 2 (v1 vs v8) and the vector spike
+- [x] Design, plan, vector walls, door source, room tracer, `room_open`, vector switch in Project baru
+- [ ] Gates not reached (recall 0.88 ok; precision 0.72, rooms 3/12, duplicates 2): the path is opt-in
+- [ ] User tries the vector path in the editor, final review, merge decision
+- [ ] Later: Strata `T5` for ambiguous gaps (own design)
 
 ## Queued
 

@@ -8,6 +8,8 @@
      project. Pasted site photos, the sheet frame and the title block are dropped.
    - No dimensions on the plan → stage 2 estimates the scale from door swings (`door_leaf_width`, default 800 mm).
      A door width the user sets always wins; it is the only scale correction in the UI.
+   - Experimental switch for PDFs: `extract_source: vector` adds a stage-3 candidate that reads walls from the PDF
+     paths and traces rooms one by one; rooms that stay open become `room_open` tasks. Raster stays the default.
 2. **Pipeline stages 0–5** (about 2 min on Gatsu):
    - input → preprocess → grid & scale → extraction → rooms → validation;
    - the run pauses at **Perlu review**.

@@ -35,6 +35,8 @@ user.
   dropped (`core/extraction/preprocess.py`).
 - **Scale:** grid dimensions, else door swings with `door_leaf_width` (`core/extraction/door_scale.py`); cable-tray
   ladders are masked before walls/columns (`core/extraction/geometry/trays.py`).
+- **Vector path (experimental, `extract_source: vector`):** walls from PDF paths, rooms traced one by one
+  (`core/extraction/vector/`). It has not reached its gates (`benchmarks/DECISIONS.md`), so raster stays the default.
 - **Pipeline stages 0–10:**
   - input, preprocess, grid & scale, extraction, rooms, validation;
   - a pause for human review;
@@ -56,7 +58,7 @@ user.
 
 ```
 core/          domain logic (no web)
-  extraction/  stages 0-4: preprocess, grid, geometry, rooms, snap
+  extraction/  stages 0-4: preprocess, grid, geometry, rooms, snap; vector/ = PDF-path walls and room tracing
   spec/        layout spec models, ops, validation, store
   assist/      Perbaiki area: context, plan translation, session
   interior/    generate-interior engine: rules, rows, line-up, devices, checks

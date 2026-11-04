@@ -78,3 +78,22 @@ terpilih tahap 5. Syarat ganti ke 600 dpi: dinding lebih tepat di dinding asli *
 Keputusan: **tetap 300 dpi.** V004 + V005 naik dari 312 ke 402, dan tahap 3 lima kali lebih lambat. 600 dpi memang
 memangkas kolom palsu (84 → 38) dan menambah ruang (2 → 7), tetapi penutupan ruang adalah fase debug berikutnya.
 Ukur ulang setelah fase itu.
+
+## 2026-11-04 — Jalur vektor dan penelusuran ruang, Ancol p13
+
+Pipeline penuh tahap 0–5 dengan `extract_source: vector`, bagian bawah p13, terhadap review user (v8), `gate_metrics`.
+
+| | Raster (v1) | Vektor | Gerbang |
+|---|---|---|---|
+| Recall dinding | 0.608 | 0.881 | ≥ 0.85 lolos |
+| Presisi dinding | 0.819 | 0.724 | ≥ 0.85 gagal |
+| Ruang cocok | 0 dari 12 | 3 dari 12 | ≥ 9 gagal |
+| Dinding dobel | 1 | 2 | 0 gagal |
+| Perkiraan review (`correction_effort`, bulk + review) | 24.6 menit | 16.4 menit | — |
+
+Gatsu PDF, skala p3 (15.63 mm/px), posisi diselaraskan ke GT, `wall_metrics` toleransi 150 mm: p3 recall 0.70, presisi
+0.56; p4 recall 0.71, presisi 0.65. Keduanya di bawah lantai raster (0.73 dan 0.82), tetapi posisi dinding lebih dekat
+(median 20–25 mm, lantai 50 mm).
+
+Keputusan: **gerbang belum tercapai, jadi jalur vektor tetap opsional** (`extract_source: vector`, default raster). Busur
+vektor tidak terpakai (potongan ~50 mm tidak tersambung), jadi pintu tetap dari detektor raster.

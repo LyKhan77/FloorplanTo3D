@@ -58,6 +58,7 @@ Buka <http://localhost:5173>.
    - **PDF multi-halaman** (set gambar CAD dari PM): thumbnail semua halaman tampil, klik halaman denahnya. Satu halaman = satu project. Foto lapangan yang ditempel di denah, bingkai lembar, dan title block dibuang otomatis.
    - **Skala:** dihitung dari dimensi grid bila ada. Denah tanpa dimensi (`SCALE: NTS`) memakai busur pintu dengan **lebar pintu standar** 800 mm, dengan peringatan di tahap 2. Bila ukurannya meleset, ubah "Lebar pintu standar (mm)" (Parameter lanjutan, atau tombol **Ubah lebar pintu** di tahap 2). Lebar pintu yang diisi selalu dipakai, juga bila ada dimensi grid.
    - Cable tray yang tergambar (pola tangga) tidak dibaca sebagai dinding atau kolom.
+   - **Jalur vektor (eksperimen):** untuk PDF CAD, toggle di bawah file membaca dinding langsung dari garis PDF dan menelusuri ruang satu per satu. Ruang yang tidak menutup muncul sebagai tugas **Ruang terbuka**. Default tetap jalur raster.
 2. **Tunggu tahap 0–5.** Gatsu butuh sekitar 2 menit. Status menjadi **Perlu review**. Bila skor validator terlalu rendah, statusnya **Perlu perhatian**; "Lanjutkan tetap" di tahap 5 melanjutkan tanpa kanvas review.
 3. **Buka review.** Di tab Pipeline, buka tahap 5, lalu klik "Buka review". Kanvas review 2D menampilkan hasil ekstraksi di atas gambar asli. Kerjakan daftar **Tugas review** di panel kiri:
    - **Celah terbuka:** klik tugas, lalu klik kedua titik kuning atau tombol "Tutup celah". Centang "Pasang pintu" bila celah itu pintu.
