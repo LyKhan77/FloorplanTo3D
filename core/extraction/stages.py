@@ -191,9 +191,11 @@ def _candidate_job(inputs: dict, index: int, params: dict) -> dict:
 
 def _vector_candidate(project_dir: Path, work: Path, inputs: dict, params: dict) -> dict | None:
     """The PDF-vector candidate, on request (`extract_source: vector`): it does not reach the gates yet."""
+    if params.get("extract_source") != "vector":
+        return None
     original = _original(project_dir)
     first = work / "candidates" / "0" / "elements.json"
-    if params.get("extract_source") != "vector" or original.suffix != ".pdf" or not first.exists():
+    if original.suffix != ".pdf" or not first.exists():
         return None
     page = json.loads((work.parent / "00_input" / "input.json").read_text())["page"] or 1
     labels = labels_from_ocr(inputs["ocr"], inputs["grid"]["px_to_mm"])
