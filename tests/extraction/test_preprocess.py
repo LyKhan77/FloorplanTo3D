@@ -6,7 +6,7 @@ import pytest
 
 import core.extraction.preprocess as pre
 from core.extraction.preprocess import drawing_bbox, load_raster, preprocess
-from tests.inputs import ANCOL, requires_ancol
+from tests.inputs import ANCOL, GATSU_PDF, requires_ancol, requires_gatsu_pdf
 
 PLAN = Path("floorplan/plan.jpeg")
 
@@ -155,3 +155,9 @@ def test_raster_underlay_survives_photo_removal(tmp_path):
     k = 300 / 72
     assert 100 < img[int(250 * k), int(400 * k)].mean() < 160  # underlay kept outside the photo
     assert img[int(150 * k), int(150 * k)].min() > 100  # photo gone
+
+
+@requires_gatsu_pdf
+def test_gatsu_pdf_page3_bbox_leaves_the_title_block_out():
+    r = preprocess(load_raster(GATSU_PDF, 3), sheet=True)
+    assert r.meta["drawing_bbox"][2] < 0.84 * r.meta["work_size"][0]

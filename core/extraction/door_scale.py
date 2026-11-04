@@ -15,6 +15,7 @@ STRAIGHT_RUN_FRAC = 1 / 200  # straight runs this long (share of the building's 
 # swing radius bounds as a share of the building's width (drawing bbox): scale-free, and a big sheet with a small
 # plan keeps its doors (a building 6-200 m wide has doors 1/8-1/250 of it)
 RADIUS_FRAC = (1 / 250, 1 / 8)
+FIXTURE_SHARE = 0.6  # of the widest doors: an arc below this is a sanitary fixture (Gatsu p4: 15 px against 53 px)
 LEAF_INK = 0.7  # share of the hinge-to-arc-end line that is ink: a door draws its leaf, lettering has none
 
 
@@ -40,8 +41,10 @@ def estimate_from_doors(binary: np.ndarray, bbox: tuple[int, int, int, int], lea
     doors = door_arcs(binary, bbox)
     if len(doors) < MIN_DOORS:
         return None
-    r = float(np.median([a["radius_px"] for a in doors]))
-    return {"mm_per_px": leaf_mm / r, "doors_used": len(doors), "door_radius_px": r}
+    radii = np.array([a["radius_px"] for a in doors])
+    leaves = radii[radii >= FIXTURE_SHARE * np.percentile(radii, 90)]  # basins and toilets also draw small arcs
+    r = float(np.median(leaves))
+    return {"mm_per_px": leaf_mm / r, "doors_used": len(leaves), "door_radius_px": r}
 
 
 def _leaf_share(ink: np.ndarray, centre, end) -> float:

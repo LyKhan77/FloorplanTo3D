@@ -7,7 +7,7 @@ import pytest
 import core.extraction.preprocess as pre
 from core.extraction.door_scale import estimate_from_doors
 from core.extraction.preprocess import load_raster, preprocess
-from tests.inputs import ANCOL, requires_ancol
+from tests.inputs import ANCOL, GATSU_PDF, requires_ancol, requires_gatsu_pdf
 
 
 def _plan(doors: int, radius: int = 40) -> np.ndarray:
@@ -64,3 +64,21 @@ def test_ancol_p13_door_scale_near_label_scale(dpi, monkeypatch):
     r = preprocess(load_raster(ANCOL, page=13), sheet=True)
     est = estimate_from_doors(r.binary, tuple(r.meta["drawing_bbox"]), 800)
     assert est["mm_per_px"] == pytest.approx(30.7 * 300 / dpi, rel=0.05)
+
+
+def test_small_fixture_arcs_do_not_pull_the_scale_down():
+    b = _plan(4, radius=50)
+    for i in range(6):  # basins and toilets: small arcs with a drawn line, like the ones on Gatsu's page 4
+        x = 150 + i * 150
+        cv2.line(b, (x, 750), (x, 750 - 15), 255, 2)
+        cv2.ellipse(b, (x, 750), (15, 15), 0, -90, 0, 255, 2)
+    r = estimate_from_doors(b, (0, 0, 1200, 900), 800)
+    assert r["door_radius_px"] == pytest.approx(50, rel=0.05)
+
+
+@requires_gatsu_pdf
+@pytest.mark.parametrize("page", [3, 4])
+def test_gatsu_pdf_door_scale(page):
+    r = preprocess(load_raster(GATSU_PDF, page), sheet=True)
+    est = estimate_from_doors(r.binary, tuple(r.meta["drawing_bbox"]), 800)
+    assert est["mm_per_px"] == pytest.approx(15.63, rel=0.08)

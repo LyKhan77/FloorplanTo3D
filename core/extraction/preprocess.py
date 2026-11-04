@@ -164,7 +164,8 @@ def drawing_bbox(binary: np.ndarray, colour: np.ndarray | None = None, sheet: bo
     if not boxes:
         return 0, 0, w, h
     # blocks of one building joined only by thin links (hatched bridges) come apart: grow over big neighbours
-    big = [b for b in boxes[1:] if b[4] >= BLOCK_MIN_SHARE * boxes[0][4]]
+    # (a title block standing the height of the sheet is no building block, even with its frame lines gone)
+    big = [b for b in boxes[1:] if b[4] >= BLOCK_MIN_SHARE * boxes[0][4] and b[3] - b[1] < FRAME_SPAN * h]
     x0, y0, x1, y1 = boxes[0][:4]
     gap = BLOCK_GAP * max(h, w)
     grown = True
