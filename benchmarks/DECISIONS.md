@@ -82,6 +82,8 @@ Ukur ulang setelah fase itu.
 ## 2026-11-04 — Jalur vektor dan penelusuran ruang, Ancol p13
 
 Pipeline penuh tahap 0–5 dengan `extract_source: vector`, bagian bawah p13, terhadap review user (v8), `gate_metrics`.
+Diukur pada skala v8 (`mm_per_px` 30.9233): estimasi pintu sekarang memberi 30.1, dan selisih 2.6% itu sudah menggeser
+koordinat keluar dari toleransi di ujung denah.
 
 | | Raster (v1) | Vektor | Gerbang |
 |---|---|---|---|
