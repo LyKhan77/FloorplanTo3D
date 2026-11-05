@@ -125,6 +125,19 @@ describe('ReviewCanvas objects', () => {
     expect(st().selection).not.toEqual(expect.arrayContaining([p.id, q.id]))
   })
 
+  it('a box leaves out a room only the dry run knows', () => {
+    const room = gt.rooms![0]
+    const xs = room.polygon.map((c) => c[0]), ys = room.polygon.map((c) => c[1])
+    const [x0, x1, y0, y1] = [Math.min(...xs) - 10, Math.max(...xs) + 10, Math.min(...ys) - 10, Math.max(...ys) + 10]
+    const { container } = render(<ReviewCanvas rooms={[room, { ...room, id: 'R999' }]} tasks={[]} backdrop={null} />)
+    const svg = container.querySelector('svg')!
+    fireEvent.pointerDown(svg, { button: 0, clientX: x0, clientY: -y1 })
+    fireEvent.pointerMove(svg, { clientX: x1, clientY: -y0 })
+    fireEvent.pointerUp(svg, { clientX: x1, clientY: -y0 })
+    expect(st().selection).toContain(room.id)
+    expect(st().selection).not.toContain('R999')
+  })
+
   it('a wall that does not divide a room draws faint', () => {
     act(() => { st().apply({ op: 'set_wall_divides', id: 'W1', divides: false }) })
     const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)

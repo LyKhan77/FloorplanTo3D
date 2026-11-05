@@ -38,6 +38,7 @@ const MIRROR: Record<string, string> = { start: 'end', end: 'start', left: 'righ
 function mergeWalls(s: Spec, ids: string[]): void {
   const walls = ids.map((id) => find(s.walls, id))
   const keep = walls.reduce((a, b) => (compareIds(b.id, a.id) < 0 ? b : a))
+  if (new Set(walls.map((w) => w.divides_room !== false)).size > 1) throw new Error(`a wall in ${ids.join(', ')} divides rooms and another does not`)
   const [ux, uy] = unit(keep)
   const maxT = Math.max(...walls.map((w) => w.thickness))
   const along = (p: number[]) => (p[0] - keep.a[0]) * ux + (p[1] - keep.a[1]) * uy

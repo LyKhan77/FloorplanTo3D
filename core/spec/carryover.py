@@ -141,9 +141,11 @@ def carry_over(new: Spec, head: Spec) -> tuple[Spec, dict]:
 
     s = _renamed(new.model_copy(update={"rooms": []}), wmap, omap, cmap, smap, {})
     heights = {w.id: w.height for w in head.walls}
+    apart = {w.id for w in head.walls if not w.divides_room}  # merged rooms: rooms rebuild from these below
     for w in s.walls:
         if w.id in heights and heights[w.id] is not None:
             w.height = heights[w.id]
+        w.divides_room = w.id not in apart
     s.meta.defaults = head.meta.defaults.model_copy()
     s.meta.id_seq = dict(alloc.meta.id_seq)
     s.objects = [ob.model_copy() for ob in head.objects]
@@ -169,6 +171,7 @@ def carry_over(new: Spec, head: Spec) -> tuple[Spec, dict]:
                   "stairs": len(new.stairs), "rooms": len(s.rooms)}
     lost = [{"id": w.id, "field": "height", "value": w.height} for w in head.walls
             if w.height is not None and w.id not in kept["walls"]]
+    lost += [{"id": i, "field": "divides_room", "value": False} for i in sorted(apart - kept["walls"])]
     lost += [{"id": r.id, "field": "name", "value": r.name} for r in head.rooms
              if r.provenance.source in EDITED_SOURCES and (r.name or r.type != "other") and r.id not in kept["rooms"]]
     report = {"matched": {k: len(v) for k, v in kept.items()},

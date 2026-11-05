@@ -3,7 +3,7 @@ from shapely.geometry import Point, Polygon
 
 from core.spec.merge import MergeError, merge_plan, unmerge_plan
 from core.spec.models import Opening, Wall
-from core.spec.ops import apply
+from core.spec.ops import OpError, apply
 from core.spec.rooms import rebuild_rooms
 from tests.spec.fixtures import spec_with_rooms, two_room_spec
 
@@ -85,3 +85,11 @@ def test_unmerge_restores_the_rooms():
 def test_unmerge_of_a_plain_room_is_refused():
     with pytest.raises(MergeError, match="bukan hasil gabungan"):
         unmerge_plan(spec_with_rooms(), "R1")
+
+
+def test_merging_a_wall_piece_that_divides_with_one_that_does_not_is_refused():
+    s = _three_rooms()
+    after = _run(s, merge_plan(s, [_at(s, 3000, 4500).id, _at(s, 6000, 1500).id]))
+    pieces = [w.id for w in after.walls if w.a[1] == w.b[1] == 3000]
+    with pytest.raises(OpError, match="divides rooms"):
+        _run(after, [{"op": "merge_walls", "ids": pieces, "reason": "gabung dinding kolinear"}])

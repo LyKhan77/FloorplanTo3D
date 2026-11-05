@@ -335,6 +335,8 @@ def _delete_wall(s: Spec, op: DeleteWall, ctx: Ctx) -> None:
 def _merge_walls(s: Spec, op: MergeWalls, ctx: Ctx) -> None:
     walls = [_find(s.walls, i) for i in op.ids]
     keep = min(walls, key=lambda w: id_key(w.id))
+    if len({w.divides_room for w in walls}) > 1:
+        raise ValueError(f"a wall in {', '.join(op.ids)} divides rooms and another does not")
     ux, uy, _ = _unit(keep)
     max_t = max(w.thickness for w in walls)
 

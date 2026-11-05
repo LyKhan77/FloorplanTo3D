@@ -119,7 +119,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     dragged.current = true  // the click that ends this drag must not pick the room under the cursor
     setTimeout(() => { dragged.current = false }, 0)
     const rect = { xa, xb, ya, yb }
-    useEditorStore.getState().select([...idsInRect(view, rect, (p) => svgPoint(p)), ...roomsInRect(rooms, rect, (p) => svgPoint(p))], e.shiftKey)
+    const known = rooms.filter((r) => view.rooms?.some((v) => v.id === r.id))  // the panels cannot act on a dry-run-only id
+    useEditorStore.getState().select([...idsInRect(view, rect, (p) => svgPoint(p)), ...roomsInRect(known, rect, (p) => svgPoint(p))], e.shiftKey)
   }
   const pick = (id: string) => (e: React.MouseEvent) => {
     if (readOnly) return

@@ -104,3 +104,30 @@ def test_ids_never_reused():
     head.meta.id_seq["W"] = 9  # W6-W9 were deleted
     out, _ = carry_over(assign_ids(moved(head, "W5", dx=400)), head)
     assert any(w.id == "W10" for w in out.walls)
+
+
+def _merged():
+    from core.spec.merge import merge_plan
+    from core.spec.ops import apply
+    from tests.spec.fixtures import spec_with_rooms
+
+    s = spec_with_rooms()
+    return apply(s, merge_plan(s, ["R1", "R2"]), "editor", 2)
+
+
+def test_a_merge_survives_reextraction():
+    from tests.spec.fixtures import two_room_spec
+
+    s, _ = carry_over(two_room_spec(), _merged())
+    assert next(w for w in s.walls if w.id == "W5").divides_room is False
+    assert [r.name for r in s.rooms] == ["KIRI"]
+
+
+def test_a_merge_lost_to_reextraction_is_reported():
+    from tests.spec.fixtures import two_room_spec
+
+    new = two_room_spec()
+    new.openings = [o for o in new.openings if o.wall_id != "W5"]
+    new.walls = [w for w in new.walls if w.id != "W5"]
+    _, rep = carry_over(new, _merged())
+    assert {"id": "W5", "field": "divides_room", "value": False} in rep["lost_edits"]

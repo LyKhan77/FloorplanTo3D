@@ -110,4 +110,13 @@ describe('applyOps (non-geometry)', () => {
     expect(r.failed).toEqual([])
     expect(r.spec.walls!.filter((w) => w.divides_room === false)).toHaveLength(1)
   })
+
+  it('merge_walls refuses pieces that differ in dividing rooms', () => {
+    const host = gt.walls![0]
+    const { spec } = applyOps(gt, [{ op: 'split_wall', id: host.id, at_offset: 1000 }])
+    const piece = spec.walls!.at(-1)!.id
+    const r = applyOps(gt, [{ op: 'split_wall', id: host.id, at_offset: 1000 }, { op: 'set_wall_divides', id: piece, divides: false },
+      { op: 'merge_walls', ids: [host.id, piece], reason: 'gabung' }])
+    expect(r.failed).toHaveLength(1)
+  })
 })
