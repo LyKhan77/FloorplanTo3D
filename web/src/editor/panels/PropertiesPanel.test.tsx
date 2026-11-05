@@ -20,6 +20,27 @@ function type(label: string, value: string) {
 describe('PropertiesPanel', () => {
   beforeEach(() => st().load('p1', gt))
 
+  it('a flight\'s width and risers are edited in place, the other flights untouched', () => {
+    const stair = gt.stairs!.find((x) => x.flights.length > 1) ?? gt.stairs![0]
+    act(() => st().select([stair.id]))
+    render(<PropertiesPanel />)
+    type('Lebar flight 1 (mm)', '1500')
+    type('Anak tangga flight 1', '14')
+    const op = st().ops.at(-1) as { op: string; id: string; flights: { width: number; risers: number }[] }
+    expect(op.op).toBe('set_stair')
+    expect(op.id).toBe(stair.id)
+    expect(op.flights[0]).toMatchObject({ width: 1500, risers: 14, start: stair.flights[0].start, end: stair.flights[0].end })
+    expect(op.flights.slice(1)).toEqual(stair.flights.slice(1))
+  })
+
+  it('a flight width out of range emits nothing', () => {
+    act(() => st().select([gt.stairs![0].id]))
+    render(<PropertiesPanel />)
+    type('Lebar flight 1 (mm)', '100')
+    expect(st().ops).toEqual([])
+    expect(screen.getByText('Isi 500–6000 mm')).toBeInTheDocument()
+  })
+
   it('wall height rejects out-of-range input and resets with null', () => {
     act(() => st().select(['W1']))
     render(<PropertiesPanel />)

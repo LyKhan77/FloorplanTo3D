@@ -137,11 +137,20 @@ function Body({ picked, view, templates }: { picked: Picked; view: Spec; templat
     }
     case 'stair': {
       const s = picked.item
+      const setFlight = (i: number, change: Partial<Stair['flights'][number]>) => useEditorStore.getState().apply(
+        { op: 'set_stair', id: s.id, flights: s.flights.map((f, k) => (k === i ? { ...f, ...change } : f)) as Stair['flights'] })
       return (
         <>
           <h4 className="editor-panel__title">Tangga {s.id}</h4>
-          <Info rows={[['Flight', s.flights.length], ['Tanjakan', s.flights.map((f) => f.risers).join(' + ')],
-            ['Lebar', s.flights.map((f) => formatM(f.width)).join(', ')],
+          {s.flights.map((f, i) => (
+            <div key={i}>
+              <MmInput id={`flight-width-${i}`} label={`Lebar flight ${i + 1} (mm)`} value={f.width} min={500} max={6000}
+                onCommit={(width) => setFlight(i, { width })} />
+              <MmInput id={`flight-risers-${i}`} label={`Anak tangga flight ${i + 1}`} value={f.risers} min={2} max={60}
+                unit="anak tangga" onCommit={(risers) => setFlight(i, { risers })} />
+            </div>
+          ))}
+          <Info rows={[['Flight', s.flights.length],
             ['Arah naik', s.flights.map((f) => `(${f.start.join(', ')}) → (${f.end.join(', ')})`).join('; ')],
             ['top_z', s.top_z == null ? 'default' : formatM(s.top_z)]]} />
         </>
