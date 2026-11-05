@@ -18,8 +18,8 @@ def test_import_regenerate_download(app_factory, plan_bytes):
         assert r.status_code == 201
         rid = client.post(f"/api/projects/{pid}/regenerate", json={"version": "HEAD"}).json()["run_id"]
         run = wait_status(client, pid, rid, {"succeeded", "needs_attention", "failed"}, timeout=180)
-        # stage 8 is needs_attention: Gatsu IoU 0.45 < 0.70 with the M2 mask (benchmarks/reports/m2-verify.md)
-        assert [s["status"] for s in run["stages"][7:]] == ["succeeded", "needs_attention", "succeeded", "succeeded"], run
+        # stage 8 is decided by drawing fit (Gatsu GT 0.93 >= 0.90); IoU is information only
+        assert [s["status"] for s in run["stages"][7:]] == ["succeeded"] * 4, run
         outs = client.get(f"/api/projects/{pid}/outputs").json()
         assert outs[0]["version"] == 1 and {"shell.glb", "report.pdf", "layout.blend"} <= {f["name"] for f in outs[0]["files"]}
         assert client.get(f"/api/projects/{pid}/outputs/1/report.html").status_code == 200
