@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../../types/spec'
 import { useEditorStore } from '../store'
+import { useAssistStore } from '../assist/store'
 import { ReviewCanvas } from './ReviewCanvas'
 
 const gt = gtJson as unknown as Spec
@@ -87,5 +88,32 @@ describe('ReviewCanvas objects', () => {
     // rotated 90°: 1200 along x, 600 along y (svg y is flipped)
     const xs = poly!.getAttribute('points')!.split(' ').map((p) => Number(p.split(',')[0]))
     expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(1200, 0)
+  })
+
+  it('a selected wall shows its id on the canvas', () => {
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    expect(container.querySelector('[data-wall-tip]')).toBeNull()
+    act(() => st().select(['W1']))
+    expect([...container.querySelectorAll('[data-wall-tip]')].map((t) => t.textContent)).toEqual(['W1'])
+  })
+
+  it('a wall crossing a Perbaiki area box shows its id inside the box', () => {
+    const w = gt.walls!.find((x) => x.id === 'W1')!
+    const near: [number, number] = [w.a[0] + (w.b[0] - w.a[0]) / 8, w.a[1] + (w.b[1] - w.a[1]) / 8]
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    act(() => { st().setTool('assist'); useAssistStore.getState().open([near[0] - 100, near[1] - 100, near[0] + 100, near[1] + 100]) })
+    const tip = [...container.querySelectorAll('[data-wall-tip]')].find((t) => t.textContent === 'W1')!
+    expect(Number(tip.getAttribute('x'))).toBeCloseTo(near[0], 0)
+    expect(Number(tip.getAttribute('y'))).toBeCloseTo(-near[1], 0)
+    act(() => { useAssistStore.getState().close(); st().setTool('select') })
+  })
+
+  it('the walls in a Perbaiki area box show their ids', () => {
+    const w = gt.walls!.find((x) => x.id === 'W1')!
+    const mid: [number, number] = [(w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2]
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    act(() => { st().setTool('assist'); useAssistStore.getState().open([mid[0] - 50, mid[1] - 50, mid[0] + 50, mid[1] + 50]) })
+    expect([...container.querySelectorAll('[data-wall-tip]')].map((t) => t.textContent)).toContain('W1')
+    act(() => { useAssistStore.getState().close(); st().setTool('select') })
   })
 })

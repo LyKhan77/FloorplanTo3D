@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import type { Backdrop, ReviewTask } from '../../api/types'
 import type { Room } from '../../types/spec'
-import { labelAt } from '../lib/geom'
+import { useAssistStore } from '../assist/store'
+import { clipSegment, labelAt } from '../lib/geom'
 import { idsInRect } from '../lib/rectPick'
 import { useEditorStore } from '../store'
 import { imageMatrix, svgPoint } from './planTransform'
@@ -34,6 +35,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
 }) {
   const view = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
+  const assisting = useEditorStore((s) => s.tool === 'assist') && !readOnly
+  const area = useAssistStore((s) => s.box)
   const svgRef = useRef<SVGSVGElement>(null)
   const dragged = useRef(false)
   const imgSize = useImageSize(backdrop?.url)
@@ -118,6 +121,13 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
 
   if (!view) return null
   const walls = new Map((view.walls ?? []).map((w) => [w.id, w]))
+  // the wall ids to read: a selected wall at its middle, a wall the marked area reaches (what Strata is told) inside the area
+  const tips = (view.walls ?? []).flatMap((w) => {
+    const part = assisting && area ? clipSegment(w.a, w.b, area) : null
+    const seg = part ?? (sel.has(w.id) ? [w.a, w.b] : null)
+    return seg ? [{ id: w.id, at: svgPoint([(seg[0][0] + seg[1][0]) / 2, (seg[0][1] + seg[1][1]) / 2]) }] : []
+  })
+  const tipSize = vb[2] / 100  // about 12 px whatever the zoom
   return (
     <svg ref={svgRef} className="review-canvas" viewBox={vb.join(' ')} role="application" aria-label="Kanvas review"
       onPointerDown={down} onPointerMove={move} onPointerUp={up} style={{ background: '#0b0b0b', touchAction: 'none' }}>
@@ -184,6 +194,10 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
         const [x, y] = svgPoint(labelAt(r))
         return <text key={`t${r.id}`} x={x} y={y} fill="#f4f4f4" fontSize={350} textAnchor="middle" style={{ pointerEvents: 'none' }}>{r.name}</text>
       })}
+      {tips.map(({ id, at }) => (
+        <text key={`tip${id}`} data-wall-tip x={at[0]} y={at[1]} fontSize={tipSize} textAnchor="middle" dominantBaseline="central"
+          fill="#f4f4f4" stroke="#000" strokeWidth={tipSize / 4} paintOrder="stroke" style={{ pointerEvents: 'none' }}>{id}</text>
+      ))}
       {tasks.map((t) => {
         const [x, y] = svgPoint(t.at)
         return <circle key={t.id} data-task={t.id} cx={x} cy={y} r={220} fill="none" stroke={t.kind === 'leak' ? '#fa4d56' : '#f1c21b'}

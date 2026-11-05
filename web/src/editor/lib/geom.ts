@@ -66,3 +66,16 @@ export function labelAt(room: Pick<Room, 'polygon' | 'label_pos'>): Pt {
   return best
 }
 
+/** The part of segment a-b inside a box (two opposite corners), or null when it misses the box (Liang-Barsky). */
+export function clipSegment(a: number[], b: number[], box: number[]): [number[], number[]] | null {
+  const [dx, dy] = [b[0] - a[0], b[1] - a[1]]
+  const [x0, x1, y0, y1] = [Math.min(box[0], box[2]), Math.max(box[0], box[2]), Math.min(box[1], box[3]), Math.max(box[1], box[3])]
+  let [t0, t1] = [0, 1]
+  for (const [p, q] of [[-dx, a[0] - x0], [dx, x1 - a[0]], [-dy, a[1] - y0], [dy, y1 - a[1]]]) {
+    if (p === 0) { if (q < 0) return null; continue }
+    if (p < 0) t0 = Math.max(t0, q / p)
+    else t1 = Math.min(t1, q / p)
+  }
+  if (t0 > t1) return null
+  return [[a[0] + t0 * dx, a[1] + t0 * dy], [a[0] + t1 * dx, a[1] + t1 * dy]]
+}
