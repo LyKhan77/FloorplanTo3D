@@ -2,22 +2,19 @@
 
 Overwritten at the start of every new task phase (AGENTS.md). History lives in CHANGELOG.md and git.
 
-## Phase: room-by-room extraction from PDF vectors (2026-11-04)
+## Phase: merge rooms in the review editor (2026-11-05)
 
-Branch `feat/room-tracing`, based on `feat/pdf-input` (not merged yet). Merge only after the user approves the
-improvement.
+Branch `feat/room-tracing`, not merged. Merge only after the user approves.
 
-Goal: the reviewer fixes about 20% of a plan, not most of it.
+Goal: partition cubicles (toilets) become one room with one name; the partitions stay in 3D.
 
-- [x] Measure the review of Ancol Lt. 2 (v1 vs v8) and the vector spike
-- [x] Design, plan, vector walls, door source, room tracer, `room_open`, vector switch in Project baru
-- [x] Outside-in structure selection (spec 6.5b)
-- [ ] Gates not reached (Ancol recall 0.79, precision 0.80, rooms 2/12, duplicates 0): the path is opt-in
-- [ ] User tries the vector path in the editor, final review, merge decision
-- [ ] Later: Strata `T5` for ambiguous gaps (own design)
+- [x] Spec: `docs/superpowers/specs/2026-11-05-merge-rooms-design.md`, approved
+- [ ] Plan, then `Wall.divides_room`, `set_wall_divides`, `merge-plan` route, Properties buttons, V box on rooms
+- [ ] User checks wall tags and Masalah zoom in the browser
 
 ## Queued
 
 - Page picker in a modal (bigger thumbnails, page names)
 - Guide line (L) slowness: measure in the browser
-- Merge decision for `feat/pdf-input`
+- Merge decisions for `feat/pdf-input` and `feat/room-tracing`
+- Later: Strata `T5` for ambiguous gaps (own design)
