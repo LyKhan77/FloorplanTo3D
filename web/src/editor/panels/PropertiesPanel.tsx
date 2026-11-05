@@ -23,13 +23,18 @@ const ROOM_TYPES = [
 
 type Picked =
   | { kind: 'wall'; items: Wall[] } | { kind: 'room'; item: Room } | { kind: 'rooms'; items: Room[] } | { kind: 'door'; item: Opening }
+  | { kind: 'walls+rooms'; walls: Wall[]; rooms: Room[] }
   | { kind: 'stair'; item: Stair } | { kind: 'column'; item: Column } | { kind: 'object'; item: PlacedObject }
 
 function pick(view: Spec, ids: string[]): Picked | null {
-  const walls = ids.map((id) => view.walls?.find((w) => w.id === id))
-  if (walls.length && walls.every(Boolean)) return { kind: 'wall', items: walls as Wall[] }
-  const rooms = ids.map((id) => view.rooms?.find((r) => r.id === id))
-  if (rooms.length >= 2 && rooms.every(Boolean)) return { kind: 'rooms', items: rooms as Room[] }
+  const rooms = (view.rooms ?? []).filter((r) => ids.includes(r.id))
+  const rest = ids.filter((id) => !rooms.some((r) => r.id === id))
+  if (rooms.length === 1 && rest.length) return pick(view, rest)  // a box that happens to hold one room
+  const walls = rest.map((id) => view.walls?.find((w) => w.id === id))
+  if (walls.length && walls.every(Boolean)) {
+    return rooms.length ? { kind: 'walls+rooms', walls: walls as Wall[], rooms } : { kind: 'wall', items: walls as Wall[] }
+  }
+  if (rooms.length >= 2 && !rest.length) return { kind: 'rooms', items: ids.map((id) => rooms.find((r) => r.id === id)!) }
   if (ids.length !== 1) return null
   const id = ids[0]
   const find = <T extends { id: string }>(xs: T[] | undefined) => xs?.find((x) => x.id === id)
@@ -154,6 +159,7 @@ function Body({ picked, view, templates }: { picked: Picked; view: Spec; templat
   switch (picked.kind) {
     case 'wall': return <WallProps items={picked.items} view={view} />
     case 'rooms': return <RoomsBulk items={picked.items} />
+    case 'walls+rooms': return <><WallProps items={picked.walls} view={view} /><RoomsBulk items={picked.rooms} /></>
     case 'room': return <RoomProps key={`${picked.item.id}:${picked.item.name}`} room={picked.item} />
     case 'door': {
       const d = picked.item
@@ -217,7 +223,7 @@ export function PropertiesPanel({ templates = [], rooms }: { templates?: Templat
       {!selection.length && <DefaultHeight view={view} />}
       {selection.length > 0 && !picked && <p className="helper">{selection.length} elemen terseleksi</p>}
       {picked && <Body picked={picked} view={view} templates={templates} />}
-      {(!selection.length || (picked && ['wall', 'door', 'stair'].includes(picked.kind))) && (
+      {(!selection.length || (picked && ['wall', 'walls+rooms', 'door', 'stair'].includes(picked.kind))) && (
         <Accordion size="sm" className="editor-correction">
           <AccordionItem title="Koreksi" open={tool === 'add-wall' || undefined}><CorrectionPanel /></AccordionItem>
         </Accordion>

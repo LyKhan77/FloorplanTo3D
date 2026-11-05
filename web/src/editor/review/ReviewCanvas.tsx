@@ -3,7 +3,7 @@ import type { Backdrop, ReviewTask } from '../../api/types'
 import type { Room } from '../../types/spec'
 import { useAssistStore } from '../assist/store'
 import { clipSegment, labelAt } from '../lib/geom'
-import { idsInRect } from '../lib/rectPick'
+import { idsInRect, roomsInRect } from '../lib/rectPick'
 import { useEditorStore } from '../store'
 import { imageMatrix, svgPoint } from './planTransform'
 
@@ -118,7 +118,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     if (xb - xa < 50 && yb - ya < 50) { if (!e.shiftKey) useEditorStore.getState().select([]); return }
     dragged.current = true  // the click that ends this drag must not pick the room under the cursor
     setTimeout(() => { dragged.current = false }, 0)
-    useEditorStore.getState().select(idsInRect(view, { xa, xb, ya, yb }, (p) => svgPoint(p)), e.shiftKey)
+    const rect = { xa, xb, ya, yb }
+    useEditorStore.getState().select([...idsInRect(view, rect, (p) => svgPoint(p)), ...roomsInRect(rooms, rect, (p) => svgPoint(p))], e.shiftKey)
   }
   const pick = (id: string) => (e: React.MouseEvent) => {
     if (readOnly) return

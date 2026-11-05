@@ -13,6 +13,16 @@ const press = (key: string) => act(() => { window.dispatchEvent(new KeyboardEven
 describe('useShortcuts', () => {
   beforeEach(() => st().load('p-1', gt))
 
+  it('Delete on a box that caught rooms deletes the walls only', () => {
+    const w2 = gt.walls![1]
+    const rooms = gt.rooms!.slice(0, 2).map((r) => r.id)
+    renderHook(() => useShortcuts([], () => {}))
+    act(() => st().select([w2.id, ...rooms]))
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete' })) })
+    expect(st().ops).toEqual([{ op: 'delete_wall', id: w2.id, reason: 'tombol Delete' }])
+    expect(st().failed).toEqual([])
+  })
+
   it.each(['Delete', 'Backspace'])('%s deletes the selected walls, and undo brings them back', (key) => {
     renderHook(() => useShortcuts([], () => {}))
     const [w1, w2] = gt.walls!

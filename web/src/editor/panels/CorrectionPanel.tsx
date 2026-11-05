@@ -147,10 +147,11 @@ export function CorrectionPanel() {
   const selection = useEditorStore((s) => s.selection)
   if (!view) return null
   if (!selection.length) return <AddWallForm />
-  const walls = selection.map((id) => view.walls?.find((w) => w.id === id)).filter((w): w is Wall => !!w)
-  if (walls.length >= 2 && walls.length === selection.length) return <BulkWalls walls={walls} />
-  if (selection.length !== 1) return null
-  const id = selection[0]
+  const ids = selection.filter((id) => !view.rooms?.some((r) => r.id === id))  // a V box also holds whole rooms
+  const walls = ids.map((id) => view.walls?.find((w) => w.id === id)).filter((w): w is Wall => !!w)
+  if (walls.length >= 2 && walls.length === ids.length) return <BulkWalls walls={walls} />
+  if (ids.length !== 1) return null
+  const id = ids[0]
   const w = view.walls?.find((x) => x.id === id), d = view.openings?.find((x) => x.id === id), s = view.stairs?.find((x) => x.id === id)
   if (w) return <WallForm key={id} w={w} />
   if (d) return <DoorForm key={id} d={d} />

@@ -149,8 +149,12 @@ describe('LayersPanel', () => {
       expect(st().ops).toEqual([{ op: 'set_room_type', id: 'R2', type: 'office' }, { op: 'set_room_type', id: 'R1', type: 'office' }])
     })
 
-    it('mixed selection shows no room bulk control', () => {
+    it('rooms with a wall keep the room bulk control, a room with an object does not', () => {
       act(() => st().select(['R1', 'R2', 'W1']))
+      const { unmount } = render(<PropertiesPanel />)
+      expect(screen.getByRole('combobox', { name: /Tipe semua ruang/ })).toBeInTheDocument()
+      unmount()
+      act(() => st().select(['R1', 'R2', 'O1']))
       render(<PropertiesPanel />)
       expect(screen.queryByRole('combobox', { name: /Tipe semua ruang/ })).toBeNull()
     })

@@ -34,8 +34,12 @@ describe('BulkWalls', () => {
     expect(st().notice?.text).toMatch('1 pintu ikut terhapus')
   })
 
-  it('mixed selection (wall + room) offers no bulk delete', () => {
+  it('a V box that also holds a room keeps the wall actions, a door in the selection does not', () => {
     act(() => st().select(['W1', 'W2', 'R1']))
+    const { unmount } = render(<CorrectionPanel />)
+    expect(screen.getByRole('button', { name: 'Hapus 2 dinding' })).toBeInTheDocument()
+    unmount()
+    act(() => st().select(['W1', 'W2', 'D1']))
     render(<CorrectionPanel />)
     expect(screen.queryByRole('button', { name: /Hapus \d+ dinding/ })).toBeNull()
   })

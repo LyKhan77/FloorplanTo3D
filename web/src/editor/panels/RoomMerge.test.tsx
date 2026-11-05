@@ -63,6 +63,20 @@ describe('merging rooms in Properties', () => {
     expect(screen.getByRole('button', { name: 'Pisahkan ruangan' })).toBeInTheDocument()
   })
 
+  it('a box with rooms and walls keeps both sets of actions', () => {
+    act(() => st().select([wall.id, gt.walls![1].id, a.id, b.id]))
+    render(<PropertiesPanel />)
+    expect(screen.getByRole('button', { name: 'Gabung ruangan' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Gabung' })).toBeInTheDocument()
+  })
+
+  it('one room caught with walls leaves the wall actions as they were', () => {
+    act(() => st().select([wall.id, gt.walls![1].id, a.id]))
+    render(<PropertiesPanel />)
+    expect(screen.queryByRole('button', { name: 'Gabung ruangan' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Gabung' })).toBeInTheDocument()
+  })
+
   it('a known room shows what the dry run says about it', () => {
     act(() => st().select([a.id]))
     render(<PropertiesPanel rooms={[around]} />)
