@@ -10,6 +10,7 @@ from core.extraction.preprocess import PDF_DPI, VECTOR_MIN_PATHS
 from core.extraction.vector.doors import find_doors
 from core.extraction.vector.lines import Point, read_lines
 from core.extraction.vector.rooms import trace_rooms
+from core.extraction.vector.structure import select_walls, solid_share
 from core.extraction.vector.walls import pair_walls
 from core.spec.rooms import RoomLabel
 
@@ -53,7 +54,8 @@ def vector_elements(pdf: Path, page: int, grid: dict, meta: dict, labels: list[R
     bbox = tuple(meta["drawing_bbox"])
     lines = read_lines(pdf, page, grid["px_to_mm_original"], _original_box(meta), PDF_DPI)
     columns = raster.get("columns", [])
-    t = trace_rooms(pair_walls(lines), find_doors(binary, bbox, grid["px_to_mm"]), columns, pick_seeds(labels),
+    structure = select_walls(pair_walls(lines), solid_share(binary, grid["px_to_mm"]))
+    t = trace_rooms(structure, find_doors(binary, bbox, grid["px_to_mm"]), columns, pick_seeds(labels),
                     _mm_box(grid["px_to_mm"], list(bbox)))
     walls = [{"a": [round(v) for v in w.a], "b": [round(v) for v in w.b], "thickness": max(10, round(w.thickness)),
               "kind": "interior", "strategy": "vector", "confidence": CLOSED if "closer" in w.evidence else SURE,

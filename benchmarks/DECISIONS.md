@@ -99,3 +99,15 @@ Gatsu PDF, skala p3 (15.63 mm/px), posisi diselaraskan ke GT, `wall_metrics` tol
 
 Keputusan: **gerbang belum tercapai, jadi jalur vektor tetap opsional** (`extract_source: vector`, default raster). Busur
 vektor tidak terpakai (potongan ~50 mm tidak tersambung), jadi pintu tetap dari detektor raster.
+
+### 2026-11-05 — Struktur dari luar ke dalam (`select_walls`)
+
+Bagian bawah Ancol p13 pada skala v8, Gatsu p4 pada skala 15.6259 dengan posisi diselaraskan ke GT (toleransi 150 mm).
+
+| | Ancol recall | Ancol presisi | Ruang | Dobel | Hapus / gambar | Gatsu p4 recall | Gatsu p4 presisi |
+|---|---|---|---|---|---|---|---|
+| Sebelum | 0.881 | 0.724 | 3 dari 12 | 2 | 84 / 39 | 0.708 | 0.650 |
+| Sesudah | 0.791 | 0.797 | 2 dari 12 | 0 | 37 / 52 | 0.599 | 0.636 |
+
+Ambang disapu pada kedua denah; hasilnya mendatar, jadi penyetelan lebih lanjut tidak membantu. Dinding palsu di dalam
+ruang berkurang, tetapi recall turun, terutama di Gatsu, yang jarang punya dinding tebal. Jalur vektor tetap opsional.

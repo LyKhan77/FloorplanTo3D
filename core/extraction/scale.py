@@ -207,7 +207,9 @@ def scale_from(grid: dict, dims: list[OcrItem], manual_mm_per_px: float | None, 
     y0 = max(a["px"] for a in grid["horizontal"]) if grid["horizontal"] else 0.0
     axes = [{"id": f"G{a['label']}", "label": a["label"], "orientation": name, "offset": offsets[(name, a["label"])],
              "px": round(a["px"], 3)}
-            for name in ("vertical", "horizontal") for a in sorted(grid[name], key=lambda a: a["px"])]
+            for name in ("vertical", "horizontal") for a in sorted(grid[name], key=lambda a: a["px"])
+            if a["label"]]  # a bubble whose letter the OCR missed: GridAxis needs a label, and no dimension names it
+    axes = list({a["id"]: a for a in reversed(axes)}.values())[::-1]  # the OCR can read one letter on both sides
     return {
         "status": "succeeded", "message": "", "axes": axes, "sx": sx, "sy": sy, "isotropic": solved["isotropic"],
         "px_to_mm": [sx, 0.0, -sx * x0, 0.0, -sy, sy * y0], "mm_per_px": (sx * sy) ** 0.5, "scale_source": source,

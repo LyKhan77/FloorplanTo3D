@@ -108,3 +108,17 @@ def test_door_estimate_source_has_no_manual_warning():
     g = scale_from(grid(), chain(), 26.0, source="door_estimate")
     assert g["scale_source"] == "door_estimate" and g["mm_per_px"] == pytest.approx(26.0)
     assert not [w for w in g["warnings"] if "skala manual" in w]
+
+
+def test_axis_without_a_label_is_left_out():
+    g = grid()
+    g["vertical"][0]["label"] = None
+    doc = scale_from(g, [], 25.0)
+    assert doc["status"] == "succeeded" and all(a["label"] for a in doc["axes"])
+
+
+def test_duplicate_axis_label_keeps_one_axis():
+    g = grid()
+    g["horizontal"][0]["label"] = "A"  # OCR read a bubble's letter twice: axis ids are "G" + label
+    ids = [a["id"] for a in scale_from(g, [], 25.0)["axes"]]
+    assert len(ids) == len(set(ids))

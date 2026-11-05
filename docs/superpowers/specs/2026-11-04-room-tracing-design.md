@@ -153,6 +153,20 @@ Modul baru `core/extraction/vector/`.
 - **Gagal:** ruang tidak dipaksa. Tidak ada penutup yang ditambahkan, jadi ujung dinding tetap menggantung dan labelnya
   tetap tanpa ruang. Keadaan itu terbaca langsung dari spec (§6.7).
 
+### 6.5b Revisi 2026-11-05: dari luar ke dalam
+
+Uji pada Ancol menunjukkan penelusuran "poligon terkecil di sekitar label" memilih garis dalam (rel tray, outline PAC,
+garis ubin) sebagai tepi ruang. User menyetujui urutan baru. Sebelum §6.5 berjalan, calon dinding disaring:
+
+1. **Dinding kokoh dulu:** calon yang menempel pita tebal pada hasil render (garis tipis hilang setelah opening), atau
+   pasangan garis panjang.
+2. **Garis di dalam dianggap isi ruang.** Calon lain hanya menjadi sekat kalau bukan cincin sejajar dinding kokoh dan
+   menempel dinding kokoh atau sekat yang sudah diterima. Garis tunggal harus menempel di kedua ujung.
+3. **Saringan:** deretan garis sejajar berjarak tetap adalah ubin.
+4. Ambang disetel terhadap Ancol dan Gatsu p4 bersama-sama.
+
+Gerbang §7 tetap. Target ruang belum tercapai dan dilaporkan apa adanya.
+
 ### 6.5a Tepi potongan lembar
 
 Ruang yang terbuka ke tepi denah yang terpotong bingkai lembar ditutup dengan dinding nyata di sepanjang tepi potongan
