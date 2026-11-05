@@ -184,7 +184,8 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
       {(view.walls ?? []).map((w) => {
         const [a, b] = [svgPoint(w.a), svgPoint(w.b)]
         return <line key={w.id} data-wall={w.id} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={Math.max(w.thickness, 60)}
-          stroke={sel.has(w.id) ? '#ffffff' : w.provenance?.source === 'editor' ? '#42be65' : '#4589ff'} strokeLinecap="square"
+          stroke={sel.has(w.id) ? '#ffffff' : w.provenance?.source === 'editor' ? '#42be65' : '#4589ff'}
+          strokeOpacity={w.divides_room === false ? 0.35 : 1} strokeLinecap="square"
           onClick={pick(w.id)} style={{ cursor: 'pointer' }} />
       })}
       {(view.openings ?? []).map((o) => {

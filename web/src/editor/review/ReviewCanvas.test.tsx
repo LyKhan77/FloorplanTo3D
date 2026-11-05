@@ -109,6 +109,13 @@ describe('ReviewCanvas objects', () => {
     act(() => { useAssistStore.getState().close(); st().setTool('select') })
   })
 
+  it('a wall that does not divide a room draws faint', () => {
+    act(() => { st().apply({ op: 'set_wall_divides', id: 'W1', divides: false }) })
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    expect(container.querySelector('[data-wall="W1"]')!.getAttribute('stroke-opacity')).toBe('0.35')
+    expect(container.querySelector('[data-wall="W2"]')!.getAttribute('stroke-opacity')).toBe('1')
+  })
+
   it('a wall tag keeps its screen size at any zoom', () => {
     const proto = SVGSVGElement.prototype as unknown as { getScreenCTM?: () => { a: number } }
     proto.getScreenCTM = () => ({ a: 0.02 })  // 1 px = 50 mm

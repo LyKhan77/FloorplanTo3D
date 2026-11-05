@@ -1,7 +1,10 @@
 import { Accordion, AccordionItem, Button, Checkbox, Dropdown, TextInput } from '@carbon/react'
 import { useState, type ReactNode } from 'react'
+import { api } from '../../api/client'
 import type { Column, Opening, PlacedObject, Room, Spec, Stair, Wall } from '../../types/spec'
+import { pointInPolygon } from '../lib/geom'
 import { distance, formatM, formatM2 } from '../lib/measure'
+import type { EditorOp } from '../ops/reducer'
 import { useEditorStore } from '../store'
 import type { Template } from '../../api/types'
 import { templateOf } from '../lib/transform'
@@ -84,9 +87,33 @@ function WallProps({ items, view }: { items: Wall[]; view: Spec }) {
   )
 }
 
+/** Asks the server for a merge plan over the unsaved ops, and applies it as one undo step. */
+function useRoomPlan(route: 'merge-plan' | 'unmerge-plan') {
+  const [busy, setBusy] = useState(false)
+  const run = async (body: { room_ids: string[] } | { room_id: string }) => {
+    const { projectId, baseVersion, ops, setNotice } = useEditorStore.getState()
+    setBusy(true)
+    try {
+      const plan = await api.post<{ ops: EditorOp[] }>(`/api/projects/${projectId}/specs/${route}`, { base_version: baseVersion, ops, ...body })
+      const s = useEditorStore.getState()
+      // its wall ids were counted on the ops it was asked about
+      if (s.ops !== ops) setNotice({ kind: 'warning', text: 'Denah berubah saat rencana dihitung; ulangi' })
+      else if (s.applyMany(plan.ops)) s.select([])
+    } catch (e) {
+      setNotice({ kind: 'error', text: e instanceof Error ? e.message : String(e) })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return { busy, run }
+}
+
 function RoomProps({ room }: { room: Room }) {
   const { apply, applyMany } = useEditorStore()
   const [name, setName] = useState(room.name ?? '')
+  const split = useRoomPlan('unmerge-plan')
+  const merged = useEditorStore((s) => (s.view?.walls ?? []).some((w) => w.divides_room === false
+    && pointInPolygon([(w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2], room.polygon as [number, number][]) !== 'outside'))
   const rename = () => { if (name !== (room.name ?? '')) apply({ op: 'rename_room', id: room.id, name }) }
   return (
     <>
@@ -99,6 +126,7 @@ function RoomProps({ room }: { room: Room }) {
       <Info rows={[['Luas', room.area_m2 == null ? '—' : formatM2(room.area_m2)],
         ['Keliling', room.perimeter_m == null ? '—' : formatM(room.perimeter_m * 1000)],
         ['Pintu', (room.doors ?? []).join(', ') || '—']]} />
+      {merged && <Button size="sm" kind="tertiary" disabled={split.busy} onClick={() => split.run({ room_id: room.id })}>Pisahkan ruangan</Button>}
       <MmInput id="room-height" label="Tinggi dinding ruang ini (mm)" value={null}
         onCommit={(v) => applyMany((room.bounding_walls ?? []).map((id) => ({ op: 'set_wall_height' as const, id, height: v })))} />
     </>
@@ -108,6 +136,7 @@ function RoomProps({ room }: { room: Room }) {
 function RoomsBulk({ items }: { items: Room[] }) {
   const applyMany = useEditorStore((s) => s.applyMany)
   const types = [...new Set(items.map((r) => r.type))]
+  const merge = useRoomPlan('merge-plan')
   return (
     <>
       <h4 className="editor-panel__title">{items.length} ruang terseleksi</h4>
@@ -116,6 +145,7 @@ function RoomsBulk({ items }: { items: Room[] }) {
         onChange={({ selectedItem: t }) => {
           if (t) applyMany(items.filter((r) => r.type !== t).map((r) => ({ op: 'set_room_type' as const, id: r.id, type: t })))
         }} />
+      <Button size="sm" kind="tertiary" disabled={merge.busy} onClick={() => merge.run({ room_ids: items.map((r) => r.id) })}>Gabung ruangan</Button>
     </>
   )
 }
@@ -172,11 +202,15 @@ function Body({ picked, view, templates }: { picked: Picked; view: Spec; templat
   }
 }
 
-export function PropertiesPanel({ templates = [] }: { templates?: Template[] }) {
-  const view = useEditorStore((s) => s.view)
+export function PropertiesPanel({ templates = [], rooms }: { templates?: Template[]; rooms?: Room[] | null }) {
+  const stored = useEditorStore((s) => s.view)
   const selection = useEditorStore((s) => s.selection)
   const tool = useEditorStore((s) => s.tool)
-  if (!view) return null
+  if (!stored) return null
+  // the client never rebuilds rooms: a known room reads from the dry run; one only the dry run knows stays unpicked,
+  // because the reducer could not rename it
+  const dry = new Map((rooms ?? []).map((r) => [r.id, r]))
+  const view = { ...stored, rooms: stored.rooms?.map((r) => dry.get(r.id) ?? r) }
   const picked = selection.length ? pick(view, selection) : null
   return (
     <section className="editor-panel" aria-label="Properties">

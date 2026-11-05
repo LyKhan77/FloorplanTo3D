@@ -168,7 +168,7 @@ export function EditorTab({ projectId, run }: { projectId: string; run: Run | nu
         ) : <div className="editor__canvas"><Viewport shellUrl={data.shellUrl} templates={data.templates} /></div>}
       </div>
       {right && <aside className="editor__props" aria-label="Properti">{tool === 'assist' ? <AssistPanel projectId={projectId} />
-        : tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} /> : <MeasurePanel />}
+        : tool === 'select' || tool === 'add-wall' ? <PropertiesPanel templates={data.templates} rooms={validation.rooms} /> : <MeasurePanel />}
         <IssuesPanel issues={validation.issues} newIssues={validation.newIssues}
           extra={validation.error ? [{ code: 'bad_op', severity: 'error', element_ids: [], message: validation.error }] : []} />
         <LayersPanel /></aside>}
