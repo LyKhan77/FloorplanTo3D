@@ -81,3 +81,24 @@ def test_rule_flags_violation(code, mutate, severity):
         assert r.ratios[code] > 0 and r.score < 1.0
 
 
+
+
+def _loose_spec():
+    from core.spec.models import Wall
+    from tests.spec.fixtures import spec_with_rooms
+
+    s = spec_with_rooms()
+    s.walls = [*s.walls,
+               Wall(id="W80", a=(5000, 3000), b=(7000, 3000), thickness=100, kind="interior"),  # one end on the partition
+               Wall(id="W81", a=(2000, 2000), b=(3000, 2000), thickness=100, kind="interior")]  # touches nothing
+    return s
+
+
+def test_only_a_wall_with_no_connection_is_listed():
+    res = validate(_loose_spec())
+    assert [(i.element_ids, i.message) for i in res.issues if i.code == "V004"] == [
+        (["W81"], "Dinding tidak tersambung ke dinding mana pun")]
+
+
+def test_one_loose_end_still_counts_in_the_score():
+    assert validate(_loose_spec()).ratios["V004"] == pytest.approx(2 / len(_loose_spec().walls))

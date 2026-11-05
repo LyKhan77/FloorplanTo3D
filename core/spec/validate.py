@@ -101,12 +101,12 @@ def v003(spec: Spec, ctx: ValidationContext) -> RuleResult:
 
 
 def v004(spec: Spec, ctx: ValidationContext) -> RuleResult:
-    def bad(w):
-        if w.free_ends:
-            return None
-        loose = [e for e in ("a", "b") if not endpoint_connected(spec, w, e)]
-        return f"unconnected end(s) {','.join(loose)}" if loose else None
-    return _per_element("V004", "warning", spec.walls, bad)
+    """Every loose end counts against the score (it ranks the extraction candidates), but only a wall joined to nothing
+    is listed: a wall may well end in the open, and an open room has its own review task."""
+    loose = {w.id: sum(not endpoint_connected(spec, w, e) for e in ("a", "b")) for w in spec.walls if not w.free_ends}
+    issues = [Issue("V004", "warning", [i], "Dinding tidak tersambung ke dinding mana pun")
+              for i, n in loose.items() if n == 2]
+    return issues, _ratio(sum(n > 0 for n in loose.values()), len(spec.walls))
 
 
 def v005(spec: Spec, ctx: ValidationContext) -> RuleResult:
