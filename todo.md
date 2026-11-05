@@ -10,7 +10,8 @@ Goal: partition cubicles (toilets) become one room with one name; the partitions
 
 - [x] Spec: `docs/superpowers/specs/2026-11-05-merge-rooms-design.md`, approved
 - [x] `Wall.divides_room`, `set_wall_divides`, `merge-plan` route, Properties buttons, V box on rooms
-- [ ] Final review of the branch, then the user tries it on the Ancol toilets
+- [x] Final review of the branch, fixes committed
+- [ ] User tries it on the Ancol toilets
 - [ ] User checks wall tags and Masalah zoom in the browser
 
 ## Queued
