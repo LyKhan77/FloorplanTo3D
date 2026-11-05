@@ -124,3 +124,34 @@ def test_commit_names_a_room_from_the_label_inside_it(client, project_with_gt, m
     assert r.status_code == 201
     saved = next(x for x in r.json()["spec"]["rooms"] if x["id"] == room["id"])
     assert saved["name"] == "R.CABLEVAULT"
+
+
+def _plan(client, pid, ops=(), room_ids=("R1", "R22")):
+    return client.post(f"/api/projects/{pid}/specs/merge-plan",
+                       json={"base_version": 1, "ops": list(ops), "room_ids": list(room_ids)})
+
+
+def test_merge_plan_returns_ops_and_writes_nothing(client, project_with_gt):
+    r = _plan(client, project_with_gt)
+    assert r.status_code == 200 and r.json()["ops"][0]["op"] == "set_wall_divides"
+    assert len(client.get(f"/api/projects/{project_with_gt}/specs").json()) == 1
+
+
+def test_merge_plan_sees_unsaved_ops(client, project_with_gt):
+    first = _plan(client, project_with_gt).json()["ops"]
+    r = _plan(client, project_with_gt, first)  # those ops already joined the two rooms
+    assert r.status_code == 400 and r.json()["error"]["code"] == "merge_refused"
+
+
+def test_merge_plan_refusal_is_400(client, project_with_gt):
+    r = _plan(client, project_with_gt, room_ids=["R1", "R999"])
+    assert r.status_code == 400 and r.json()["error"]["message"] == "Pilih minimal dua ruangan"
+
+
+def test_unmerge_plan_gives_the_wall_back(client, project_with_gt):
+    pid = project_with_gt
+    ops = _plan(client, pid).json()["ops"]
+    room = next(r for r in client.post(f"/api/projects/{pid}/specs/validate", json={"base_version": 1, "ops": ops}).json()["rooms"]
+                if r["id"] in ("R1", "R22"))
+    r = client.post(f"/api/projects/{pid}/specs/unmerge-plan", json={"base_version": 1, "ops": ops, "room_id": room["id"]})
+    assert r.status_code == 200 and r.json()["ops"] == [{**ops[0], "divides": True}]

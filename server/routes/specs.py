@@ -8,6 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from core.extraction.rooms.labels import best_label, labels_from_ocr
 from core.spec.diff import diff_specs
+from core.spec.merge import MergeError, merge_plan, unmerge_plan
 from core.spec.models import Spec
 from core.spec.ops import OpError, apply
 from core.spec.review_tasks import review_tasks
@@ -97,11 +98,7 @@ def commit(pid: str, body: OpsBody, request: Request, x_user: str | None = Heade
 
 @router.post("/validate")
 def dry_run(pid: str, body: OpsBody, request: Request):
-    base = _load(_store(request, pid), body.base_version)
-    try:
-        spec = apply(base, body.ops, "editor", base.meta.version + 1)
-    except OpError as e:
-        raise ApiError(400, "bad_op", e.message, {"index": e.index, "op": e.op, "message": e.message}) from None
+    spec = _with_ops(request, pid, body)
     labels = _labels(request, pid)
     spec = name_new_rooms(spec, labels, best_label)
     r = validate(spec)
@@ -120,6 +117,39 @@ def _labels(request: Request, pid: str):
         return labels_from_ocr(json.loads(ocr.read_text()), json.loads(grid.read_text())["px_to_mm"])
     except (OSError, ValueError, KeyError, TypeError):  # an unreadable stage-2 file drops the leak tasks, not the dry run
         return None
+
+
+class MergeBody(OpsBody):
+    room_ids: list[str]
+
+
+class UnmergeBody(OpsBody):
+    room_id: str
+
+
+def _with_ops(request: Request, pid: str, body: OpsBody) -> Spec:
+    """The spec as the editor sees it: the rooms it names may come from ops it has not saved."""
+    base = _load(_store(request, pid), body.base_version)
+    try:
+        return apply(base, body.ops, "editor", base.meta.version + 1)
+    except OpError as e:
+        raise ApiError(400, "bad_op", e.message, {"index": e.index, "op": e.op, "message": e.message}) from None
+
+
+@router.post("/merge-plan")
+def merge_rooms_plan(pid: str, body: MergeBody, request: Request):
+    try:
+        return {"ops": merge_plan(_with_ops(request, pid, body), body.room_ids)}
+    except MergeError as e:
+        raise ApiError(400, "merge_refused", str(e)) from None
+
+
+@router.post("/unmerge-plan")
+def unmerge_room_plan(pid: str, body: UnmergeBody, request: Request):
+    try:
+        return {"ops": unmerge_plan(_with_ops(request, pid, body), body.room_id)}
+    except MergeError as e:
+        raise ApiError(400, "merge_refused", str(e)) from None
 
 
 @router.post("/import", status_code=201)
