@@ -103,12 +103,11 @@ describe('applyOps (non-geometry)', () => {
     expect(applyOps(gt, [{ op: 'set_wall_divides', id: 'W999', divides: false }]).failed).toHaveLength(1)
   })
 
-  it('a server merge plan names the piece the client split makes', () => {
-    // core.spec.merge.merge_plan(gt, ['R4', 'R12']): the wall ids come from the server, the split runs here
-    const ops = [{'op': 'split_wall', 'id': 'W11', 'at_offset': 9770}, {'op': 'split_wall', 'id': 'W11', 'at_offset': 7285}, {'op': 'set_wall_divides', 'id': 'W79', 'divides': false}] as EditorOp[]
-    const r = applyOps(gt, ops)
+  it('set_wall_divides with a stretch marks only the piece it cuts out', () => {
+    const r = applyOps(gt, [{ op: 'set_wall_divides', id: 'W11', divides: false, start: 7285, end: 9770 }])
     expect(r.failed).toEqual([])
-    expect(r.spec.walls!.filter((w) => w.divides_room === false)).toHaveLength(1)
+    expect(r.spec.walls!.length).toBe(gt.walls!.length + 2)
+    expect(r.spec.walls!.filter((w) => w.divides_room === false).map((w) => w.id)).toEqual([r.spec.walls!.at(-1)!.id])
   })
 
   it('merge_walls refuses pieces that differ in dividing rooms', () => {

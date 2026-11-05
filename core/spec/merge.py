@@ -4,7 +4,6 @@ from itertools import permutations
 from shapely.geometry import LineString, Point
 from shapely.geometry import Polygon as SPolygon
 
-from core.spec.ids import seed_id_seq, take_id
 from core.spec.models import Room, Spec, Wall
 from core.spec.ops import OpError, apply
 
@@ -53,23 +52,14 @@ def _shared(wall: Wall, rooms: list[Room]) -> list[tuple[int, int]]:
 
 
 def _open_stretches(spec: Spec, rooms: list[Room]) -> list[dict]:
-    ids = spec.model_copy(deep=True)  # the ids the splits will take, in the order the ops run
-    seed_id_seq(ids)
     ops: list[dict] = []
     for wall in spec.walls:
         if not wall.divides_room or wall.kind == "low":
             continue
-        head, length = wall.id, round(LineString([wall.a, wall.b]).length)
+        length = round(LineString([wall.a, wall.b]).length)
         for start, end in reversed(_shared(wall, rooms)):  # far first: the piece from a keeps the wall's id and offsets
-            if end < length:
-                ops.append({"op": "split_wall", "id": head, "at_offset": end})
-                take_id(ids, "W")
-            piece = head
-            if start > 0:
-                ops.append({"op": "split_wall", "id": head, "at_offset": start})
-                piece = take_id(ids, "W")
-            ops.append({"op": "set_wall_divides", "id": piece, "divides": False})
-            length = start
+            cut = ({"start": start} if start > 0 else {}) | ({"end": end} if end < length else {})
+            ops.append({"op": "set_wall_divides", "id": wall.id, "divides": False, **cut})
     return ops
 
 
@@ -82,7 +72,7 @@ def _prove(spec: Spec, rooms: list[Room], ops: list[dict]) -> None:
     try:
         after = apply(spec, ops, "editor", (spec.meta.version or 0) + 1)
     except OpError as e:
-        if e.op == "split_wall":
+        if "crosses an opening" in e.message:
             raise MergeError("Batas ruangan mengenai bukaan; geser bukaannya dulu") from e
         raise MergeError(e.message) from e
     points = [Point(_point(r)) for r in rooms]

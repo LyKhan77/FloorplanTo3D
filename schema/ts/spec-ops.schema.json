@@ -1017,10 +1017,23 @@
     },
     "SetWallDivides": {
       "additionalProperties": false,
+      "description": "start/end cut out a stretch of the wall first (offsets from a): the cut and the mark are one op, so nothing\nhas to name a wall id the editor would have to predict.",
       "properties": {
         "divides": {
           "title": "Divides",
           "type": "boolean"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
         },
         "id": {
           "title": "Id",
@@ -1030,6 +1043,18 @@
           "const": "set_wall_divides",
           "title": "Op",
           "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
         }
       },
       "required": [

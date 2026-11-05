@@ -90,9 +90,13 @@ class SetWallHeight(_Op):
 
 
 class SetWallDivides(_Op):
+    """start/end cut out a stretch of the wall first (offsets from a): the cut and the mark are one op, so nothing
+    has to name a wall id the editor would have to predict."""
     op: Literal["set_wall_divides"]
     id: str
     divides: bool
+    start: Mm | None = None
+    end: Mm | None = None
 
 
 class SetDefault(_Op):
@@ -390,8 +394,14 @@ def _split_wall(s: Spec, op: SplitWall, ctx: Ctx) -> None:
 
 
 def _set_wall_divides(s: Spec, op: SetWallDivides, ctx: Ctx) -> None:
-    _touch(_find(s.walls, op.id), ctx, divides_room=op.divides)
-    _log(s, ctx, op.op, op.id)
+    piece = op.id
+    if op.end is not None:
+        _split_wall(s, SplitWall(op="split_wall", id=op.id, at_offset=op.end), ctx)
+    if op.start is not None:
+        _split_wall(s, SplitWall(op="split_wall", id=op.id, at_offset=op.start), ctx)
+        piece = s.walls[-1].id
+    _touch(_find(s.walls, piece), ctx, divides_room=op.divides)
+    _log(s, ctx, op.op, piece)
 
 
 def _move_wall(s: Spec, op: MoveWall, ctx: Ctx) -> None:

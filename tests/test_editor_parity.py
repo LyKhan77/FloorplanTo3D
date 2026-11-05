@@ -34,8 +34,9 @@ def _cases(gt: Spec) -> list[dict]:
         {"name": "split_wall", "ops": [{"op": "split_wall", "id": host.id, "at_offset": split_at}]},
         {"name": "split_then_merge", "ops": [{"op": "split_wall", "id": host.id, "at_offset": split_at},
                                              {"op": "merge_walls", "ids": [new_wall, host.id], "reason": "gabung"}]},
-        {"name": "split_then_set_divides", "ops": [{"op": "split_wall", "id": host.id, "at_offset": split_at},
-                                                   {"op": "set_wall_divides", "id": new_wall, "divides": False}]},
+        {"name": "set_divides", "ops": [{"op": "set_wall_divides", "id": w1.id, "divides": False}]},
+        {"name": "set_divides_stretch", "ops": [{"op": "set_wall_divides", "id": host.id, "divides": False,
+                                                 "start": split_at, "end": split_at + 100}]},
         {"name": "delete_wall_cascade", "ops": [{"op": "delete_wall", "id": host.id, "reason": "salah deteksi"}]},
         {"name": "set_door", "ops": [{"op": "set_door", "id": door.id, "width": door.width + 100, "hinge": "end"}]},
         {"name": "add_openings", "ops": [

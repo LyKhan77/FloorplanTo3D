@@ -33,6 +33,17 @@ describe('merging rooms in Properties', () => {
     expect(st().selection).toEqual([])
   })
 
+  it('a plan that cuts a saved wall goes through the store', async () => {
+    post.mockResolvedValue({ ops: [{ op: 'set_wall_divides', id: 'W11', divides: false, start: 7285, end: 9770 }] })
+    act(() => st().select([a.id, b.id]))
+    render(<PropertiesPanel />)
+    fireEvent.click(screen.getByRole('button', { name: 'Gabung ruangan' }))
+    await waitFor(() => expect(st().ops).toHaveLength(1))
+    expect(st().notice).toBeNull()
+    expect(st().view!.walls!.length).toBe(gt.walls!.length + 2)
+    expect(st().view!.walls!.filter((w) => w.divides_room === false)).toHaveLength(1)
+  })
+
   it('a refusal shows its reason and applies nothing', async () => {
     post.mockRejectedValue(new ApiError(400, 'merge_refused', 'Ruangan tidak berbagi dinding'))
     act(() => st().select([a.id, b.id]))

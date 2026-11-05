@@ -33,8 +33,10 @@ export type Height = number | null;
 export type Id2 = string;
 export type Op3 = "set_wall_height";
 export type Divides = boolean;
+export type End = number | null;
 export type Id3 = string;
 export type Op4 = "set_wall_divides";
+export type Start = number | null;
 export type Key = string;
 export type Op5 = "set_default";
 export type Value = number;
@@ -202,13 +204,13 @@ export type Flights = [Flight, ...Flight[]] | null;
  * @minItems 2
  * @maxItems 2
  */
-export type End = [number, number];
+export type End1 = [number, number];
 export type Risers = number;
 /**
  * @minItems 2
  * @maxItems 2
  */
-export type Start = [number, number];
+export type Start1 = [number, number];
 export type Width3 = number;
 export type Id11 = string;
 export type Landings = [number, number][][] | null;
@@ -275,10 +277,16 @@ export interface SetWallHeight {
   id: Id2;
   op: Op3;
 }
+/**
+ * start/end cut out a stretch of the wall first (offsets from a): the cut and the mark are one op, so nothing
+ * has to name a wall id the editor would have to predict.
+ */
 export interface SetWallDivides {
   divides: Divides;
+  end?: End;
   id: Id3;
   op: Op4;
+  start?: Start;
 }
 export interface SetDefault {
   key: Key;
@@ -389,9 +397,9 @@ export interface SetStair {
   top_z?: TopZ;
 }
 export interface Flight {
-  end: End;
+  end: End1;
   risers: Risers;
-  start: Start;
+  start: Start1;
   width: Width3;
 }
 export interface DeleteStair {

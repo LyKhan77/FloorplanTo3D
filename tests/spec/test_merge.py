@@ -1,8 +1,10 @@
+from pathlib import Path
+
 import pytest
 from shapely.geometry import Point, Polygon
 
 from core.spec.merge import MergeError, merge_plan, unmerge_plan
-from core.spec.models import Opening, Wall
+from core.spec.models import Opening, Spec, Wall
 from core.spec.ops import OpError, apply
 from core.spec.rooms import rebuild_rooms
 from tests.spec.fixtures import spec_with_rooms, two_room_spec
@@ -93,3 +95,12 @@ def test_merging_a_wall_piece_that_divides_with_one_that_does_not_is_refused():
     pieces = [w.id for w in after.walls if w.a[1] == w.b[1] == 3000]
     with pytest.raises(OpError, match="divides rooms"):
         _run(after, [{"op": "merge_walls", "ids": pieces, "reason": "gabung dinding kolinear"}])
+
+
+def test_a_plan_names_only_walls_that_exist():
+    """The editor refuses an op on an id it would have to predict, so a cut and its mark are one op."""
+    s = Spec.model_validate_json(Path("benchmarks/gatsu/gt_spec.json").read_text())
+    ops = merge_plan(s, ["R4", "R12"])
+    known = {w.id for w in s.walls}
+    assert all(o["id"] in known for o in ops if "id" in o)
+    assert len(_run(s, ops).walls) == len(s.walls) + 2
