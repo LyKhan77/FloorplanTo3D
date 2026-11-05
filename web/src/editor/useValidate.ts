@@ -28,10 +28,10 @@ export function useValidate(projectId: string, baseVersion: number | null, ops: 
   // a dry run costs the server seconds on a big plan; piled up, they starve every other request (the guide line's
   // snap among them). One in flight per editor; while it runs only the newest ops wait, the rest are not worth sending.
   const flight = useRef({ busy: false, next: null as EditorOp[] | null, latest: ops })
-  flight.current.latest = ops
   useEffect(() => {
-    if (baseVersion === null || !ops.length) return
     const f = flight.current
+    f.latest = ops
+    if (baseVersion === null || !ops.length) return
     const send = (sent: EditorOp[]) => {
       f.busy = true
       api.post<Result>(url, { base_version: baseVersion, ops: sent })
