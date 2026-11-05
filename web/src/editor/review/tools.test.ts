@@ -3,7 +3,7 @@ import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { ReviewTask } from '../../api/types'
 import type { Spec, Wall } from '../../types/spec'
 import { applyOps, type EditorOp } from '../ops/reducer'
-import { closeGapOps, doorOps, guideLineOps } from './tools'
+import { closeGapOps, doorOps, guideLineOps, stairOps } from './tools'
 
 const gt = gtJson as unknown as Spec
 const wall = (id: string, a: [number, number], b: [number, number]) =>
@@ -107,5 +107,15 @@ describe('doorOps', () => {
     expect(r).toEqual({ ops: [{ op: 'add_wall', a: [54000, 0], b: [54900, 0], thickness: 150, kind: 'partition',
       openings: [{ offset: 50, width: 800, ...DOOR }] }] })
     expect(applyOps(spec(), (r as { ops: EditorOp[] }).ops).failed).toEqual([])
+  })
+})
+
+describe('stairOps', () => {
+  it('runs from the lower end to the upper end, with a riser every 280 mm', () => {
+    expect(stairOps([1000, 0], [1000, 2800])).toEqual([{ op: 'add_stair', flights: [{ start: [1000, 0], end: [1000, 2800], width: 1200, risers: 10 }] }])
+  })
+
+  it('a short drag places nothing', () => {
+    expect(stairOps([0, 0], [100, 0])).toEqual([])
   })
 })

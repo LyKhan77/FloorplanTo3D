@@ -152,6 +152,7 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
                 {/* one stripe per riser, so a flight reads as steps */}
                 <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} strokeWidth={f.width} stroke="#d2a106" strokeOpacity={0.6}
                   strokeDasharray={`30 ${Math.max(1, tread - 30)}`} style={{ pointerEvents: 'none' }} />
+                <StairArrow a={a} b={b} width={f.width} />
               </g>
             )
           })}
@@ -195,4 +196,13 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
       {children}
     </svg>
   )
+}
+
+/** Which way a flight climbs: an arrowhead at its upper end. */
+function StairArrow({ a, b, width }: { a: number[]; b: number[]; width: number }) {
+  const length = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+  const [ux, uy] = [(b[0] - a[0]) / length, (b[1] - a[1]) / length]
+  const head = Math.min(width / 2, length / 3)
+  const wing = (s: number) => `${b[0] - ux * head - s * uy * head / 2},${b[1] - uy * head + s * ux * head / 2}`
+  return <polygon data-stair-arrow points={`${b[0]},${b[1]} ${wing(1)} ${wing(-1)}`} fill="#d2a106" style={{ pointerEvents: 'none' }} />
 }

@@ -123,6 +123,17 @@ export function guideLineOps(snap: { a: [number, number]; b: [number, number]; t
   return [{ op: 'add_wall', a: snap.a, b: snap.b, thickness: snap.thickness, kind: 'partition' }]
 }
 
+const STAIR_WIDTH_MM = 1200
+const STAIR_TREAD_MM = 280
+const STAIR_MIN_MM = 600
+
+/** A drag from the lower end to the upper end is one flight; the arrow on the canvas climbs that way. */
+export function stairOps(a: Pt, b: Pt): EditorOp[] {
+  const length = Math.hypot(b[0] - a[0], b[1] - a[1])
+  if (length < STAIR_MIN_MM) return []
+  return [{ op: 'add_stair', flights: [{ start: a, end: b, width: STAIR_WIDTH_MM, risers: Math.max(2, Math.round(length / STAIR_TREAD_MM)) }] }]
+}
+
 /** A rough guide line (mm) → the server snaps it onto the drawing → one wall; no double line nearby → a notice only. */
 export async function snapGuide(projectId: string, a: Pt, b: Pt): Promise<void> {
   const s = useEditorStore.getState()

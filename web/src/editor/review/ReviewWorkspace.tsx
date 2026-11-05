@@ -6,7 +6,7 @@ import type { Room } from '../../types/spec'
 import { useEditorStore } from '../store'
 import { svgPoint } from './planTransform'
 import { ReviewCanvas } from './ReviewCanvas'
-import { closeGapOps, doorOps, DOOR_SKIPPED_TEXT, snapGuide } from './tools'
+import { closeGapOps, doorOps, DOOR_SKIPPED_TEXT, snapGuide, stairOps } from './tools'
 import { ProposalLayer } from '../assist/ProposalLayer'
 import { useAssistStore } from '../assist/store'
 import { areaPointer } from '../assist/areaPointer'
@@ -45,13 +45,18 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       }
       return true
     }
-    if ((tool !== 'guide-line' && tool !== 'add-door') || e.button > 0) return false
+    if ((tool !== 'guide-line' && tool !== 'add-door' && tool !== 'add-stair') || e.button > 0) return false
     if (kind === 'down') setRough({ a: mm, b: mm })
     else if (kind === 'move' && rough) setRough({ ...rough, b: mm })
     else if (kind === 'up') {
       const a = rough?.a ?? mm
       setRough(null)
-      if (tool === 'add-door') {
+      if (tool === 'add-stair') {
+        const s = useEditorStore.getState(), round = (p: Pt): Pt => [Math.round(p[0]), Math.round(p[1])]
+        const ops = stairOps(round(a), round(mm))
+        if (ops.length) s.applyMany(ops)
+        else s.setNotice({ kind: 'warning', text: 'Tarik dari ujung bawah tangga ke ujung atas' })
+      } else if (tool === 'add-door') {
         // a click places a 900 mm door; a line from jamb to jamb is the door (on a wall, over a door, or across a gap)
         const s = useEditorStore.getState(), r = doorOps(s.view!, a, mm, s.wallSpec.thickness)
         if ('error' in r) s.setNotice({ kind: 'warning', text: r.error })
@@ -72,7 +77,7 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       if (ignoredTarget(e.target as Element | null)) return
       const s = useEditorStore.getState()
       if (e.key === 'Escape') { s.setWallDraft({}); s.setTool('select'); setRough(null); return }
-      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door', a: 'assist' } as Record<string, Tool>)[e.key.toLowerCase()]
+      const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door', s: 'add-stair', a: 'assist' } as Record<string, Tool>)[e.key.toLowerCase()]
       if (t && !e.ctrlKey && !e.metaKey && !e.altKey) s.setTool(t)
     }
     window.addEventListener('keydown', key)
@@ -108,4 +113,4 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   )
 }
 
-const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D'], ['assist', 'Perbaiki area', 'A']]
+const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D'], ['add-stair', 'Tangga', 'S'], ['assist', 'Perbaiki area', 'A']]
