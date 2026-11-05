@@ -871,7 +871,7 @@ body {
 .strata-detail__images img + img { width: min(100%, 192px); }
 
 // M8 review canvas (2D plan over the page image)
-.editor__canvas--plan { position: relative; display: flex; }
+.editor__canvas--plan { display: flex; }
 .editor-modes { display: flex; gap: .25rem; margin-top: 1rem; }
 .install-rebase { display: flex; gap: .5rem; align-items: center; }
 .install-viewer { position: relative; width: 100%; height: 100%; }
