@@ -600,6 +600,17 @@ body {
   font-weight: 600;
 }
 
+.editor-panel__toggle {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  cursor: pointer;
+
+  &:focus-visible { outline: 2px solid var(--cds-focus); }
+}
+
 .editor-info {
   display: grid;
   gap: 0.25rem;

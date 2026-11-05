@@ -34,4 +34,16 @@ describe('IssuesPanel collisions', () => {
     expect(screen.getByText('Tabrakan O1 ↔ O2')).toBeInTheDocument()
     expect(screen.getByText('V017')).toBeInTheDocument()
   })
+
+  it('the list hides and shows from its title', () => {
+    render(<IssuesPanel issues={[issue]} newIssues={new Set()} />)
+    const toggle = screen.getByRole('button', { name: /^Masalah/ })
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText(issue.message)).toBeInTheDocument()
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText(issue.message)).toBeNull()
+    fireEvent.click(toggle)
+    expect(screen.getByText(issue.message)).toBeInTheDocument()
+  })
 })

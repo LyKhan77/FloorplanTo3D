@@ -1,6 +1,6 @@
-import { ErrorFilled, InformationFilled, WarningAltFilled } from '@carbon/icons-react'
+import { ChevronDown, ChevronRight, ErrorFilled, InformationFilled, WarningAltFilled } from '@carbon/icons-react'
 import { Button, Tag } from '@carbon/react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { collisionsOf } from '../lib/obb'
 import { useEditorStore, type Issue } from '../store'
 
@@ -13,6 +13,7 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
   const missing = useEditorStore((s) => s.missingTemplates)
   const select = useEditorStore((s) => s.select)
   const view = useEditorStore((s) => s.view)
+  const [open, setOpen] = useState(true)
   const clashes = useMemo<Issue[]>(() => (view ? collisionsOf(view) : []).map(({ a, b }) => ({
     code: 'V017', severity: 'warning', element_ids: [a, b], message: `Tabrakan ${a} ↔ ${b}` })), [view])
   const all: Issue[] = [
@@ -23,9 +24,13 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
   ]
   return (
     <section className="editor-panel" aria-label="Masalah">
-      <h4 className="editor-panel__title">Masalah ({all.length})</h4>
-      {!all.length && <p className="helper">Tidak ada masalah.</p>}
-      <ul className="editor-issues">
+      <h4 className="editor-panel__title">
+        <button type="button" className="editor-panel__toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? <ChevronDown /> : <ChevronRight />}Masalah ({all.length})
+        </button>
+      </h4>
+      {open && !all.length && <p className="helper">Tidak ada masalah.</p>}
+      {open && <ul className="editor-issues">
         {all.map((i, n) => {
           const Icon = ICON[i.severity]
           return (
@@ -42,7 +47,7 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
             </li>
           )
         })}
-      </ul>
+      </ul>}
     </section>
   )
 }
