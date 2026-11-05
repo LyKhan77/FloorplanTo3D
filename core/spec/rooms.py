@@ -65,8 +65,14 @@ def _split_necks(p: SPolygon) -> list[SPolygon]:
     return pieces or [p]
 
 
+HAIRLINE_MM = 60  # gaps up to 2 x this between wall faces do not open a room; a door is far wider
 OUTLINE_CLOSE_MM = 1500  # gaps in the outer walls up to 2 x 1500 mm are bridged when taking the building shell
 MASS_MIN_MM2 = 2_000_000  # a closed shell this big is a building mass of its own (Gatsu's capacitor annex: ~3 m²)
+
+
+def _hairlines_closed(shape):
+    """Walls that look joined but stop a few cm apart (an edit on the 100 mm grid, a traced end) still make a room."""
+    return shape.buffer(HAIRLINE_MM, join_style="mitre").buffer(-HAIRLINE_MM, join_style="mitre")
 
 
 def _closed(union):
@@ -106,9 +112,9 @@ def _masses(shells: list[SPolygon]) -> list[SPolygon]:
 def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
-    union = unary_union([wall_footprint(w, spec) for w in spec.walls] + cols)
+    union = _hairlines_closed(unary_union([wall_footprint(w, spec) for w in spec.walls] + cols))
     # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
-    dividers = unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols)
+    dividers = _hairlines_closed(unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols))
     # the outline (gross area, slabs) bridges gaps in the outer walls; rooms come only from what the walls enclose,
     # so a porch or recess under 3 m never becomes a room the editor cannot delete
     outlines = _masses([SPolygon(p.exterior).simplify(0) for p in _parts(_closed(union))])  # closing: collinear pts

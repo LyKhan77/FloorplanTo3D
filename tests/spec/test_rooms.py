@@ -158,8 +158,9 @@ def test_band_with_a_gap_keeps_its_outline_and_only_walled_bays():
 
     walls = [_w(1, (0, 0), (6000, 0)), _w(2, (6000, 0), (6000, 1500)), _w(3, (6000, 1500), (4500, 1500)),
              _w(4, (2500, 1500), (0, 1500)), _w(5, (0, 1500), (0, 0))]  # 2 m of the band's top line missing
-    fins = [Column(id="C1", center=(2000, 750), shape="rect", size=(400, 1200)),
-            Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1200))]
+    # the fins stop 150 mm short of the walls: wider than a hairline, so the bays stay open
+    fins = [Column(id="C1", center=(2000, 750), shape="rect", size=(400, 1000)),
+            Column(id="C2", center=(4000, 750), shape="rect", size=(400, 1000))]
     rooms, outlines = form_rooms(_shell(walls, fins))
     assert outlines[0].area == pytest.approx(6_200 * 1_700, rel=0.01)
     assert rooms == []  # the open band encloses nothing; the editor user closes the gap, then the bays form
@@ -188,3 +189,22 @@ def test_ring_broken_twice_is_still_closed():
              _w(4, (12000, 8000), (7000, 8000)), _w(5, (5000, 8000), (0, 8000)), _w(6, (0, 8000), (0, 0))]
     _, outlines = form_rooms(_shell(walls))  # two C halves of ~3.6 m² each: open strips, not masses
     assert len(outlines) == 1 and outlines[0].area == pytest.approx(12_200 * 8_200, rel=0.01)
+
+
+def _box_with_gap(gap: float):
+    """A 10 x 6 m box whose south wall stops `gap` short of the east wall's face."""
+    s = two_room_spec()
+    walls = [Wall(id="W1", a=(0, 0), b=(9900 - gap, 0), thickness=200, kind="exterior"),
+             Wall(id="W2", a=(10000, 0), b=(10000, 6000), thickness=200, kind="exterior"),
+             Wall(id="W3", a=(10000, 6000), b=(0, 6000), thickness=200, kind="exterior"),
+             Wall(id="W4", a=(0, 6000), b=(0, 0), thickness=200, kind="exterior")]
+    return s.model_copy(update={"walls": walls, "openings": [], "columns": [], "rooms": []})
+
+
+def test_a_hairline_gap_does_not_open_a_room():
+    rooms, _ = form_rooms(_box_with_gap(80))
+    assert len(rooms) == 1 and rooms[0].area == pytest.approx(9800 * 5800, rel=0.02)
+
+
+def test_a_door_wide_gap_stays_open():
+    assert form_rooms(_box_with_gap(800))[0] == []
