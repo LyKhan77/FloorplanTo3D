@@ -12,7 +12,10 @@ import { ObjectProps } from './ObjectProps'
 /** RoomType enum (PRD/03 §6, core/spec/models.py). */
 const ROOM_TYPES = [
   'data_hall', 'ups_room', 'battery_room', 'electrical_room', 'mdf', 'ahu_room', 'capacitor_room', 'meeting', 'office',
-  'storage', 'pantry', 'toilet', 'corridor', 'lobby', 'stair', 'lift', 'prayer_room', 'outdoor', 'other',
+  'storage', 'pantry', 'toilet', 'corridor', 'lobby', 'stair', 'lift', 'prayer_room', 'outdoor',
+  'server_room', 'network_room', 'control_room', 'security_room', 'fire_suppression_room', 'generator_room',
+  'transformer_room', 'chiller_room', 'fuel_room', 'cable_vault', 'shaft', 'mechanical_room', 'workshop',
+  'staging_room', 'loading_dock', 'reception', 'rest_room', 'locker_room', 'parking', 'other',
 ] as const
 
 type Picked =
