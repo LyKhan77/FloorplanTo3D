@@ -79,3 +79,24 @@ export function clipSegment(a: number[], b: number[], box: number[]): [number[],
   if (t0 > t1) return null
   return [[a[0] + t0 * dx, a[1] + t0 * dy], [a[0] + t1 * dx, a[1] + t1 * dy]]
 }
+
+/** Where an element sits on the plan, to centre the canvas on it; null for an id the spec no longer has. */
+export function elementPoint(spec: Spec, id: string): Pt | null {
+  const mid = (a: number[], b: number[]): Pt => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+  const wall = spec.walls?.find((w) => w.id === id)
+  if (wall) return mid(wall.a, wall.b)
+  const room = spec.rooms?.find((r) => r.id === id)
+  if (room) return labelAt(room)
+  const opening = spec.openings?.find((o) => o.id === id)
+  const host = opening && spec.walls?.find((w) => w.id === opening.wall_id)
+  if (opening && host) {
+    const t = (opening.offset + opening.width / 2) / (Math.hypot(host.b[0] - host.a[0], host.b[1] - host.a[1]) || 1)
+    return [host.a[0] + t * (host.b[0] - host.a[0]), host.a[1] + t * (host.b[1] - host.a[1])]
+  }
+  const object = spec.objects?.find((o) => o.id === id)
+  if (object) return [object.position[0], object.position[1]]
+  const column = spec.columns?.find((c) => c.id === id)
+  if (column) return [column.center[0], column.center[1]]
+  const flight = spec.stairs?.find((st) => st.id === id)?.flights[0]
+  return flight ? mid(flight.start, flight.end) : null
+}

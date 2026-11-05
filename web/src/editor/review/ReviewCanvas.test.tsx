@@ -103,9 +103,19 @@ describe('ReviewCanvas objects', () => {
     const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
     act(() => { st().setTool('assist'); useAssistStore.getState().open([near[0] - 100, near[1] - 100, near[0] + 100, near[1] + 100]) })
     const tip = [...container.querySelectorAll('[data-wall-tip]')].find((t) => t.textContent === 'W1')!
-    expect(Number(tip.getAttribute('x'))).toBeCloseTo(near[0], 0)
-    expect(Number(tip.getAttribute('y'))).toBeCloseTo(-near[1], 0)
+    const [x, y] = tip.getAttribute('transform')!.match(/translate\((\S+) (\S+)\)/)!.slice(1).map(Number)
+    expect(x).toBeCloseTo(near[0], 0)
+    expect(y).toBeCloseTo(-near[1], 0)
     act(() => { useAssistStore.getState().close(); st().setTool('select') })
+  })
+
+  it('a wall tag keeps its screen size at any zoom', () => {
+    const proto = SVGSVGElement.prototype as unknown as { getScreenCTM?: () => { a: number } }
+    proto.getScreenCTM = () => ({ a: 0.02 })  // 1 px = 50 mm
+    const { container } = render(<ReviewCanvas rooms={gt.rooms!} tasks={[]} backdrop={null} />)
+    act(() => st().select(['W1']))
+    expect(container.querySelector('[data-wall-tip]')!.getAttribute('transform')).toContain('scale(50)')
+    delete proto.getScreenCTM
   })
 
   it('the walls in a Perbaiki area box show their ids', () => {

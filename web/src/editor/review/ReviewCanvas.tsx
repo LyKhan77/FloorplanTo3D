@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import type { Backdrop, ReviewTask } from '../../api/types'
 import type { Room } from '../../types/spec'
 import { useAssistStore } from '../assist/store'
@@ -9,6 +9,7 @@ import { imageMatrix, svgPoint } from './planTransform'
 
 const PAD_MM = 2000
 const DOOR = '#ff832b', WINDOW = '#33b1ff'  // bright on the dark canvas: a black door read as an open gap
+const TAG_CHAR_PX = 7.3, TAG_PAD_PX = 5, TAG_HEIGHT_PX = 18  // a wall tag, in screen px: 12 px IBM Plex Mono
 const ROOM_FILLS = ['#4589ff', '#08bdba', '#a56eff', '#42be65', '#ff7eb6', '#d2a106', '#33b1ff']
 type Box = [number, number, number, number]  // x, y, w, h in SVG units (mm, y flipped)
 
@@ -57,6 +58,12 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     const [x, y] = svgPoint(focus)
     setBox([x - 6000, y - 4000, 12000, 8000])
   }
+  // a tag is drawn in screen px: a size taken from the viewBox alone shrinks on a tall plan, which fits by its height
+  const [mmPerPx, setMmPerPx] = useState(1)
+  useLayoutEffect(() => {
+    const scale = svgRef.current?.getScreenCTM?.()?.a
+    if (scale) setMmPerPx(1 / scale)
+  }, [vb, selection])  // a new selection measures again, so a resized panel never leaves a stale tag
   const leak = useMemo(() => new Set(tasks.filter((t) => t.kind === 'leak').flatMap((t) => t.element_ids)), [tasks])
   const sel = useMemo(() => new Set(selection), [selection])
 
@@ -127,7 +134,6 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
     const seg = part ?? (sel.has(w.id) ? [w.a, w.b] : null)
     return seg ? [{ id: w.id, at: svgPoint([(seg[0][0] + seg[1][0]) / 2, (seg[0][1] + seg[1][1]) / 2]) }] : []
   })
-  const tipSize = vb[2] / 100  // about 12 px whatever the zoom
   return (
     <svg ref={svgRef} className="review-canvas" viewBox={vb.join(' ')} role="application" aria-label="Kanvas review"
       onPointerDown={down} onPointerMove={move} onPointerUp={up} style={{ background: '#0b0b0b', touchAction: 'none' }}>
@@ -194,10 +200,15 @@ export function ReviewCanvas({ rooms, tasks, backdrop, showImage = true, childre
         const [x, y] = svgPoint(labelAt(r))
         return <text key={`t${r.id}`} x={x} y={y} fill="#f4f4f4" fontSize={350} textAnchor="middle" style={{ pointerEvents: 'none' }}>{r.name}</text>
       })}
-      {tips.map(({ id, at }) => (
-        <text key={`tip${id}`} data-wall-tip x={at[0]} y={at[1]} fontSize={tipSize} textAnchor="middle" dominantBaseline="central"
-          fill="#f4f4f4" stroke="#000" strokeWidth={tipSize / 4} paintOrder="stroke" style={{ pointerEvents: 'none' }}>{id}</text>
-      ))}
+      {tips.map(({ id, at }) => {
+        const width = id.length * TAG_CHAR_PX + 2 * TAG_PAD_PX
+        return (
+          <g key={`tip${id}`} data-wall-tip className="review-wall-tag" transform={`translate(${at[0]} ${at[1]}) scale(${mmPerPx})`}>
+            <rect x={-width / 2} y={-TAG_HEIGHT_PX / 2} width={width} height={TAG_HEIGHT_PX} />
+            <text>{id}</text>
+          </g>
+        )
+      })}
       {tasks.map((t) => {
         const [x, y] = svgPoint(t.at)
         return <circle key={t.id} data-task={t.id} cx={x} cy={y} r={220} fill="none" stroke={t.kind === 'leak' ? '#fa4d56' : '#f1c21b'}
