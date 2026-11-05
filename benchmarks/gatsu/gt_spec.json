@@ -189,6 +189,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -214,6 +215,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -239,6 +241,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -264,6 +267,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -289,6 +293,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -314,6 +319,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -339,6 +345,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -364,6 +371,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -389,6 +397,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -414,6 +423,7 @@
       "grid_ref": [],
       "free_ends": true,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -439,6 +449,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -464,6 +475,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -489,6 +501,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -514,6 +527,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -539,6 +553,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -564,6 +579,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -589,6 +605,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -614,6 +631,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -639,6 +657,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -664,6 +683,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -689,6 +709,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -714,6 +735,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -739,6 +761,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -764,6 +787,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -789,6 +813,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -814,6 +839,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -839,6 +865,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -864,6 +891,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -889,6 +917,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -914,6 +943,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -939,6 +969,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -964,6 +995,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -989,6 +1021,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1014,6 +1047,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1039,6 +1073,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1064,6 +1099,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1089,6 +1125,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1114,6 +1151,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1139,6 +1177,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1164,6 +1203,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1189,6 +1229,7 @@
       "grid_ref": [],
       "free_ends": true,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1214,6 +1255,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1239,6 +1281,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1264,6 +1307,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1289,6 +1333,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1314,6 +1359,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1339,6 +1385,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1364,6 +1411,7 @@
       "grid_ref": [],
       "free_ends": true,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1389,6 +1437,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1414,6 +1463,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1439,6 +1489,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1464,6 +1515,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1489,6 +1541,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1514,6 +1567,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1539,6 +1593,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1564,6 +1619,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1589,6 +1645,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1614,6 +1671,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1639,6 +1697,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1664,6 +1723,7 @@
       "grid_ref": [],
       "free_ends": true,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1689,6 +1749,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1714,6 +1775,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1739,6 +1801,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1764,6 +1827,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1789,6 +1853,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1814,6 +1879,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1839,6 +1905,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1864,6 +1931,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1889,6 +1957,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1914,6 +1983,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1939,6 +2009,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1964,6 +2035,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -1989,6 +2061,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -2014,6 +2087,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -2039,6 +2113,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -2064,6 +2139,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,
@@ -2089,6 +2165,7 @@
       "grid_ref": [],
       "free_ends": false,
       "allow_skew": false,
+      "divides_room": true,
       "provenance": {
         "source": "manual",
         "confidence": 1.0,

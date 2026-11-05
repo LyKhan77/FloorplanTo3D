@@ -154,7 +154,7 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
       const id = takeId(s, 'W')
       ;(s.walls ??= []).push({
         id, a: op.a, b: op.b, thickness: op.thickness, kind: op.kind, height: null, base_z: 0, grid_ref: [],
-        free_ends: false, allow_skew: false,
+        free_ends: false, allow_skew: false, divides_room: true,
       })
       created[id] = index
       for (const o of op.openings ?? []) step(s, { ...o, op: 'add_opening', wall_id: id }, index, created)
