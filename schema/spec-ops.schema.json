@@ -1015,6 +1015,31 @@
       "title": "SetStair",
       "type": "object"
     },
+    "SetWallDivides": {
+      "additionalProperties": false,
+      "properties": {
+        "divides": {
+          "title": "Divides",
+          "type": "boolean"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "op": {
+          "const": "set_wall_divides",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "divides"
+      ],
+      "title": "SetWallDivides",
+      "type": "object"
+    },
     "SetWallHeight": {
       "additionalProperties": false,
       "properties": {
@@ -1316,6 +1341,7 @@
         "set_room_type": "#/$defs/SetRoomType",
         "set_room_type_at": "#/$defs/SetRoomTypeAt",
         "set_stair": "#/$defs/SetStair",
+        "set_wall_divides": "#/$defs/SetWallDivides",
         "set_wall_height": "#/$defs/SetWallHeight",
         "split_wall": "#/$defs/SplitWall",
         "update_object": "#/$defs/UpdateObject"
@@ -1334,6 +1360,9 @@
       },
       {
         "$ref": "#/$defs/SetWallHeight"
+      },
+      {
+        "$ref": "#/$defs/SetWallDivides"
       },
       {
         "$ref": "#/$defs/SetDefault"

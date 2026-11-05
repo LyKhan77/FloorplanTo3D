@@ -113,8 +113,9 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     """Return (room polygons with holes, outline per building mass). Openings do not cut footprints."""
     cols = [column_footprint(c) for c in spec.columns]
     union = _hairlines_closed(unary_union([wall_footprint(w, spec) for w in spec.walls] + cols))
-    # Low walls (planter edges, rails) belong to the building mass but do not divide rooms.
-    dividers = _hairlines_closed(unary_union([wall_footprint(w, spec) for w in spec.walls if w.kind != "low"] + cols))
+    # Low walls (planter edges, rails) and walls merged into a room belong to the building mass but do not divide rooms.
+    dividers = _hairlines_closed(unary_union([wall_footprint(w, spec) for w in spec.walls
+                                              if w.kind != "low" and w.divides_room] + cols))
     # the outline (gross area, slabs) bridges gaps in the outer walls; rooms come only from what the walls enclose,
     # so a porch or recess under 3 m never becomes a room the editor cannot delete
     outlines = _masses([SPolygon(p.exterior).simplify(0) for p in _parts(_closed(union))])  # closing: collinear pts

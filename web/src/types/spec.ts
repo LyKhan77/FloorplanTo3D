@@ -177,6 +177,7 @@ export type AllowSkew = boolean;
  */
 export type B = [number, number];
 export type BaseZ1 = number;
+export type DividesRoom = boolean;
 export type FreeEnds = boolean;
 export type GridRef1 = string[];
 export type Height2 = number | null;
@@ -356,6 +357,7 @@ export interface Wall {
   allow_skew?: AllowSkew;
   b: B;
   base_z?: BaseZ1;
+  divides_room?: DividesRoom;
   free_ends?: FreeEnds;
   grid_ref?: GridRef1;
   height?: Height2;

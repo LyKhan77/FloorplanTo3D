@@ -95,4 +95,11 @@ describe('applyOps (non-geometry)', () => {
     expect(r.spec.stairs!.at(-1)).toMatchObject({ id: `S${gt.stairs!.length + 1}`, base_z: 0, landings: [] })
     expect(JSON.stringify(gt)).toBe(before)
   })
+
+  it('set_wall_divides marks a wall and fails on an unknown id', () => {
+    const id = gt.walls![0].id
+    const { spec } = applyOps(gt, [{ op: 'set_wall_divides', id, divides: false }])
+    expect(spec.walls!.find((w) => w.id === id)!.divides_room).toBe(false)
+    expect(applyOps(gt, [{ op: 'set_wall_divides', id: 'W999', divides: false }]).failed).toHaveLength(1)
+  })
 })

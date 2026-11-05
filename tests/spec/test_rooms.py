@@ -208,3 +208,13 @@ def test_a_hairline_gap_does_not_open_a_room():
 
 def test_a_door_wide_gap_stays_open():
     assert form_rooms(_box_with_gap(800))[0] == []
+
+
+def test_a_wall_that_does_not_divide_joins_its_rooms_and_stays():
+    from core.spec.ops import apply
+
+    s = rebuild_rooms(two_room_spec())
+    merged = apply(s, [{"op": "set_wall_divides", "id": "W5", "divides": False}], "editor", 2)
+    assert len(merged.rooms) == 1 and any(w.id == "W5" for w in merged.walls)
+    back = apply(merged, [{"op": "set_wall_divides", "id": "W5", "divides": True}], "editor", 3)
+    assert len(back.rooms) == 2

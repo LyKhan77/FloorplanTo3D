@@ -1066,6 +1066,11 @@
           "title": "Base Z",
           "type": "integer"
         },
+        "divides_room": {
+          "default": true,
+          "title": "Divides Room",
+          "type": "boolean"
+        },
         "free_ends": {
           "default": false,
           "title": "Free Ends",

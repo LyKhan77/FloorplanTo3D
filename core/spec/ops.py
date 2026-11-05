@@ -89,6 +89,12 @@ class SetWallHeight(_Op):
     height: Mm | None
 
 
+class SetWallDivides(_Op):
+    op: Literal["set_wall_divides"]
+    id: str
+    divides: bool
+
+
 class SetDefault(_Op):
     op: Literal["set_default"]
     key: str
@@ -217,11 +223,11 @@ class AddStair(_Op):
 
 
 SpecOp = Annotated[
-    AddObject | UpdateObject | DeleteObject | SetWallHeight | SetDefault | RenameRoom | SetRoomType | SetRoomTypeAt | RenameRoomAt | DeleteWall | MergeWalls | SplitWall | MoveWall | AddWall | SetDoor | DeleteOpening | AddOpening | SetStair | DeleteStair | AddStair,
+    AddObject | UpdateObject | DeleteObject | SetWallHeight | SetWallDivides | SetDefault | RenameRoom | SetRoomType | SetRoomTypeAt | RenameRoomAt | DeleteWall | MergeWalls | SplitWall | MoveWall | AddWall | SetDoor | DeleteOpening | AddOpening | SetStair | DeleteStair | AddStair,
     Field(discriminator="op"),
 ]
 _OP_ADAPTER: TypeAdapter = TypeAdapter(SpecOp)
-GEOMETRY_OPS = {"delete_wall", "merge_walls", "split_wall", "move_wall", "add_wall"}
+GEOMETRY_OPS = {"delete_wall", "merge_walls", "split_wall", "move_wall", "add_wall", "set_wall_divides"}
 ROOM_AT_OPS = {"set_room_type_at", "rename_room_at"}
 
 
@@ -381,6 +387,11 @@ def _split_wall(s: Spec, op: SplitWall, ctx: Ctx) -> None:
     _log(s, ctx, op.op, op.id, f"new {nid}")
 
 
+def _set_wall_divides(s: Spec, op: SetWallDivides, ctx: Ctx) -> None:
+    _touch(_find(s.walls, op.id), ctx, divides_room=op.divides)
+    _log(s, ctx, op.op, op.id)
+
+
 def _move_wall(s: Spec, op: MoveWall, ctx: Ctx) -> None:
     _touch(_find(s.walls, op.id), ctx, **_set_fields(op, {"op", "id"}))
     _log(s, ctx, op.op, op.id)
@@ -435,7 +446,7 @@ def _add_stair(s: Spec, op: AddStair, ctx: Ctx) -> None:
 
 HANDLERS: dict[str, Callable[[Spec, Any, Ctx], None]] = {
     "add_object": _add_object, "update_object": _update_object, "delete_object": _delete_object,
-    "set_wall_height": _set_wall_height, "set_default": _set_default, "rename_room": _rename_room,
+    "set_wall_height": _set_wall_height, "set_wall_divides": _set_wall_divides, "set_default": _set_default, "rename_room": _rename_room,
     "set_room_type": _set_room_type, "delete_wall": _delete_wall, "merge_walls": _merge_walls,
     "split_wall": _split_wall, "move_wall": _move_wall, "add_wall": _add_wall, "set_door": _set_door,
     "delete_opening": _delete_opening, "add_opening": _add_opening, "set_stair": _set_stair,

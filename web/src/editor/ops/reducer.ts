@@ -113,6 +113,9 @@ function step(s: Spec, op: EditorOp, index: number, created: Record<string, numb
     case 'set_wall_height':
       for (const w of op.id === '*' ? (s.walls ?? []) : [find(s.walls, op.id)]) w.height = op.height
       return
+    case 'set_wall_divides':
+      find(s.walls, op.id).divides_room = op.divides
+      return
     case 'set_default':
       if (!DEFAULT_KEYS.includes(op.key as keyof Defaults)) throw new Error(`unknown default ${op.key}`)
       s.meta.defaults = { ...s.meta.defaults, [op.key]: op.value }

@@ -122,6 +122,7 @@ class Wall(_Model):
     grid_ref: list[str] = []
     free_ends: bool = False
     allow_skew: bool = False
+    divides_room: bool = True  # false: a partition inside one room (toilet cubicles); it still builds
     provenance: Provenance = Provenance()
 
 
