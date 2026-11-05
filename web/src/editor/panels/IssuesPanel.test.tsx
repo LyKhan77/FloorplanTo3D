@@ -46,4 +46,12 @@ describe('IssuesPanel collisions', () => {
     fireEvent.click(toggle)
     expect(screen.getByText(issue.message)).toBeInTheDocument()
   })
+
+  it('an element id selects it and centres the canvas on it', () => {
+    const wall = gt.walls!.find((w) => w.id === 'W1')!
+    render(<IssuesPanel issues={[issue]} newIssues={new Set()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'W1' }))
+    expect(useEditorStore.getState().selection).toEqual(['W1'])
+    expect(useEditorStore.getState().focus).toEqual([(wall.a[0] + wall.b[0]) / 2, (wall.a[1] + wall.b[1]) / 2])
+  })
 })

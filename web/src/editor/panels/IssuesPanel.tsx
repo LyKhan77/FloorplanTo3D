@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight, ErrorFilled, InformationFilled, WarningAltFilled } from '@carbon/icons-react'
 import { Button, Tag } from '@carbon/react'
 import { useMemo, useState } from 'react'
+import { elementPoint } from '../lib/geom'
 import { collisionsOf } from '../lib/obb'
 import { useEditorStore, type Issue } from '../store'
 
@@ -12,6 +13,7 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
   const saveIssues = useEditorStore((s) => s.saveIssues)
   const missing = useEditorStore((s) => s.missingTemplates)
   const select = useEditorStore((s) => s.select)
+  const setFocus = useEditorStore((s) => s.setFocus)
   const view = useEditorStore((s) => s.view)
   const [open, setOpen] = useState(true)
   const clashes = useMemo<Issue[]>(() => (view ? collisionsOf(view) : []).map(({ a, b }) => ({
@@ -22,6 +24,11 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
     ...(missing.length ? [{ code: 'TEMPLATE', severity: 'warning' as const, element_ids: missing,
       message: 'Template tidak ada di registry; objek ditampilkan sebagai kotak abu-abu' }] : []),
   ]
+  const show = (id: string) => {
+    select([id])
+    const at = view && elementPoint(view, id)
+    if (at) setFocus(at)
+  }
   return (
     <section className="editor-panel" aria-label="Masalah">
       <h4 className="editor-panel__title">
@@ -41,7 +48,7 @@ export function IssuesPanel({ issues, newIssues, extra = [] }: { issues: Issue[]
                 {newIssues.has(key(i)) && <Tag size="sm" type="magenta">baru</Tag>}
                 <p>{i.message}</p>
                 <span className="editor-issue__ids">
-                  {i.element_ids.map((id) => <Button key={id} kind="ghost" size="sm" onClick={() => select([id])}>{id}</Button>)}
+                  {i.element_ids.map((id) => <Button key={id} kind="ghost" size="sm" onClick={() => show(id)}>{id}</Button>)}
                 </span>
               </div>
             </li>
