@@ -2,21 +2,22 @@
 
 Overwritten at the start of every new task phase (AGENTS.md). History lives in CHANGELOG.md and git.
 
-## Phase: merge rooms in the review editor (2026-11-05)
+## Phase: merge `feat/room-tracing` into main (2026-11-05)
 
-Branch `feat/room-tracing`, not merged. Merge only after the user approves.
+The user approved the merge once the Blender tests pass. They abort in the agent's background session (-6), so the
+user runs them.
 
-Goal: partition cubicles (toilets) become one room with one name; the partitions stay in 3D.
+- [x] CHANGELOG and core docs updated
+- [ ] User runs the 5 Blender tests
+- [ ] Fast-forward `main` to `feat/room-tracing`; the user pushes
 
-- [x] Spec: `docs/superpowers/specs/2026-11-05-merge-rooms-design.md`, approved
-- [x] `Wall.divides_room`, `set_wall_divides`, `merge-plan` route, Properties buttons, V box on rooms
-- [x] Final review of the branch, fixes committed
-- [ ] User tries it on the Ancol toilets
-- [ ] User checks wall tags and Masalah zoom in the browser
+## Queued, in the agreed order
 
-## Queued
-
+- Reviewed Ancol spec (`ancol-lt-2-vector-v2-ba78` v17) as the new ground truth
+- Measure the vector gates again (the numbers predate the hairline fix)
+- Decide the default for vector PDFs
+- Room forming: Strata `T5` for ambiguous gaps (own design)
+- Review task that suggests merging partition cubicles
+- Show `lost_edits` in the UI
 - Page picker in a modal (bigger thumbnails, page names)
 - Guide line (L) slowness: measure in the browser
-- Merge decisions for `feat/pdf-input` and `feat/room-tracing`
-- Later: Strata `T5` for ambiguous gaps (own design)

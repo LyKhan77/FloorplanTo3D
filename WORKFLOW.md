@@ -15,7 +15,8 @@
    - the run pauses at **Perlu review**.
 3. **Review (Layout mode, 2D canvas):**
    - work through the review task list;
-   - correct with the tools: guide line `L`, new wall `W`, door `D`, close gap, bulk delete/room types;
+   - correct with the tools: guide line `L`, new wall `W`, door `D`, stair `S`, close gap, bulk delete/room types;
+   - merge rooms split by partitions: select them, then "Gabung ruangan" in Properties;
    - **Perbaiki area `A`**: an instruction to Strata for architecture fixes (walls, openings, stairs, rooms);
    - then **Setujui & build 3D**.
 4. **Stages 6–10:** LLM review → Blender build → verification (drawing fit ≥ 0.90) → report → publish. Outputs are

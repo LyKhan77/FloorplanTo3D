@@ -343,7 +343,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 - **Penyimpangan:**
   - title block tidak dideteksi (tidak ada data uji); hanya border kertas yang dikenali, dan area gambar mengabaikan piksel berwarna anotasi;
   - parser prompt Strata (T0) dipindah ke M6;
-  - pemilihan halaman PDF di form (P1) belum dibuat; field `page` sudah dihormati bila dikirim lewat API;
+  - pemilihan halaman PDF di form (P1) belum dibuat; field `page` sudah dihormati bila dikirim lewat API (dibuat 2026-11-03: page picker);
   - ambang keliling bulatan 90% (spec: 60%), karena lingkaran palsu di Gatsu mencapai 81%.
 - **Suite:** pytest 236 passed, 1 xfailed (runtime naik ke ~2 menit karena dua test server kini menjalankan tahap 1–2 asli); Vitest 144 passed; ruff, oxlint, dan build bersih.
 
@@ -708,6 +708,8 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
   - edit perangkat di kanvas 2D (drop Library, seret, `R`, angka di Properti).
 - Tes Strata langsung: "isi ruang ini dengan rack" → bertanya → 14 rack + in-row + containment di R. MEETING (catatan kapasitas); "K1 itu panel MDB" di Battery Room. Semua kasus 12/12.
 
+**Status 2026-11-05, branch `feat/room-tracing`.** Denah nyata Ancol Lt. 2 (PDF multi-halaman) sudah melewati ekstraksi, review, dan build 3D. Input PDF, skala dari pintu, jalur vektor (opt-in), `room_open`, tangga manual, dan gabung ruangan selesai. Gate jalur vektor belum tercapai (Ancol recall 79,1%, precision 79,7%, ruangan 2/12), dan angka itu belum diukur ulang sejak perbaikan celah tipis.
+
 ### Tugas — Deploy
 - [x] `docker/Dockerfile`: Ubuntu + Blender 5.2 LTS (pinned) + Python 3.12 + deps + font Plex. Web dibuild statis dan disajikan FastAPI.
 - [x] `docker/compose.yaml`: volume `DATA_DIR`, akses ke Strata host, `BLENDER_RENDER_DEVICE=CPU`.
@@ -750,7 +752,7 @@ Estimasi sudah termasuk test dan dokumentasi per milestone, dan belum termasuk b
 1. **Panel chat eskalasi (Tingkat 2)**: Strata + tool spec + render headless (FR-LLM-10).
 2. **Autentikasi** dan audit pengguna (Q-05).
 3. **Edit geometri langsung di viewport**: seret vertex dinding, geser pintu dengan mouse, pratinjau 3D di klien.
-4. **PDF vektor**: ekstraksi langsung dari path/teks (FR-IN-06).
+4. **PDF vektor**: ekstraksi langsung dari path/teks (FR-IN-06). Sejak 2026-11-05 tersedia sebagai jalur eksperimen (`extract_source: vector`). Gate belum tercapai, lihat `benchmarks/DECISIONS.md`.
 4b. **Strategi S3, segmentasi terlatih**: fine-tune UNet pada denah sintetis + denah nyata berlabel (≥ 20 denah), dipakai sebagai kandidat tambahan di sweep, bukan pengganti (ADR-8).
 5. **Animasi buka pintu** di editor (FR-WE-14).
 6. **Raised floor dan plafon** (Q-02).

@@ -3,6 +3,22 @@
 One line per change, newest first. Kinds: Feature · Fix · Refactor · Minor. Log only work the user confirmed as
 committed (see AGENTS.md).
 
+## 2026-11-05
+- **Feature:** PDF input: page picker, site photos and sheet frame dropped, door-width scale, cable-tray mask.
+- **Feature:** vector path, opt-in (`extract_source: vector`): walls from PDF paths, rooms traced one by one; gates not reached.
+- **Feature:** `room_open` review tasks for rooms that do not close.
+- **Feature:** merge rooms: "Gabung ruangan" / "Pisahkan ruangan"; partitions stay in 3D. The V box takes whole rooms.
+- **Feature:** manual stair (`S`) as a walking line; flight width and risers in Properties.
+- **Feature:** 19 more room types for data centres and general buildings.
+- **Feature:** wall id tags on the canvas for a selection and a Perbaiki area box.
+- **Feature:** Masalah list hides and shows; an element id centres the canvas on it.
+- **Fix:** a hairline gap between walls no longer opens a room.
+- **Fix:** rooms closed in the editor take the label inside them.
+- **Fix:** Masalah lists only walls joined to nothing, not every loose end.
+- **Fix:** review tools stay on screen on a tall plan.
+- **Fix:** one dry run at a time in the editor, so Garis Bantu no longer waits behind them.
+- **Fix:** grid axes the OCR misread no longer stop a run.
+
 ## 2026-11-03
 - **Feature:** front mark (yellow edge + arrow) on every device in the installation canvas; ⟲/⟳ 90° buttons.
 - **Feature:** one equipment layer.
