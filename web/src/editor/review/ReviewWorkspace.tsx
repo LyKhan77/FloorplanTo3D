@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ignoredTarget } from '../lib/keys'
 import type { Tool } from '../store'
 import type { Backdrop, ReviewTask } from '../../api/types'
@@ -34,6 +34,16 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       if (s.applyMany(r.ops) && r.doorSkipped) s.setNotice({ kind: 'info', text: DOOR_SKIPPED_TEXT[r.doorSkipped] })
     }
   }
+  const [stairPath, setStairPath] = useState<Pt[]>([])
+  const [stairCursor, setStairCursor] = useState<Pt | null>(null)
+  const finishStair = (path: Pt[]) => {
+    const s = useEditorStore.getState()
+    const ops = stairOps(path, s.view?.meta.defaults?.floor_to_floor ?? DEFAULT_FLOOR_TO_FLOOR_MM)
+    if (ops.length) s.applyMany(ops)
+    else s.setNotice({ kind: 'warning', text: 'Klik jalur tangga dari bawah ke atas; ruas harus minimal 2,4 m' })
+    setStairPath([])
+    setStairCursor(null)
+  }
   const onPointer = (kind: 'down' | 'move' | 'up', mm: Pt, e: React.PointerEvent) => {
     if (tool === 'assist' && e.button <= 0) return areaPointer(projectId, kind, mm, e, rough, setRough)
     if (tool === 'add-wall' && e.button <= 0) {
@@ -45,18 +55,23 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
       }
       return true
     }
-    if ((tool !== 'guide-line' && tool !== 'add-door' && tool !== 'add-stair') || e.button > 0) return false
+    if (tool === 'add-stair' && e.button <= 0) {
+      const p: Pt = [Math.round(mm[0] / 100) * 100, Math.round(mm[1] / 100) * 100]
+      if (kind === 'move') setStairCursor(p)
+      else if (kind === 'up') {
+        const last = stairPath.at(-1)
+        if (last && last[0] === p[0] && last[1] === p[1]) finishStair(stairPath)  // a second click on the same spot
+        else setStairPath([...stairPath, p])
+      }
+      return true
+    }
+    if ((tool !== 'guide-line' && tool !== 'add-door') || e.button > 0) return false
     if (kind === 'down') setRough({ a: mm, b: mm })
     else if (kind === 'move' && rough) setRough({ ...rough, b: mm })
     else if (kind === 'up') {
       const a = rough?.a ?? mm
       setRough(null)
-      if (tool === 'add-stair') {
-        const s = useEditorStore.getState(), round = (p: Pt): Pt => [Math.round(p[0]), Math.round(p[1])]
-        const ops = stairOps(round(a), round(mm))
-        if (ops.length) s.applyMany(ops)
-        else s.setNotice({ kind: 'warning', text: 'Tarik dari ujung bawah tangga ke ujung atas' })
-      } else if (tool === 'add-door') {
+      if (tool === 'add-door') {
         // a click places a 900 mm door; a line from jamb to jamb is the door (on a wall, over a door, or across a gap)
         const s = useEditorStore.getState(), r = doorOps(s.view!, a, mm, s.wallSpec.thickness)
         if ('error' in r) s.setNotice({ kind: 'warning', text: r.error })
@@ -66,6 +81,8 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
     return true
   }
 
+  const enterStair = useRef(() => {})
+  useEffect(() => { enterStair.current = () => { if (stairPath.length) finishStair(stairPath) } })
   const draft = useEditorStore((s) => s.wallDraft)
   // leaving the tool ends the session: its box and proposal belong to the canvas state it was made on
   useEffect(() => {
@@ -76,7 +93,8 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
     const key = (e: KeyboardEvent) => {
       if (ignoredTarget(e.target as Element | null)) return
       const s = useEditorStore.getState()
-      if (e.key === 'Escape') { s.setWallDraft({}); s.setTool('select'); setRough(null); return }
+      if (e.key === 'Escape') { s.setWallDraft({}); s.setTool('select'); setRough(null); setStairPath([]); setStairCursor(null); return }
+      if (e.key === 'Enter') { enterStair.current(); return }
       const t = ({ v: 'select', l: 'guide-line', w: 'add-wall', d: 'add-door', s: 'add-stair', a: 'assist' } as Record<string, Tool>)[e.key.toLowerCase()]
       if (t && !e.ctrlKey && !e.metaKey && !e.altKey) s.setTool(t)
     }
@@ -104,6 +122,10 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
         const [a, b] = [svgPoint(rough.a), svgPoint(rough.b)]
         return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={tool === 'add-door' ? '#ff832b' : '#42be65'} strokeWidth={80} strokeDasharray="200 120" />
       })()}
+      {tool === 'add-stair' && stairPath.length > 0 && (
+        <polyline data-stair-path points={[...stairPath, ...(stairCursor ? [stairCursor] : [])].map((p) => svgPoint(p).join(',')).join(' ')}
+          fill="none" stroke="#d2a106" strokeWidth={80} strokeDasharray="200 120" style={{ pointerEvents: 'none' }} />
+      )}
       {tool === 'add-wall' && draft.a && (() => {
         const [x, y] = svgPoint(draft.a)
         return <circle cx={x} cy={y} r={120} fill="#42be65" style={{ pointerEvents: 'none' }} />
@@ -113,4 +135,5 @@ export function ReviewWorkspace({ projectId, rooms, tasks, backdrop }: {
   )
 }
 
+const DEFAULT_FLOOR_TO_FLOOR_MM = 4000
 const REVIEW_TOOLS: [Tool, string, string][] = [['select', 'Pilih', 'V'], ['guide-line', 'Garis bantu', 'L'], ['add-wall', 'Dinding baru', 'W'], ['add-door', 'Pintu', 'D'], ['add-stair', 'Tangga', 'S'], ['assist', 'Perbaiki area', 'A']]

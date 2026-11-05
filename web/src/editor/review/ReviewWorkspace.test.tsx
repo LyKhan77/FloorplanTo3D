@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import gtJson from '../../../../benchmarks/gatsu/gt_spec.json'
 import type { Spec } from '../../types/spec'
@@ -95,5 +95,37 @@ describe('ReviewWorkspace drawn boxes', () => {
     expect(await findByText('K1')).toBeTruthy()
     expect(assist.useAssistStore.getState().drawn).toEqual([{ id: 'K1', center: [1000, 2000], size: [800, 1200], rotation: 0 }])
     spy.mockRestore()
+  })
+
+  it('S draws a stair click by click, and Enter finishes it', () => {
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    const svg = container.querySelector('svg')!
+    act(() => { fireEvent.keyDown(window, { key: 's' }) })
+    for (const [x, y] of [[10000, -5000], [10000, -9000], [14000, -9000]]) {
+      fireEvent.pointerDown(svg, { clientX: x, clientY: y, button: 0 })
+      fireEvent.pointerUp(svg, { clientX: x, clientY: y, button: 0 })
+    }
+    expect(useEditorStore.getState().ops).toEqual([])
+    act(() => { fireEvent.keyDown(window, { key: 'Enter' }) })
+    const op = useEditorStore.getState().ops.at(-1) as { op: string; flights: unknown[]; landings: unknown[] }
+    expect(op.op).toBe('add_stair')
+    expect(op.flights).toHaveLength(2)
+    expect(op.landings).toHaveLength(1)
+  })
+
+  it('a second click on the last point finishes too, and Esc drops the path', () => {
+    const { container } = render(<ReviewWorkspace projectId="p1" rooms={[]} tasks={[]} backdrop={null} />)
+    const svg = container.querySelector('svg')!
+    const click = (x: number, y: number) => {
+      fireEvent.pointerDown(svg, { clientX: x, clientY: y, button: 0 })
+      fireEvent.pointerUp(svg, { clientX: x, clientY: y, button: 0 })
+    }
+    act(() => { fireEvent.keyDown(window, { key: 's' }) })
+    click(10000, -5000); click(10000, -9000)
+    act(() => { fireEvent.keyDown(window, { key: 'Escape' }) })
+    expect(useEditorStore.getState().ops).toEqual([])
+    act(() => { fireEvent.keyDown(window, { key: 's' }) })
+    click(10000, -5000); click(10000, -9000); click(10000, -9000)
+    expect((useEditorStore.getState().ops.at(-1) as { op: string }).op).toBe('add_stair')
   })
 })

@@ -111,11 +111,40 @@ describe('doorOps', () => {
 })
 
 describe('stairOps', () => {
-  it('runs from the lower end to the upper end, with a riser every 280 mm', () => {
-    expect(stairOps([1000, 0], [1000, 2800])).toEqual([{ op: 'add_stair', flights: [{ start: [1000, 0], end: [1000, 2800], width: 1200, risers: 10 }] }])
+  const flights = (r: ReturnType<typeof stairOps>) => (r[0] as { flights: { start: number[]; end: number[]; width: number; risers: number }[] }).flights
+  const landings = (r: ReturnType<typeof stairOps>) => (r[0] as { landings: number[][][] }).landings
+  const box = (ring: number[][]) => [Math.min(...ring.map((p) => p[0])), Math.min(...ring.map((p) => p[1])),
+    Math.max(...ring.map((p) => p[0])), Math.max(...ring.map((p) => p[1]))]
+
+  it('a straight run is one flight with risers from the floor height', () => {
+    const r = stairOps([[1000, 0], [1000, 4000]], 4000)
+    expect(flights(r)).toEqual([{ start: [1000, 0], end: [1000, 4000], width: 1200, risers: 23 }])
+    expect(landings(r)).toEqual([])
   })
 
-  it('a short drag places nothing', () => {
-    expect(stairOps([0, 0], [100, 0])).toEqual([])
+  it('a corner is a landing, and the flights stop at its edges', () => {
+    const r = stairOps([[0, 0], [0, 4000], [4000, 4000]], 4000)
+    expect(flights(r).map((f) => [f.start, f.end])).toEqual([[[0, 0], [0, 3400]], [[600, 4000], [4000, 4000]]])
+    expect(box(landings(r)[0])).toEqual([-600, 3400, 600, 4600])
+    expect(flights(r).reduce((n, f) => n + f.risers, 0)).toBe(23)
+  })
+
+  it('a short leg between two flights is the landing of a U stair', () => {
+    const r = stairOps([[0, 0], [0, 4000], [1500, 4000], [1500, 0]], 4000)
+    expect(flights(r)).toHaveLength(2)
+    expect(flights(r)[1].end).toEqual([1500, 0])
+    expect(landings(r)).toHaveLength(1)
+    expect(box(landings(r)[0])).toEqual([-600, 3400, 2100, 4600])
+  })
+
+  it('risers follow the length of each flight', () => {
+    const [a, b] = flights(stairOps([[0, 0], [0, 6600], [3000, 6600]], 4000))
+    expect(a.risers).toBeGreaterThan(b.risers)
+    expect(a.risers + b.risers).toBe(23)
+  })
+
+  it('a path with no flight in it places nothing', () => {
+    expect(stairOps([[0, 0], [100, 0]], 4000)).toEqual([])
+    expect(stairOps([[0, 0]], 4000)).toEqual([])
   })
 })

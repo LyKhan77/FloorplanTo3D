@@ -1,6 +1,6 @@
 import { api, ApiError } from '../../api/client'
 import type { ReviewTask } from '../../api/types'
-import type { Spec } from '../../types/spec'
+import type { Flight, Spec } from '../../types/spec'
 import type { EditorOp } from '../ops/reducer'
 import { useEditorStore } from '../store'
 
@@ -124,14 +124,53 @@ export function guideLineOps(snap: { a: [number, number]; b: [number, number]; t
 }
 
 const STAIR_WIDTH_MM = 1200
-const STAIR_TREAD_MM = 280
-const STAIR_MIN_MM = 600
+const STAIR_RISER_MM = 175
+const MIN_RISERS = 2
 
-/** A drag from the lower end to the upper end is one flight; the arrow on the canvas climbs that way. */
-export function stairOps(a: Pt, b: Pt): EditorOp[] {
-  const length = Math.hypot(b[0] - a[0], b[1] - a[1])
-  if (length < STAIR_MIN_MM) return []
-  return [{ op: 'add_stair', flights: [{ start: a, end: b, width: STAIR_WIDTH_MM, risers: Math.max(2, Math.round(length / STAIR_TREAD_MM)) }] }]
+const unit = (a: Pt, b: Pt): Pt => {
+  const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+  return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]
+}
+const stepFrom = (p: Pt, d: Pt, by: number): Pt => [Math.round(p[0] + d[0] * by), Math.round(p[1] + d[1] * by)]
+
+/** The rectangle around the path's points where it turns, set square to the flight coming in. */
+function landing(points: Pt[], d: Pt, w: number): Pt[] {
+  const n: Pt = [-d[1], d[0]]
+  const dot = (p: Pt, v: Pt) => p[0] * v[0] + p[1] * v[1]
+  const us = points.map((p) => dot(p, d)), vs = points.map((p) => dot(p, n))
+  const [u0, u1, v0, v1] = [Math.min(...us) - w / 2, Math.max(...us) + w / 2, Math.min(...vs) - w / 2, Math.max(...vs) + w / 2]
+  const at = (u: number, v: number): Pt => [Math.round(u * d[0] + v * n[0]), Math.round(u * d[1] + v * n[1])]
+  return [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)]
+}
+
+/** Risers for the whole climb, shared out by flight length (largest remainder), so the rise per step stays right. */
+function shareRisers(lengths: number[], floorToFloor: number): number[] {
+  const total = Math.max(MIN_RISERS * lengths.length, Math.ceil(floorToFloor / STAIR_RISER_MM))
+  const sum = lengths.reduce((a, b) => a + b, 0)
+  const exact = lengths.map((l) => Math.max(MIN_RISERS, (total * l) / sum))
+  const out = exact.map(Math.floor)
+  const order = exact.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0])
+  for (let k = 0, left = total - out.reduce((a, b) => a + b, 0); k < left; k++) out[order[k % order.length][1]] += 1
+  return out
+}
+
+/** A walking line from the bottom to the top: long legs are flights, every turn and short leg between them a landing.
+ *  Straight, L, U and stairs with more turns are all this one shape; a curved stair is only approximated by short legs. */
+export function stairOps(path: Pt[], floorToFloor: number, width = STAIR_WIDTH_MM): EditorOp[] {
+  const legs = path.slice(1).map((b, i) => ({ i, a: path[i], b, long: Math.hypot(b[0] - path[i][0], b[1] - path[i][1]) >= 2 * width }))
+  const runs = legs.filter((l) => l.long)
+  if (!runs.length) return []
+  const landings: Pt[][] = []
+  const ends = runs.map((l) => ({ start: l.a, end: l.b }))
+  runs.slice(1).forEach((next, k) => {
+    const prev = runs[k], d = unit(prev.a, prev.b)
+    landings.push(landing(path.slice(prev.i + 1, next.i + 1), d, width))
+    ends[k].end = stepFrom(prev.b, d, -width / 2)
+    ends[k + 1].start = stepFrom(next.a, unit(next.a, next.b), width / 2)
+  })
+  const risers = shareRisers(ends.map((f) => Math.hypot(f.end[0] - f.start[0], f.end[1] - f.start[1])), floorToFloor)
+  const flights = ends.map((f, i) => ({ ...f, width, risers: risers[i] })) as [Flight, ...Flight[]]
+  return [{ op: 'add_stair', flights, landings }]
 }
 
 /** A rough guide line (mm) → the server snaps it onto the drawing → one wall; no double line nearby → a notice only. */
