@@ -14,6 +14,8 @@ _PROPOSED = re.compile(r"\b(?:PROPOSED|NEW|RENCANA|USULAN)\b")
 _DISMANTLE = re.compile(r"\b(?:DISMANTLE|BONGKAR|DEMOLISH)")
 _ANNOTATION = re.compile(r"NYY|\dX\d+C|ROUTE|CABLE|PANEL|SDP|UPS|MM²|MM2")
 _DIMENSION = re.compile(r"^\d{3,6}$")
+_ROOM_PREFIX = re.compile(r"(?:R\.|RUANG\b|ROOM\b)")
+_LEADER_TEXT = re.compile(r"ROUTE|NYY|\dX\d+C")
 _STAIR = re.compile(r"\b(?:NK|NAIK|UP|TR|TURUN|DN|DOWN)\b")
 _ROOM = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in ROOM_WORDS) + r")\b")
 
@@ -26,6 +28,8 @@ def classify_text(item: OcrItem, *, in_circle: bool, in_building: bool) -> str:
         return "proposed"
     if _DISMANTLE.search(t):
         return "dismantle"
+    if _ROOM_PREFIX.match(t) and not _LEADER_TEXT.search(t):
+        return "room_label"  # R.CABLE VAULT: a room's name may hold a word that marks cable notes
     if _ANNOTATION.search(t):
         return "annotation"
     if _DIMENSION.match(re.sub(r"[\s.,]", "", t)):

@@ -107,3 +107,20 @@ def test_validate_survives_a_broken_ocr_file(client, project_with_gt):
     (st / "grid.json").write_text("{}")
     r = client.post(f"/api/projects/{pid}/specs/validate", json={"base_version": 1, "ops": []})
     assert r.status_code == 200 and isinstance(r.json()["tasks"], list)
+
+
+def test_commit_names_a_room_from_the_label_inside_it(client, project_with_gt, monkeypatch):
+    from shapely.geometry import Polygon
+
+    from core.spec.rooms import RoomLabel
+    from server.routes import specs as routes
+
+    spec = client.get(f"/api/projects/{project_with_gt}/specs/HEAD").json()
+    room = spec["rooms"][0]
+    p = Polygon(room["polygon"]).representative_point()
+    monkeypatch.setattr(routes, "_labels", lambda *_: [RoomLabel((p.x, p.y), "R.CABLEVAULT", "cable_vault")])
+    ops = [{"op": "rename_room", "id": room["id"], "name": ""}]
+    r = client.post(f"/api/projects/{project_with_gt}/specs", json={"base_version": spec["meta"]["version"], "ops": ops})
+    assert r.status_code == 201
+    saved = next(x for x in r.json()["spec"]["rooms"] if x["id"] == room["id"])
+    assert saved["name"] == "R.CABLEVAULT"

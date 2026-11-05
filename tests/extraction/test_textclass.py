@@ -45,3 +45,9 @@ def test_gatsu_page_ocr_classes():
         assert word in rooms, rooms
     assert sum(c == "proposed" for _, c in items) >= 2
     assert any(c == "stair_dir" and t.strip().upper() == "NK" for t, c in items)
+
+
+def test_room_prefix_beats_the_cable_annotation():
+    assert classify_text(item("R.CABLEVAULT"), in_circle=False, in_building=True) == "room_label"
+    assert classify_text(item("R. PANEL"), in_circle=False, in_building=True) == "room_label"
+    assert classify_text(item("ROUTE CABLE KE R.NAVA"), in_circle=False, in_building=True) == "annotation"

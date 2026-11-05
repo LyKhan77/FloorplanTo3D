@@ -124,6 +124,22 @@ def form_rooms(spec: Spec) -> tuple[list[SPolygon], list[SPolygon]]:
     return rooms, outlines
 
 
+def name_new_rooms(spec: Spec, labels: list[RoomLabel] | None,
+                   pick: Callable[[list[RoomLabel]], RoomLabel | None] | None = None) -> Spec:
+    """A room the reviewer closed by editing takes the label inside it; a room with a name keeps it."""
+    s = spec.model_copy(deep=True)
+    for i, r in enumerate(s.rooms):
+        if r.name:
+            continue
+        shape = SPolygon(r.polygon, r.holes)
+        inside = [lb for lb in labels or [] if shape.covers(SPoint(lb.at))]
+        label = pick(inside) if pick else next(iter(inside), None)
+        if label:
+            s.rooms[i] = Room.model_validate({**r.model_dump(), "name": label.name, "label_pos": label.at,
+                                              "type": label.type if r.type == "other" else r.type})
+    return s
+
+
 def _ring(coords) -> list[tuple[int, int]]:
     return [(round(x), round(y)) for x, y in list(coords)[:-1]]
 

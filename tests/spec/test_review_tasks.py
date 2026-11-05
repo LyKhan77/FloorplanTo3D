@@ -2,7 +2,7 @@
 
 from core.spec.models import Provenance, Wall
 from core.spec.review_tasks import review_tasks
-from core.spec.rooms import RoomLabel, rebuild_rooms
+from core.spec.rooms import RoomLabel, name_new_rooms, rebuild_rooms
 from tests.spec.fixtures import spec_with_rooms
 
 
@@ -152,3 +152,14 @@ def test_raster_spec_gets_no_room_open():
     s, labels = _open_room()
     plain = s.model_copy(update={"walls": [w.model_copy(update={"provenance": Provenance()}) for w in s.walls]})
     assert "room_open" not in _kinds(review_tasks(plain, labels))
+
+
+def test_new_room_takes_its_label_and_a_named_one_keeps_its_name():
+    s, _labels = _open_room()
+    s.walls.append(Wall(id="W4", a=(5000, 0), b=(5000, 4000), thickness=150, kind="interior"))
+    s = rebuild_rooms(s.model_copy(update={"rooms": []}))
+    assert s.rooms[0].name == ""
+    named = name_new_rooms(s, [RoomLabel((2500, 2000), "GUDANG", "storage")])
+    assert named.rooms[0].name == "GUDANG" and named.rooms[0].type == "storage"
+    kept = name_new_rooms(named, [RoomLabel((2500, 2000), "RUANG LAIN", "office")])
+    assert kept.rooms[0].name == "GUDANG" and kept.rooms[0].type == "storage"

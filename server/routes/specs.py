@@ -6,11 +6,12 @@ from dataclasses import asdict
 from fastapi import APIRouter, Header, Query, Request
 from pydantic import BaseModel, ValidationError
 
-from core.extraction.rooms.labels import labels_from_ocr
+from core.extraction.rooms.labels import best_label, labels_from_ocr
 from core.spec.diff import diff_specs
 from core.spec.models import Spec
 from core.spec.ops import OpError, apply
 from core.spec.review_tasks import review_tasks
+from core.spec.rooms import name_new_rooms
 from core.spec.store import SpecStore, ValidationFailed, VersionConflict
 from core.spec.validate import validate
 from server.errors import ApiError
@@ -80,7 +81,9 @@ def commit(pid: str, body: OpsBody, request: Request, x_user: str | None = Heade
         raise ApiError(409, "run_in_progress", "a run is creating a new spec version (stage 5-6); retry later")
     message = f"user={x_user}; {body.message}" if x_user else body.message
     try:
-        spec, result = _store(request, pid).commit_ops(body.base_version, body.ops, "editor", message)
+        labels = _labels(request, pid)
+        spec, result = _store(request, pid).commit_ops(body.base_version, body.ops, "editor", message,
+                                                       finish=lambda s: name_new_rooms(s, labels, best_label))
     except VersionConflict as e:
         raise ApiError(409, "spec_conflict", str(e), {"base": e.base, "head": e.head}) from None
     except ValidationFailed as e:
@@ -99,10 +102,12 @@ def dry_run(pid: str, body: OpsBody, request: Request):
         spec = apply(base, body.ops, "editor", base.meta.version + 1)
     except OpError as e:
         raise ApiError(400, "bad_op", e.message, {"index": e.index, "op": e.op, "message": e.message}) from None
+    labels = _labels(request, pid)
+    spec = name_new_rooms(spec, labels, best_label)
     r = validate(spec)
     return {"score": r.score, "passed": r.passed, "issues": _issues(r.issues),
             "rooms": [room.model_dump(mode="json") for room in spec.rooms],
-            "tasks": review_tasks(spec, _labels(request, pid))}
+            "tasks": review_tasks(spec, labels)}
 
 
 def _labels(request: Request, pid: str):

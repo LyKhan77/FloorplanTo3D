@@ -94,11 +94,12 @@ class SpecStore:
             return self._save_unlocked(spec, source, run_id, message)
 
     def commit_ops(self, base_version: int, ops: list[dict], by: str, message: str = "",
-                   run_id: str | None = None) -> tuple[Spec, ValidationResult]:
+                   run_id: str | None = None, finish=None) -> tuple[Spec, ValidationResult]:
+        """finish: last step on the new spec before it is saved (the route names rooms from the OCR labels)."""
         with self._locked():
             head = self.head()
             if base_version != head:
                 raise VersionConflict(base_version, head)
             new = apply(self.load(head), ops, by, version=head + 1)
-            saved = self._save_unlocked(new, by, run_id, message)
+            saved = self._save_unlocked(finish(new) if finish else new, by, run_id, message)
             return saved, validate(saved)
