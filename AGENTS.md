@@ -44,6 +44,7 @@ user.
 - **Review editor (2D/3D):**
   - review tasks;
   - correction tools: guide line, new wall, door, close gap, bulk actions.
+  - merge rooms: walls between them stop dividing (`Wall.divides_room`, `core/spec/merge.py`) and stay in 3D.
 - **Perbaiki area (tool `A`, Layout mode):** the user marks an area and writes an instruction. Strata proposes
   architecture fixes (walls, openings, stairs, room type/name), which are previewed, then Terima/Tolak/revise.
 - **Instalasi & Interior mode:** every device lives here: racks, CRAC, UPS, panels, CCTV, cable trays and drops.

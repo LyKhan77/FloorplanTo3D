@@ -9,7 +9,8 @@ Branch `feat/room-tracing`, not merged. Merge only after the user approves.
 Goal: partition cubicles (toilets) become one room with one name; the partitions stay in 3D.
 
 - [x] Spec: `docs/superpowers/specs/2026-11-05-merge-rooms-design.md`, approved
-- [ ] Plan, then `Wall.divides_room`, `set_wall_divides`, `merge-plan` route, Properties buttons, V box on rooms
+- [x] `Wall.divides_room`, `set_wall_divides`, `merge-plan` route, Properties buttons, V box on rooms
+- [ ] Final review of the branch, then the user tries it on the Ancol toilets
 - [ ] User checks wall tags and Masalah zoom in the browser
 
 ## Queued
