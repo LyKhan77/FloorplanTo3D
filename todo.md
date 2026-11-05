@@ -2,14 +2,9 @@
 
 Overwritten at the start of every new task phase (AGENTS.md). History lives in CHANGELOG.md and git.
 
-## Phase: merge `feat/room-tracing` into main (2026-11-05)
+## Phase: next pipeline work (2026-11-05)
 
-The user approved the merge once the Blender tests pass. They abort in the agent's background session (-6), so the
-user runs them.
-
-- [x] CHANGELOG and core docs updated
-- [ ] User runs the 5 Blender tests
-- [ ] Fast-forward `main` to `feat/room-tracing`; the user pushes
+`feat/room-tracing` is merged into `main`. The user pushes. Start the next item on a new branch.
 
 ## Queued, in the agreed order
 
